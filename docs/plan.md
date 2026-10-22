@@ -2,7 +2,7 @@
 
 > See also: [Preprocessing follow-up](followup_preprocessing.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
-**Status:** design brief. Decisions N1–N24 were made with the project owner in October 2026
+**Status:** design brief. Decisions N1–N28 were made with the project owner in October 2026
 and are recorded in §12. Points still to be measured are listed in §13.
 **Scope:** one importable library with every normalization method for microscopy images, the
 statistics those methods need, the modality rules that decide which methods are meaningful,
@@ -182,7 +182,7 @@ profile allows.
 
 ### 7.1 Plane histograms (existing)
 
-`plane_histograms.csv`, schema version 1, unchanged: one row per 2D plane and channel, with
+`plane_histograms.csv`, schema version 2, unchanged: one row per 2D plane and channel, with
 exact extrema, pixel counts and binned counts. Used by families A–D and the luminance option.
 
 ### 7.2 Colour statistics (new)
@@ -325,6 +325,20 @@ Made with the project owner, October 2026.
 23. **N23** Only the columns of the method used are written.
 24. **N24** Colour statistics: exact summaries plus pixel samples in a binary file next to
     the CSV.
+
+Added with the project owner during Milestone 0 (contract review), October 2026:
+
+25. **N25** Modality profiles offer only the methods they name; where a family is named, all
+    its methods (contract §5).
+26. **N26** For optical density, I₀ is estimated per image (all Z and T planes, per time point
+    when time points are separate groups), so patches may span planes; colour methods keep
+    I₀ per 2D plane (contract §3.4, §9.1).
+27. **N27** Every row whose method uses a reference records it in `normalization_reference`,
+    as an identifier relative to the experiment root, never an absolute path (contract
+    §10.1).
+28. **N28** Luminance is computed from pixels: at the image and patch scopes, or with a
+    reference image as the single parameter source (also for `quantitative`). Luminance
+    histograms for group scopes are deferred (contract §3.6, §12).
 
 ## 13. Still to measure
 

@@ -182,7 +182,7 @@ profile allows.
 
 ### 7.1 Plane histograms (existing)
 
-`plane_histograms.csv`, schema version 1, unchanged: one row per 2D plane and channel, with
+`plane_histograms.csv`, schema version 2, unchanged: one row per 2D plane and channel, with
 exact extrema, pixel counts and binned counts. Used by families A–D and the luminance option.
 
 ### 7.2 Colour statistics (new)

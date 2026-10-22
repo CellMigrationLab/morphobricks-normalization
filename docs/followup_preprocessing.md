@@ -21,7 +21,7 @@ normalization code comes from `morphobricks_normalization` (N1, N2).
   `dtypes.py`, `records.py`, `csv_io.py`, `pooling.py`, `normalization.py`. Their public names
   stay importable from `morphobricks_preprocessing` for one version, with a
   `DeprecationWarning` naming the new location (N6).
-- `plane_histograms.csv` stays schema version 1, and every output (CSV, manifest, OME-Zarr
+- `plane_histograms.csv` stays schema version 2, and every output (CSV, manifest, OME-Zarr
   copies) is bit-identical before and after.
 - Acceptance: the existing test suite passes unchanged, apart from tests that move with the
   code to the normalization brick.

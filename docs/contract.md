@@ -550,10 +550,9 @@ Unchanged (plan §7.1): one row per 2D plane and channel, defined by the preproc
 contract §4–§5 and the moved `csv_io.py` (§1.1). Used by families A–D and luminance (from
 pixels, §3.6).
 
-> Plan §7.1 and preprocessing follow-up P1 say "schema version 1". The preprocessing brick
-> moved to schema version 2 on 21 October 2026 (`z`, `c`, `t` always written), and
-> CellPatcher already pins that version; "unchanged" here means version 2, as the code moves
-> in Milestone 1. The two plan documents need the same correction.
+> Version 2 is the version the preprocessing brick writes since 21 October 2026 (`z`, `c`,
+> `t` always written), and the one CellPatcher already pins; "unchanged" means version 2,
+> as the code moves in Milestone 1.
 
 ### 8.3 `colour_statistics.csv` (new, schema version 1)
 

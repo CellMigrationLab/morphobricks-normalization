@@ -245,10 +245,12 @@ not taken from TIAToolbox or StainTools. No GPU or deep-learning dependency.
 
 - **Milestone 0 — Contract:** `docs/contract.md` with the method catalogue, parameter columns,
   statistics schemas, modality profiles, purpose rules, references and validation messages.
+  *Done (October 2026).*
 - **Milestone 1 — Move existing code:** a new package `morphobricks_normalization` with the
   histogram, bin-count, record, plane-histogram CSV, pooling and normalization code moved from
   `morphobricks_preprocessing` unchanged, with its tests. Outputs are bit-identical; a pinned
-  release is published for the other bricks (N6).
+  release is published for the other bricks (N6). *Code moved from preprocessing commit
+  `fd923c9` (October 2026); release pending.*
 - **Milestone 2 — Method framework and families A–D:** the common interface; experiment scope
   and references; shared linear, optical density, histogram matching and luminance conversion.
 - **Milestone 3 — Modalities and purpose:** the six profiles, purpose rules, and refusal

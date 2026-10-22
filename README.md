@@ -31,8 +31,33 @@ Which methods are offered depends on the imaging modality (`fluorescence`,
 
 ## Status
 
-Milestone 0: the contract. No code yet; Milestone 1 moves the existing histogram, pooling
-and normalization code here from morphobricks-preprocessing unchanged.
+Pre-alpha. Milestone 0 (the contract) is done. Milestone 1 moved the existing code here
+from morphobricks-preprocessing unchanged, with identical outputs:
+
+- Supported pixel types and bin counts (`dtypes`)
+- Per-plane histograms, also of planes read in blocks (`histogram`)
+- Plane records, plane identifiers and grouping by labels (`records`)
+- Reading and writing `plane_histograms.csv` (`csv_io`)
+- Group statistics pooled from histograms (`pooling`)
+- Min-max, percentile, z-score and robust z-score parameters (`normalization`)
+
+The other methods, modality profiles and colour statistics follow in Milestones 2–5
+(see the plan).
+
+## Installation
+
+```bash
+pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git"
+```
+
+For development, from a clone:
+
+```bash
+pip install -e ".[dev]"
+python -m pytest
+```
+
+## Documents
 
 | Document | Content |
 |---|---|

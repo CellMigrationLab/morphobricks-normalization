@@ -5,7 +5,7 @@
 
 This document fixes the rules other bricks can rely on: the method catalogue, scopes and
 references, modality profiles and purpose rules, the statistics files, the parameter
-columns, the defaults and the validation severities. It implements decisions N1–N24 of the
+columns, the defaults and the validation severities. It implements decisions N1–N28 of the
 [plan](plan.md) (§12); it does not change any of them.
 
 - Changing a file format (§8) requires a new `schema_version` of that file.
@@ -176,12 +176,13 @@ Then a family-A or family-B method is fitted on OD values and applied to
 `OD(x)`: `y = (OD(x) − offset) / scale`. Values above `I₀` give negative OD; they are kept
 (no clipping, N19).
 
-- **I₀:** per plane (plan §7.3) and per channel, or one value per plane for the channels in
-  `shared_channels` (`brightfield_rgb` "shared I₀", §5). Modes (N15a): §9.1. Since a row
-  holds one I₀ per channel, a patch spanning several Z or T planes is refused for family C;
-  split planes first (e.g. CellPatcher `z_policy`/`t_policy`).
+- **I₀:** per image (all its Z and T planes; per image and time point with
+  `per_time_point=true`) and per channel, or one value per image for the channels in
+  `shared_channels` (`brightfield_rgb` "shared I₀", §5) (N26). Modes (N15a): §9.1. Patches
+  may span several Z or T planes: all planes of an image share its I₀, so a row's one value
+  per channel describes every plane of the patch. A patch uses the I₀ of its image.
 - **From histograms:** OD is decreasing, so each occupied bin of each plane becomes the pair
-  (`OD(representative)` with that plane's I₀, count) and the pairs are pooled with the
+  (`OD(representative)` with its image's I₀, count) and the pairs are pooled with the
   definitions of §1.2. The OD minimum and maximum come from the exact extrema
   (`OD(pixel_max)`, `OD(pixel_min)`). Parameters are exact when every histogram is exact.
   Milestone 2 adds a constructor of `PooledHistogram` from (value, count) pairs; existing
@@ -217,10 +218,18 @@ Y = 0.2126 R + 0.7152 G + 0.0722 B
 
 computed in float64 on source values, giving one channel; then a family-A method on `Y`.
 `Y` planes are histogrammed with the float rules of §1.2 (default 10,000 bins), so their
-parameters are approximate. Never the default (N20). Group-scope statistics of `Y` are an
-open point (§12): until it is settled, luminance is available only at the image and patch
-scopes, from pixels, and only for `model_input` (§6); other scopes are refused
-(`luminance_needs_pixels`, §7).
+parameters are approximate. Never the default (N20).
+
+The statistics files hold no histograms of `Y`, so luminance is computed from pixels (N28):
+
+- at the `image` and `patch` scopes, from the image's or patch's own pixels;
+- with `parameter_source="reference"` and a reference image, plane or file: one parameter
+  set fitted on the luminance of the reference's pixels (read by the calling brick) and
+  applied to every image. This keeps the differences between images, so it is also offered
+  for `quantitative` (§6).
+
+Other scopes are refused (`luminance_needs_pixels`, §7). Group-scope luminance histograms
+are deferred (§12).
 
 ### 3.7 Family E — colour and stain methods
 
@@ -373,10 +382,10 @@ Amounts and `apply` as Macenko steps 4–5. Results are identical with the same 
 | `parameter_source` | Meaning | Allowed for |
 |---|---|---|
 | `scope` (default) | One parameter set per group of `scope` | Every method |
-| `reference` | One parameter set fitted on the reference group, applied to every image (for example the controls), so differences between conditions are kept | Families A, B and C, and the amount normalization of Ruifrok (§3.7.3), with a reference group |
+| `reference` | One parameter set fitted on the reference, applied to every image (for example the controls), so differences between conditions are kept | Families A, B and C, and the amount normalization of Ruifrok (§3.7.3), with a reference group; luminance with a reference image, plane or file (§3.6, N28) |
 
-With `reference`, `normalization_scope` is `reference` and `normalization_group` is the
-reference identifier (§4.4).
+With `reference`, `normalization_scope` is `reference`, and `normalization_group` and
+`normalization_reference` are the reference identifier (§4.4).
 
 ### 4.4 References and targets
 
@@ -390,11 +399,11 @@ possible (N9).
 | Reference plane | `plane:<plane_id>`, with the `plane_id` format of the statistics file the method reads (§8.2 or §8.3) | Preprocessing manifest | That plane's row |
 | Reference group | `group:<label path>`, e.g. `group:control` or `group:control/bio_rep1` | Preprocessing manifest | Every plane whose labels start with the label path, pooled |
 | Published standard | `standard:he`, `standard:hdab` | Built in (N14) | §9.3 |
-| Reference file | `file:<file name>` (with its SHA-256 at run level, never its path) | Calling brick's configuration, when there is no preprocessing output | The file's pixels; only with the image and patch scopes (N9) |
+| Reference file | `file:<file name>` (with its SHA-256 at run level, never its path) | Calling brick's configuration, when there is no preprocessing output | The file's pixels; only with the image and patch scopes (N9), or as luminance's parameter source (§3.6) |
 
 | Method | Allowed targets | Default |
 |---|---|---|
-| A, B, C, luminance | Fixed scale (no target); for A–C a reference group as parameter source (§4.3) | Fixed scale |
+| A, B, C, luminance | Fixed scale (no target); as parameter source (§4.3) a reference group for A–C, a reference image, plane or file for luminance | Fixed scale |
 | D | Reference image, plane, group or file | None: a reference must be chosen |
 | Ruifrok | Its fixed stain matrix (no reference); for its amounts a reference group as parameter source (§4.3) | The stain set's matrix |
 | Reinhard | Reference image, plane, group or file | None: a reference must be chosen, since there is no published Reinhard standard (N14 makes the published standard the default only where one exists) |
@@ -420,7 +429,7 @@ The modality is declared by the user (N15): in the preprocessing brick, or in th
 brick when preprocessing is not used. Metadata may suggest one (an RGB samples axis suggests
 `brightfield_rgb` or `histology_rgb`); it never decides.
 
-**Rule:** a profile offers exactly its default and its "also allowed" choices (N16). Where a
+**Rule:** a profile offers exactly its default and its "also allowed" choices (N16, N25). Where a
 family is named, all its methods are offered; where methods are named, only those. Family C
 is OD followed by a linear method, so it offers only the linear methods the profile offers
 (for `brightfield_gray`, `percentile`). Every other choice is refused with a message of §7.
@@ -453,10 +462,10 @@ is OD followed by a linear method, so it offers only the linear methods the prof
   compared:
   - scope `experiment`, or `parameter_source="reference"` with a reference group;
   - families A, B and C, and Ruifrok with a fixed stain matrix, as far as the profile
-    allows them;
+    allows them; luminance only with a reference image, plane or file as the single
+    parameter source (§3.6, N28);
   - refused: the `condition`, `biological_repeat`, `technical_repeat`, `image` and `patch`
-    scopes; histogram matching; Reinhard, Macenko, Vahadane; luminance (not among the
-    families of plan §6, and available only at the image and patch scopes, §3.6).
+    scopes; histogram matching; Reinhard, Macenko, Vahadane.
   - For `phase_contrast` and `electron_microscopy`, only the profile's linear methods at the
     `experiment` scope (no reference source).
 
@@ -464,7 +473,7 @@ is OD followed by a linear method, so it offers only the linear methods the prof
 |---|---|---|
 | `fluorescence` | A; B for ratiometric channels; experiment or reference group | `percentile` 1–99.8, `experiment` |
 | `brightfield_gray` | `percentile`; OD + `percentile`; experiment or reference group | `percentile` 1–99.8, `experiment` |
-| `brightfield_rgb` | B; OD + B; experiment or reference group | Shared `percentile` 1–99.8, `experiment` |
+| `brightfield_rgb` | B; OD + B; experiment or reference group. Luminance + A with a reference image, plane or file as source | Shared `percentile` 1–99.8, `experiment` |
 | `phase_contrast` | `robust_zscore`, `percentile`; experiment only | `robust_zscore`, `experiment` |
 | `histology_rgb` | `ruifrok`; experiment or reference group | `ruifrok`, `stain_set="he"`, `amounts` with `percentile` 1–99.8, `experiment` |
 | `electron_microscopy` | `percentile`, `robust_zscore`; experiment only | `percentile` 1–99.8, `experiment` |
@@ -499,9 +508,9 @@ braces:
 | `scope_needs_statistics` | Group scope without statistics files (N9) | "The {scope} scope needs the statistics files of the preprocessing brick ({file}), which were not given. Run the preprocessing brick on this experiment, or use the image or patch scope." |
 | `reference_needed` | D, Reinhard, or `parameter_source="reference"` without a reference | "{Method} needs a {kinds} as its reference, but none was chosen. Choose one in the preprocessing brick, or give a reference image file." |
 | `target_not_allowed` | A published standard for D or Reinhard | "{Method} cannot use the published {standard} standard: published standards exist only for stain vectors (Macenko and Vahadane). Choose a reference image or a reference group." |
-| `reference_source_not_linear` | `parameter_source="reference"` with D, Reinhard, Macenko, Vahadane or Ruifrok `rgb` output (luminance: `luminance_needs_pixels`) | "A reference group can be the single parameter source only for linear methods and Ruifrok stain amounts. {Method} maps every image onto its reference instead: choose the reference as its target." |
-| `luminance_needs_pixels` | Luminance at a scope other than `image` or `patch` (§3.6) | "Luminance conversion is available only at the image and patch scopes for now, because the statistics files hold no histograms of converted images. Use the image or patch scope, or shared parameters without luminance conversion." |
-| `plane_stack_not_allowed` | Family C or a colour method on a patch spanning several Z or T planes | "{Method} needs one background-light value per channel, which differs between planes, so each patch must come from a single Z and T plane. Split the image into planes before normalizing." |
+| `reference_source_not_linear` | `parameter_source="reference"` with D, Reinhard, Macenko, Vahadane or Ruifrok `rgb` output | "A reference can be the single parameter source only for linear methods and Ruifrok stain amounts. {Method} maps every image onto its reference instead: choose the reference as its target." |
+| `luminance_needs_pixels` | Luminance at a group scope, or with a reference group as source (§3.6) | "Luminance conversion is available only at the image and patch scopes, or with a reference image as the single parameter source, because the statistics files hold no histograms of converted images. Choose one of these, or use shared parameters without luminance conversion." |
+| `plane_stack_not_allowed` | A colour method on a patch spanning several Z or T planes | "{Method} normalizes 2D RGB planes, and its background light and stain fit are per plane, so each patch must come from a single Z and T plane. Split the image into planes before normalizing." |
 | `wrong_channel_count` | Colour methods, luminance, `brightfield_rgb` or `histology_rgb` without three channels; `brightfield_gray` with more than one | "{Choice} needs {expected}, but these images have {n} channels. Check the axis mapping (for RGB images the samples axis must be the channel axis), or choose another modality." |
 
 Reasons for `method_not_in_profile`:
@@ -640,13 +649,14 @@ The library reads the files it is given and checks them (§8.2–8.4); fingerpri
 
 | Mode | Value |
 |---|---|
-| `estimated` (default) | Per plane and channel: the 99th percentile (§1.2 definition) of the plane's histogram for that channel (pooled over the shared channels for a shared I₀), computed with `compute_plane_histogram` or `compute_block_histogram` at the default bin count, so exact for 8- and 16-bit planes. For family C the stored rows of `plane_histograms.csv` give it directly. **Provisional** on images with little background (plan §13). |
+| `estimated` (default) | Per channel: the 99th percentile (§1.2 definition) of the pooled histogram of the pixels it describes (pooled over the shared channels for a shared I₀), from histograms computed with `compute_plane_histogram` or `compute_block_histogram` at the default bin count, so exact for 8- and 16-bit images. Family C: all Z and T planes of the image (per time point with `per_time_point=true`), from the image's rows of `plane_histograms.csv` or its pixels (N26). Colour methods: one 2D RGB plane. **Provisional** on images with little background (plan §13). |
 | `fixed` | The type's maximum for integer images (255 for 8-bit, 65,535 for 16-bit); 1.0 for float images |
 | `user` | One value per channel, finite and positive |
 
-For colour methods `I₀` is recorded per plane in `colour_statistics.csv`. A patch always
-uses the `I₀` of its plane (never one estimated from the patch, which may hold no
-background): from the statistics files, or from the plane's pixels when there are none.
+For colour methods `I₀` is recorded per plane in `colour_statistics.csv` (histology images
+are 2D, so a plane is the image). A patch always uses the `I₀` of its image (family C) or
+plane (colour methods), never one estimated from the patch, which may hold no background:
+from the statistics files, or from the image's pixels when there are none.
 
 ### 9.2 Tissue mask (N16a)
 
@@ -707,6 +717,7 @@ configuration (N21).
 | `normalization_scope` | text | §4.1 scope, or `reference` (§4.3) |
 | `normalization_group` | text | §4.1 group text, or the reference identifier (§4.3) |
 | `normalization_exact` | `true`/`false` | §3.8 |
+| `normalization_reference` | text | Only when the method uses a reference (N27): histogram matching, Reinhard, Macenko, Vahadane (including `standard:he`/`standard:hdab`), and `parameter_source="reference"`. The reference identifier of §4.4, which says where the reference is: `image:<source_relative_path>` and `plane:<plane_id>` relative to the experiment root, `group:<label path>`, or `file:<file name>`. Never an absolute path. The reference's fitted values stay in the run configuration (§10.4), so normalizing on load never needs the reference itself. |
 
 ### 10.2 Per-method columns
 
@@ -714,7 +725,7 @@ configuration (N21).
 |---|---|---|
 | A, B, luminance | `normalization_offset`, `normalization_scale` | Settings |
 | C | `normalization_i0`, `normalization_offset`, `normalization_scale` | Settings |
-| D | `normalization_reference` | Settings; reference definition |
+| D | None beyond the common columns: the mapping is rebuilt from the histograms of `normalization_group` and `normalization_reference` (N22) | Settings; reference definition |
 | Ruifrok | `normalization_i0_r`, `normalization_i0_g`, `normalization_i0_b`; with `amounts` also `normalization_offset`, `normalization_scale` (one value per named stain) | Stain names and stain matrix (3 × 3) |
 | Reinhard | `normalization_lab_mean_l`, `normalization_lab_mean_a`, `normalization_lab_mean_b`, `normalization_lab_std_l`, `normalization_lab_std_a`, `normalization_lab_std_b` | Target means and standard deviations |
 | Macenko, Vahadane | For each stain `<name>`: `normalization_stain_<name>_r`, `normalization_stain_<name>_g`, `normalization_stain_<name>_b`; then for each stain `normalization_max_<name>`; then `normalization_i0_r`, `normalization_i0_g`, `normalization_i0_b` | Target stain names, vectors, maximum amounts and `I₀`; `angle_percentile`, `max_percentile`; Vahadane's `sparsity` and `seed` |
@@ -803,7 +814,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Reference matching no planes in the statistics files | `ValueError` |
 | `I₀` not finite or not positive; user `I₀` with the wrong number of values | `ValueError` |
 | Float RGB outside 0–1 for a colour method | `ValueError` |
-| Family C or a colour method on a patch spanning several Z or T planes (`plane_stack_not_allowed`, §7) | `MethodNotAllowedError` |
+| A colour method on a patch spanning several Z or T planes (`plane_stack_not_allowed`, §7) | `MethodNotAllowedError` |
 | Group with fewer tissue pixels than `min_tissue_pixels` for Macenko or Vahadane at a group or image scope (§3.7.7) | `ValueError` |
 | `from_columns` with a missing or unreadable column, a list of the wrong length, or (histogram matching) without the statistics needed to rebuild the mapping | `ValueError` |
 
@@ -827,12 +838,11 @@ Returned as `Issue` objects; processing continues and the calling brick reports 
 These are not settled by plan §12 and need the owner's decision before the milestone that
 needs them:
 
-1. **Luminance statistics at group scopes (Milestone 2).** Luminance needs histograms of the
-   converted planes (plan §3), but follow-up P2 writes only per-channel
-   `plane_histograms.csv` for `brightfield_rgb`. Until decided, luminance is available at
-   the image and patch scopes from pixels (§3.6). One option: the preprocessing brick also
-   writes the luminance planes' histograms in the `plane_histograms.csv` format, in a
-   second file, when the modality is `brightfield_rgb`.
+1. **Luminance statistics at group scopes (deferred, N28).** Group scopes need histograms of
+   the converted planes, which follow-up P2 does not write. Until they are added, luminance
+   is computed from pixels (§3.6). A likely future form: the preprocessing brick also writes
+   the luminance planes' histograms in the `plane_histograms.csv` format, in a second file,
+   when the modality is `brightfield_rgb`.
 
 Values left to measurement (plan §13) are marked **Provisional** above: the sample size, the
 colour-method parameters, `I₀` estimation on tissue-dense images, the near-black limit, the

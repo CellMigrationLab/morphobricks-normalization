@@ -36,7 +36,7 @@ and normalization code here from morphobricks-preprocessing unchanged.
 
 | Document | Content |
 |---|---|
-| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N24 |
+| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N28 |
 | [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes, references, modality profiles, purpose rules, statistics files, parameter columns, defaults, validation |
 | [docs/followup_preprocessing.md](docs/followup_preprocessing.md) | Changes to morphobricks-preprocessing |
 | [docs/followup_cellpatcher.md](docs/followup_cellpatcher.md) | Changes to CellPatcher |

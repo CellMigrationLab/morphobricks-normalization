@@ -62,16 +62,85 @@ behaviour of the names above.
 
 ### 1.2 Pixel types, histograms, group statistics, linear parameters
 
-Until the preprocessing follow-up (P1) moves the text here, these rules are defined in the
+These rules were defined in the
 [preprocessing contract](https://github.com/CellMigrationLab/morphobricks-preprocessing/blob/main/docs/contract.md)
-and are part of this contract by reference:
+(§3, §4, §6 and §7) until the preprocessing follow-up P1 moved them here unchanged. The
+moved code (§1.1) implements them.
 
-| Rules | Preprocessing contract | Summary |
+#### 1.2.1 Pixel types and bin counts
+
+| Kind | Types | Default bins | Allowed bins |
+|---|---|---|---|
+| Integer | int8/16/32/64, uint8/16/32/64 | min(65,536, 2^bits) | 1 to min(65,536, 2^bits) |
+| Float | float32, float64 | 10,000 | 2 to 65,536 |
+
+Everything else (bool, complex, float16, ...) is rejected (`UnsupportedDtypeError`).
+The preprocessing brick adds two rules for a whole experiment: one dtype per experiment,
+and the same bin count for all its planes (preprocessing contract §3).
+
+#### 1.2.2 Histogram semantics
+
+Notation in this section: `n` = `bin_count`, `lo` = `binning_min`, `hi` = `binning_max`
+(columns of §8.2).
+
+##### Integer planes
+
+`lo` and `hi` are the plane's exact minimum and maximum. `W = hi − lo + 1` values.
+
+- If `W ≤ n`: bin `i` holds exactly the value `lo + i` for `i < W`; bins `W .. n−1` are
+  empty. The histogram is exact.
+- If `W > n`: bin `i` holds the values `lo + ceil(i·W/n)` to `lo + ceil((i+1)·W/n) − 1`.
+  Limits are whole numbers, consecutive bins touch without gaps or overlaps, and widths
+  are `floor(W/n)` or `ceil(W/n)` values.
+- Representative value of a bin: `(first value + last value) / 2`.
+- Bound: every pixel is within `(widest bin − 1) / 2` of its representative.
+
+##### Float planes
+
+`lo` and `hi` are the plane's finite minimum and maximum; NaN and ±infinity are ignored.
+
+- Bin width `(hi − lo) / n`. Bin `i` is `[lo + i·width, lo + (i+1)·width)`; the last bin
+  also includes `hi`. A pixel `x` goes to bin `floor((x − lo) / width)`, clipped to
+  `n − 1` (edge assignment is subject to floating-point rounding).
+- Constant plane (`lo == hi`): all pixels in bin 0; representative `lo`.
+- No finite pixels: `lo`, `hi` blank; all counts 0.
+- Representative value: the bin midpoint `lo + (i + 0.5)·width`.
+- Bound: every pixel is within `width / 2` of its representative.
+
+##### Planes read in blocks
+
+A plane too large for the memory limit is read in blocks (rectangles of its stored strips,
+tiles or chunks). Its extrema, pixel counts and bin counts are exactly those of the whole
+plane, so a row never depends on whether, or in which blocks, its plane was read.
+
+#### 1.2.3 Group statistics
+
+Groups pool their planes' (representative value, count) pairs; per-plane statistics are
+never averaged.
+
+| Statistic | Definition | Accuracy |
 |---|---|---|
-| Pixel types and bin counts | §3 | Integers int8–uint64 (default one bin per value up to 65,536 bins), float32 and float64 (default 10,000 bins); everything else rejected |
-| Histogram semantics | §4 | Each plane binned over its own exact range; exact for 8- and 16-bit integers by default; every pixel within half a bin of its representative; blocks give the same row as the whole plane |
-| Group statistics | §6 | Pooled (representative, count) pairs, never averaged per-plane statistics; inverse-CDF percentiles; exact min and max |
-| Linear parameters | §7 | `(x − offset) / scale`; zero or non-finite scale is an error |
+| min, max | Smallest `pixel_min`, largest `pixel_max` | Exact |
+| mean, std | Count-weighted mean and population std (÷N) of representatives | Exact for exact histograms; otherwise very close (errors cancel) |
+| percentile q | Smallest representative with cumulative count ≥ ceil(q/100 · N) (numpy `inverted_cdf`) | Within the group's largest per-plane bound |
+| median | 50th percentile | As percentiles |
+| MAD | Median of \|representative − median\| | Within twice the bound |
+
+Planes without finite pixels are excluded and reported; a group with no finite pixels is
+an error.
+
+#### 1.2.4 Linear parameters
+
+Every method is an offset and a scale; applying it computes `(pixels − offset) / scale`.
+
+| Method | Offset | Scale |
+|---|---|---|
+| min-max | min | max − min |
+| percentile range (default 1–99.8) | low percentile | high − low percentile |
+| z-score | mean | std |
+| robust z-score | median | MAD × 1.4826 |
+
+A zero or non-finite scale is an error with a plain-language message.
 
 `normalization_exact` (§10) is `true` for histogram-based parameters exactly when every
 pooled histogram has `max_representative_error == 0`.
@@ -538,7 +607,7 @@ preprocessing brick runs the computation over the dataset and writes the files n
 Every statistics file starts with these columns, in this order (as `plane_histograms.csv`
 does today): `position_id`, `image_file`, `z`, `c`, `t`, `condition`, `biological_repeat`,
 `technical_repeat`, `source_relative_path`, `plane_id`. Their meaning is that of the
-preprocessing contract §5. Labels are always read as text.
+§8.2. Labels are always read as text.
 
 Common format: UTF-8, comma-separated, one header row, rows in a deterministic order, floats
 written at full precision (Python `repr`), blanks for missing values, booleans `true` or
@@ -546,9 +615,30 @@ written at full precision (Python `repr`), blanks for missing values, booleans `
 
 ### 8.2 `plane_histograms.csv` (existing, schema version 2)
 
-Unchanged (plan §7.1): one row per 2D plane and channel, defined by the preprocessing
-contract §4–§5 and the moved `csv_io.py` (§1.1). Used by families A–D and luminance (from
-pixels, §3.6).
+Unchanged (plan §7.1): one row per 2D plane and channel, with the histogram of §1.2.2,
+written and read by the moved `csv_io.py` (§1.1). Used by families A–D and luminance
+(from pixels, §3.6). The preprocessing contract §5 defined it until follow-up P1 moved
+the text here:
+
+UTF-8, comma-separated, one header row, one row per plane, rows in a deterministic order.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `position_id` | text or blank | From reliable metadata only; never inferred from file names. |
+| `image_file` | text | File name. |
+| `z`, `c`, `t` | integer | Zero-based plane coordinates, always written; 0 for an axis the image does not have (preprocessing contract §2). |
+| `condition`, `biological_repeat`, `technical_repeat` | text | Folder labels; `single` when absent. Always read as text. |
+| `source_relative_path` | text | Path relative to the experiment root, `/`-separated. |
+| `plane_id` | text | `source_relative_path::z=…,c=…,t=…`, always with all three coordinates (`control/img.tif::z=0,c=0,t=0` for a 2D image). Row key. |
+| `dtype` | text | NumPy dtype name, e.g. `uint16`. |
+| `bit_depth` | integer | Storage bits (8, 16, 32, 64). |
+| `pixel_min`, `pixel_max` | number or blank | Exact finite extrema. Floats written at full precision. |
+| `total_pixel_count` | integer | All pixels in the plane. |
+| `valid_pixel_count` | integer | Finite pixels; equals the sum of the bin columns. |
+| `binning_min`, `binning_max` | number or blank | Range the bins cover (equal to the extrema). |
+| `bin_count` | integer | Number of bin columns. |
+| `schema_version` | text | `2`. Version 1 left `z`, `c`, `t` blank for absent axes and out of `plane_id`; a table of another version is recomputed on the next run. |
+| `histogram_bin_00000` … | integer | Pixel count per bin. |
 
 > Version 2 is the version the preprocessing brick writes since 21 October 2026 (`z`, `c`,
 > `t` always written), and the one CellPatcher already pins; "unchanged" means version 2,

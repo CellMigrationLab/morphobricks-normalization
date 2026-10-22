@@ -25,6 +25,10 @@ normalization code comes from `morphobricks_normalization` (N1, N2).
   copies) is bit-identical before and after.
 - Acceptance: the existing test suite passes unchanged, apart from tests that move with the
   code to the normalization brick.
+- *Done (October 2026), preprocessing PR #16. Agreed with the owner in review: the run
+  manifest also records the `morphobricks-normalization` version, the notebook's Step 0
+  installs the new dependency into older environments (both with small test updates), and
+  the text of preprocessing contract §3–§7 moved to this contract (§1.2, §8.2).*
 
 ## P2 — Modality
 

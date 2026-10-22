@@ -20,6 +20,24 @@ statistics files (N2). It is called by:
   references, and writes the statistics files with this library's functions;
 - **CellPatcher**, which normalizes patches with this library.
 
+Repository map (one module per job):
+
+```
+src/morphobricks_normalization/
+  dtypes.py         supported pixel types, default and allowed bin counts
+  histogram.py      per-plane histogram (PlaneHistogram, compute_plane_histogram,
+                    compute_block_histogram for planes read in blocks), memory estimate
+  records.py        PlaneRecord (one plane_histograms.csv row), plane_id, group_records
+  csv_io.py         write/read plane_histograms.csv (atomic write, labels always text)
+  pooling.py        PooledHistogram: pooled counts, never mean-of-means
+  normalization.py  NormalizationParameters (offset, scale) and the four linear methods
+tests/              pytest with simulated planes (tests/simulation.py)
+```
+
+These six modules were moved from morphobricks-preprocessing commit `fd923c9` in
+Milestone 1 with only the package name changed; keep their behaviour and messages
+unchanged (contract §1).
+
 ## 2. Rules of the repository
 
 1. **Pure library.** No widgets, notebooks, command line or folder walking. Functions

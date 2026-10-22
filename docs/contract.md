@@ -16,7 +16,7 @@ columns, the defaults and the validation severities. It implements decisions N1�
 
 | Section | Implemented in |
 |---|---|
-| 1. Existing code | Milestone 1 (moved unchanged) |
+| 1. Existing code | Milestone 1 (moved unchanged; done) |
 | 2. Interface; 3.1–3.6 families A–D and luminance; 4. Scopes and references; 10. Columns | Milestone 2 |
 | 5. Modality profiles; 6. Purpose; 7. Refusal messages | Milestone 3 |
 | 3.7 Colour and stain methods; 8.3–8.5 Colour statistics; 9. Colour defaults | Milestone 4 |

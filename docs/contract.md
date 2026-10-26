@@ -6,7 +6,7 @@
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
 the validation severities. It implements the decisions of the [plan](plan.md) (§12) as
-simplified on 26 October 2026 (N29–N39); it does not change any of them. The earlier contract
+simplified on 26 October 2026 (N29–N40); it does not change any of them. The earlier contract
 with modality profiles, purpose rules, colour statistics and references is withdrawn.
 
 - Changing a file format (§6) requires a new `schema_version` of that file.
@@ -233,11 +233,11 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
   of `plane_histograms.csv` pooled together, or the group's pixels of all three channels.
 - Every channel gets the same offset and scale, so colour ratios are kept. Output float32,
   no clipping (as `normalize(..., clip=False)`).
-- **Percentile definition and zero spread: open (§10.1).** The recommended rule is NumPy's
-  default linear interpolation, `P(q) = v[k] + (h − k)·(v[k+1] − v[k])` with
+- **Percentile definition (N40):** NumPy's default linear interpolation, as StarDist, `P(q) = v[k] + (h − k)·(v[k+1] − v[k])` with
   `h = (N − 1)·q/100`, `k = floor(h)` and `v` the sorted pooled values, computed from the
   cumulative counts; exact for histograms with one bin per value, within the histogram bound
-  otherwise. With the `1e-20` term, a group without spread gives zeros instead of an error.
+  otherwise. Because of the `1e-20` term, a group without spread gives zeros instead of an
+  error, and such patches are not discarded.
 
 ---
 
@@ -457,7 +457,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | A `(condition, biological_repeat)` missing from `repeat_groups` | `ValueError` | Names the missing pairs and asks to update the experiment design in the preprocessing brick. |
 | Unsupported pixel type; bin count not allowed (§1.2) | `UnsupportedDtypeError`, `ValueError` | Existing messages |
 | Group without finite pixels | `NoValidPixelsError` | Existing message |
-| Zero or non-finite scale (fluorescence; `rgb` depends on §10.1) | `ValueError` | Existing message |
+| Zero or non-finite scale (fluorescence only; `rgb` adds `1e-20`, §3.3) | `ValueError` | Existing message |
 | Percentiles outside `0 ≤ low < high ≤ 100`; unknown `pooling` or `image_type` | `ValueError` | Existing message for percentiles; the allowed values otherwise |
 | Statistics file with unexpected columns, schema version or inconsistent counts | `CsvFormatError` | Existing messages |
 | `from_columns` with a missing or unreadable column, or a list of the wrong length | `ValueError` | Names the column |
@@ -477,11 +477,6 @@ Returned as `Issue` objects; processing continues and the calling brick reports 
 
 ---
 
-## 10. Open points
-
-1. **Percentile definition and zero spread for `rgb` (plan §13).** Recommended: NumPy's
-   linear interpolation and the `1e-20` term, reproducing StarDist exactly; alternative: the
-   inverse-CDF percentiles and zero-scale error of §1.2, which can differ from StarDist by up
-   to one grey level. Needed before Milestone 3.
+## 10. Provisional values
 
 Values left to measurement (plan §13) are marked **Provisional** above: `min_images`.

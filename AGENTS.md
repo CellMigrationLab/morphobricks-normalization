@@ -6,7 +6,7 @@ Read it, and the documents below, before changing anything.
 
 | File | What it fixes |
 |---|---|
-| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N39 (§12) and what is still open (§13) |
+| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N40 (§12) and what is still to be measured (§13) |
 | `docs/contract.md` | Rules other bricks rely on: methods and formulas, interface, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | `docs/followup_preprocessing.md`, `docs/followup_cellpatcher.md` | What the two calling bricks change once this brick is released |
 
@@ -70,7 +70,7 @@ unchanged (contract §1).
 ## 3. How we work
 
 1. **Read first:** the plan, the contract and the modules you touch.
-2. **Ask before deciding.** Decisions N1–N39 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
+2. **Ask before deciding.** Decisions N1–N40 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
 3. **Milestone 1 moves code unchanged.** The histogram, bin-count, record, CSV, pooling

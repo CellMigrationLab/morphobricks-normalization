@@ -89,8 +89,9 @@ today (N29).
   stops the run before any image is read; removed scopes are refused with the new message;
   both pooling weights agree when conditions have equal pixel counts.
 - C3: RGB patches get one shared offset and scale; the result matches
-  `csbdeep.utils.normalize(patch, 1, 99.8, axis=(0, 1, 2))` at the patch scope (with the
-  percentile choice of plan §13); `split_channels` with RGB is refused.
+  `csbdeep.utils.normalize(patch, 1, 99.8, axis=(0, 1, 2))` at the patch scope (N40);
+  an RGB patch without spread becomes zeros and is not discarded; `split_channels` with RGB
+  is refused.
 - Every scope and type gives the same arrays in all delivery modes (normalized files, raw
   files normalized on load, eager and lazy in memory).
 
@@ -103,6 +104,6 @@ today (N29).
 | D12: deprecate before removing | Not for the removed scopes: removed straight away (N29) |
 | Contract §7: scope table | Rewritten for the three scopes and repeat groups (C2) |
 
-These revisions are owner-approved through decisions N29–N39 and must be recorded in
+These revisions are owner-approved through decisions N29–N40 and must be recorded in
 CellPatcher's `docs/plan.md`, `docs/normalization_contract.md`, `docs/configuration_reference.md`
 and `AGENTS.md` §5 when C1–C4 are implemented.

@@ -2,9 +2,9 @@
 
 > See also: [Preprocessing follow-up](followup_preprocessing.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
-**Status:** design brief, simplified on 26 October 2026 (decisions N29–N39, §12). The earlier
+**Status:** design brief, simplified on 26 October 2026 (decisions N29–N40, §12). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
-(N4–N28) is withdrawn where §12 says so. One choice is still open (§13).
+(N4–N28) is withdrawn where §12 says so. What is still to be measured is listed in §13.
 **Scope:** one importable library with the normalization methods for fluorescence and RGB
 microscopy images, the statistics they need, the intensity checks run on those statistics,
 and the file formats that carry statistics between bricks.
@@ -79,9 +79,11 @@ channel gets the same offset and scale; colour ratios are kept.
 
 In this library, `P_low` and `P_high` come from one pooled histogram of the R, G and B planes
 of the group (§4), so the method works at every scope from `plane_histograms.csv` without
-rereading images. Whether the percentiles use NumPy's default linear interpolation, which
-reproduces StarDist exactly, or the library's existing inverse-CDF percentiles is the open
-choice of §13.
+rereading images. It reproduces StarDist exactly (N40): the percentiles use NumPy's default
+linear interpolation, computed from the cumulative counts (exact for 8- and 16-bit
+histograms), and the scale includes the 10⁻²⁰ term, so a region without spread becomes 0
+instead of being refused. The fluorescence methods keep the library's inverse-CDF percentiles
+and zero-scale error.
 
 ## 4. Scopes
 
@@ -207,8 +209,7 @@ Use simulated data generated in the tests; real data only as an optional check.
   missing from some conditions gives its warning.
 - `pooling="conditions"` gives each condition equal weight; both weights agree when the
   conditions have equal pixel counts, and at the image and patch scopes.
-- The RGB method gives the same offset and scale to all three channels and, with the choice
-  of §13, matches `csbdeep.utils.normalize(x, 1, 99.8, axis=(0, 1, 2))` on 8-bit images
+- The RGB method gives the same offset and scale to all three channels and matches `csbdeep.utils.normalize(x, 1, 99.8, axis=(0, 1, 2))` on 8-bit images
   (CSBDeep is used only in the tests, as an optional check).
 - Each intensity check fires on simulated shifted, saturated and constant images and stays
   silent on balanced data; a difference between conditions alone never fires.
@@ -281,15 +282,11 @@ Added with the project owner on 26 October 2026:
     more than 3 robust deviations away (limit adjustable), saturated images and images
     without spread; plots are shown in the notebook only.
 33. **N39** RGB uses only the StarDist percentile method (default 1–99.8).
+34. **N40** The RGB method reproduces StarDist exactly: NumPy's linear-interpolation
+    percentiles and the 10⁻²⁰ term added to the scale. Fluorescence methods are unchanged.
 
-## 13. Still open
+## 13. Still to measure
 
-- **Percentile definition for `rgb`.** StarDist uses NumPy's default linear interpolation and
-  adds 10⁻²⁰ to the scale, so a region without spread becomes 0 instead of being refused. The
-  library's existing percentiles use the inverse CDF, and a zero scale is an error.
-  Recommended: reproduce StarDist exactly for `rgb` (linear interpolation, which is exact from
-  8- and 16-bit histograms, and the 10⁻²⁰ term), and leave the fluorescence methods
-  unchanged.
 - **Pooling weights** on real data: whether equal weighting per condition changes the
   parameters enough to matter (N32).
 - **Minimum images per group** for the outlier check (provisional 5).

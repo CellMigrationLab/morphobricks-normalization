@@ -1,33 +1,31 @@
 # morphobricks-normalization
 
-The normalization brick of MorphoBricks: one importable Python library with every
-normalization method for microscopy images, the statistics those methods need, the modality
-rules that decide which methods are meaningful, and the file formats that carry statistics
+The normalization brick of MorphoBricks: one importable Python library with the
+normalization methods for fluorescence and RGB microscopy images, the statistics those methods
+need, intensity checks on those statistics, and the file format that carries statistics
 between bricks.
 
-- **morphobricks-preprocessing** runs this library over a dataset to write the statistics
-  files and to preview normalized images in its notebook.
-- **CellPatcher** reads the statistics files and normalizes patches with this library.
+- **morphobricks-preprocessing** runs this library over a dataset to write
+  `plane_histograms.csv` and to show the intensity checks in its notebook.
+- **CellPatcher** reads the statistics and normalizes patches with this library.
 
 The library has no widgets, notebooks or folder walking: it receives pixel arrays,
-statistics and settings, and returns statistics, parameters and normalized arrays. It never
-modifies source images. Image correction (flat-field, background, illumination) is out of
-scope for now.
+statistics and settings, and returns statistics, parameters, warnings and normalized arrays.
+It never modifies source images. Image correction (flat-field, background, illumination) is
+out of scope for now.
 
-## Methods
+## Methods and scopes
 
-| Family | Methods |
+| Image type | Methods |
 |---|---|
-| A. Linear per channel | min-max, percentile range, z-score, robust z-score |
-| B. Linear shared across channels | The same four, with one offset and scale for several channels |
-| C. Optical density | OD, then a family-A or B method |
-| D. Histogram matching | Onto a reference image or group |
-| E. Colour and stain | Ruifrok colour deconvolution, Reinhard, Macenko, Vahadane |
-| Option | Luminance (grayscale) conversion of RGB images |
+| Fluorescence | min-max, percentile range (default 1–99.8), z-score, robust z-score, each channel separately |
+| RGB | StarDist's percentile normalization (1–99.8), the three colour channels together |
 
-Which methods are offered depends on the imaging modality (`fluorescence`,
-`brightfield_gray`, `brightfield_rgb`, `phase_contrast`, `histology_rgb`,
-`electron_microscopy`) and on the purpose (`model_input` or `quantitative`).
+| Scope | Parameters from |
+|---|---|
+| Biological repeat | One biological repeat across all conditions, technical repeats merged |
+| Image (default) | All Z and T planes of one image |
+| Patch | The patch's own pixels |
 
 ## Status
 
@@ -41,8 +39,8 @@ from morphobricks-preprocessing unchanged, with identical outputs:
 - Group statistics pooled from histograms (`pooling`)
 - Min-max, percentile, z-score and robust z-score parameters (`normalization`)
 
-The other methods, modality profiles and colour statistics follow in Milestones 2–5
-(see the plan).
+The scopes, the RGB method and the intensity checks follow in Milestones 2–4 (see the
+plan).
 
 ## Installation
 
@@ -61,8 +59,8 @@ python -m pytest
 
 | Document | Content |
 |---|---|
-| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N28 |
-| [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes, references, modality profiles, purpose rules, statistics files, parameter columns, defaults, validation |
+| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N39 |
+| [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | [docs/followup_preprocessing.md](docs/followup_preprocessing.md) | Changes to morphobricks-preprocessing |
 | [docs/followup_cellpatcher.md](docs/followup_cellpatcher.md) | Changes to CellPatcher |
 | [AGENTS.md](AGENTS.md) | Rules for anyone changing this repository |

@@ -2,116 +2,108 @@
 
 > See also: [Normalization brick plan](plan.md) · [Preprocessing follow-up](followup_preprocessing.md)
 
-**Status:** plan; starts after the preprocessing follow-up (N6). Decision numbers N1–N24 refer
-to §12 of the [normalization plan](plan.md); D-numbers refer to CellPatcher's own
-`docs/plan.md`, and this plan revises some of them (see the last section).
+**Status:** plan, revised 26 October 2026; starts after the normalization brick's `v0.2.0`
+release and preprocessing P3–P4 (N6). Decision numbers N refer to §12 of the
+[normalization plan](plan.md); D-numbers refer to CellPatcher's own `docs/plan.md`, and this
+plan revises some of them (see the last section).
 **Repository:** [CellMigrationLab/CellPatcher](https://github.com/CellMigrationLab/CellPatcher)
 
 ## Goal
 
-CellPatcher keeps patching as it is and applies every normalization method of the
-normalization brick, limited by the modality and purpose, at the experiment, condition,
-repeat, image or patch scope. Statistics, parameters and normalization come from
-`morphobricks_normalization`; image readers and manifest checks keep coming from
-`morphobricks_preprocessing`.
+CellPatcher keeps patching as it is and normalizes with three scopes (`biological_repeat`
+across conditions, `image`, `patch`) and two image types (`fluorescence`, `rgb`), using the
+normalization brick's settings and fitting. The image and patch scopes behave exactly as
+today (N29).
 
 ## Today
 
-CellPatcher's `preprocessing` extra pins `morphobricks-preprocessing[zarr]` to a commit and
-uses it for two things:
+- `NormalizationConfig` offers `condition`, `biological_repeat`, `technical_repeat`, `image`
+  and `patch` scopes, the four per-channel methods, always per channel, with parameters
+  computed in `cellpatcher/normalization.py` from the brick's `group_records` and pooling.
+- The `preprocessing` extra pins `morphobricks-preprocessing[zarr]` to commit `1129776` and
+  the normalization brick to `v0.1.0`; plane records, the CSV reader and pooling already come
+  from `morphobricks_normalization`, image readers and manifest checks from
+  `morphobricks_preprocessing`.
+- Today's `biological_repeat` group is `<condition>/<biological_repeat>`: one group per
+  condition.
 
-- **Normalization:** `compute_plane_histogram`, `PooledHistogram`, `NormalizationParameters`,
-  `min_max`, `percentile_range`, `z_score`, `robust_z_score`, `NoValidPixelsError`,
-  `read_plane_histograms`, `make_plane_id` (in `normalization.py` and `statistics.py`).
-- **Reading and checks:** `AxisMapping`, `inspect_image`, `read_plane`, `open_ngff`,
-  `open_ngff_labels`, `read_manifest`, manifest fingerprints and validation messages (in
-  `planes.py`, `io.py`, `statistics.py`).
+## C1 — Use the brick's settings and fitting (no behaviour change)
 
-## C1 — Switch to the normalization brick (no behaviour change)
+- Raise the pins to normalization `v0.2.0` and the preprocessing release with P3–P4.
+- Replace CellPatcher's own parameter code with the brick's `fit`, `apply`, `to_columns` and
+  `from_columns` for the `image` and `patch` scopes and the four fluorescence methods.
+- Store `NormalizationSettings.to_dict()` in `run_config.json`.
+- Acceptance: identical patches, `patches.csv` and `run_config.json` (apart from the added
+  settings) before and after, for every delivery mode.
 
-- The normalization imports come from `morphobricks_normalization`; the reading and manifest
-  imports stay on `morphobricks_preprocessing`.
-- Extras:
-  - `cellpatcher[normalization]` installs `morphobricks-normalization`: enough for the image
-    and patch scopes on TIFF images without preprocessing outputs (N9);
-  - `cellpatcher[preprocessing]` installs `morphobricks-preprocessing[zarr]`, which brings the
-    normalization brick with it: group scopes, manifest checks and OME-Zarr input.
-- Both pinned to released versions and raised deliberately.
-- Acceptance: identical patches, `patches.csv` and `run_config.json` before and after.
+## C2 — Three scopes
 
-## C2 — Scopes and references
+- `NORMALIZATION_SCOPES = ("biological_repeat", "image", "patch")`. The `condition` and
+  `technical_repeat` scopes are removed straight away, without a deprecation period (N29): a
+  configuration or older `run_config.json` naming them is refused with the brick's message
+  listing the three scopes. Raw patches exported earlier still normalize on load, because
+  their parameters are in `patches.csv`.
+- `biological_repeat` pools one repeat group across all conditions, technical repeats merged
+  (N30): the group key comes from the brick's `group_key` with the repeat groups read from
+  `experiment_design.csv`. `normalization_group` is the repeat group label (previously
+  `<condition>/<biological_repeat>`).
+- New setting `normalization.experiment_design`: path of `experiment_design.csv`; None uses
+  the one next to `plane_histograms.csv`. With `biological_repeat`:
+  - a missing file, or a repeat group not confirmed, is an error before any image is read,
+    asking to run the preprocessing brick's step 1;
+  - a file whose SHA-256 differs from the one in the preprocessing manifest is an error;
+  - an image whose condition and biological repeat are not in the file is an error.
+- New setting `normalization.pooling`: `"pixels"` (default) or `"conditions"` (N32), used
+  only by `biological_repeat`.
+- The repeat groups missing some conditions give the brick's warning.
+- `run_config.json` records the design file's name and SHA-256 with the other normalization
+  inputs.
 
-- Add the `experiment` scope (N10) and reference groups as a single parameter source for
-  linear methods (§4.2 of the normalization plan).
-- Without preprocessing outputs, the `image` scope is computed from the image's own pixels
-  (all its Z and T planes, per channel) instead of being refused; group scopes stay
-  unavailable with the existing message (N9). This revises CellPatcher's contract §5 and §7.
-- References come from the preprocessing manifest; without one, a reference image path can be
-  set in the configuration (image and patch scopes only).
+## C3 — RGB images
 
-## C3 — Modality and purpose
+- New setting `normalization.image_type`: `"fluorescence"` (default) or `"rgb"`. With a
+  preprocessing manifest, the type comes from it and a different value in the configuration
+  is an error; without one, the configuration decides (N34).
+- `rgb` uses only the StarDist percentile method (N33); another method is refused before any
+  image is read. Default percentiles 1 and 99.8.
+- `rgb` needs three channels kept together: `extraction.split_channels=True` with `rgb` is an
+  error.
+- At every scope, one offset and scale come from the R, G and B pixels pooled together;
+  `normalization_offset` and `normalization_scale` hold the shared value three times.
+- At the `patch` scope, the patch region (`mask`, `bbox`, `patch`) selects the pixels of all
+  three channels.
 
-- `NormalizationConfig` gains `modality` and `purpose` (`model_input` by default).
-- With a manifest, the modality comes from it; a different modality in the configuration is an
-  error. Without one, the modality is required in the configuration whenever normalization is
-  enabled (N15).
-- The normalization brick's profiles validate method, scope and purpose before any patch is
-  read; refusals name an allowed alternative (N16).
+## C4 — Notebook
 
-## C4 — New method families
-
-- **Shared linear (B), optical density (C), luminance option:** from `plane_histograms.csv`
-  at group scopes, or from pixels at image and patch scopes.
-- **Histogram matching (D):** source scope histograms and the reference's histograms; the
-  mapping is rebuilt, never stored (N22).
-- **Colour methods (E):** from `colour_statistics.csv` and `colour_samples.npz` at group and
-  image scopes, or from the patch's pixels at patch scope. Patches stay RGB (N20); results are
-  clipped (N19) and returned as float32 in 0–1 or uint8 RGB. At patch scope, Macenko and
-  Vahadane need about 1,000 tissue pixels; patches below are discarded and reported like the
-  D8 patches (N18).
-- **Checks** against the statistics files extend to colour statistics: every patched RGB plane
-  has a row, and its pixel and tissue counts match.
-
-## C5 — Outputs
-
-- `patches.csv` keeps the common normalization columns (`normalization_method`, `_scope`,
-  `_group`, `_exact`) and writes only the parameter columns of the method used (N23), as listed
-  in §8 of the normalization plan. The existing linear columns (`normalization_offset`,
-  `normalization_scale`) keep their names and meaning.
-- `run_config.json` records the target (reference definition, target stain vectors and
-  amounts, Reinhard target, Ruifrok stain matrix), the modality and the purpose, once per
-  run (N21).
-- Raw-file delivery normalizes on load for every family, from the row's columns plus the
-  run-level target; histogram matching rebuilds its mapping from the recorded group and
-  reference.
-
-## C6 — Notebook
-
-- The normalization step offers only the methods, scopes and purpose choices of the modality,
-  shows the references from the manifest, and previews before/after patches.
+- The normalization step offers the three scopes, with a line explaining that
+  `biological_repeat` keeps differences between conditions and removes differences between
+  repeats; the pooling choice appears only for that scope.
+- The image type is shown from the manifest (or chosen when there is none); for RGB only the
+  percentile method is offered.
 
 ## Tests and acceptance
 
-- C1: identical outputs with the moved code.
-- Every family gives the same arrays in all delivery modes (normalized files, raw files
-  normalized on load, eager and lazy in memory).
-- Columns written per method match the contract exactly and round-trip through
-  `from_columns`.
-- Image scope without preprocessing equals image scope computed from the statistics files
-  for exact (8- and 16-bit) histograms.
-- Modality and purpose refusals happen before any image is read.
+- C1: identical outputs with the brick's fitting.
+- C2: `biological_repeat` pools the same repeat across conditions and technical repeats;
+  pairing in `experiment_design.csv` changes the groups; an unconfirmed or missing design
+  stops the run before any image is read; removed scopes are refused with the new message;
+  both pooling weights agree when conditions have equal pixel counts.
+- C3: RGB patches get one shared offset and scale; the result matches
+  `csbdeep.utils.normalize(patch, 1, 99.8, axis=(0, 1, 2))` at the patch scope (N40);
+  an RGB patch without spread becomes zeros and is not discarded; `split_channels` with RGB
+  is refused.
+- Every scope and type gives the same arrays in all delivery modes (normalized files, raw
+  files normalized on load, eager and lazy in memory).
 
 ## Revisions to CellPatcher's earlier decisions
 
 | CellPatcher decision | Revision |
 |---|---|
-| D1: import from `morphobricks_preprocessing` | Normalization from `morphobricks_normalization`; reading from preprocessing (C1) |
-| D4: channels are never pooled | Unless the modality profile prescribes shared parameters (family B), or the method is a colour method |
-| D5: per-group parameters only; scopes condition to patch | Adds `experiment` and reference groups (C2) |
-| D10: no clipping | Clipping for colour methods only (N19) |
-| D14 and contract §10: fixed parameter columns, always present | Only the columns of the method used; targets in `run_config.json` (C5) |
-| Contract §5: image scope needs the CSV | Image scope is computed from pixels when there is no CSV (C2) |
+| D4: channels are never pooled | Except for `rgb`, where R, G and B share one offset and scale (C3) |
+| D5: scopes condition to patch | Three scopes; `biological_repeat` now spans all conditions (C2) |
+| D12: deprecate before removing | Not for the removed scopes: removed straight away (N29) |
+| Contract §7: scope table | Rewritten for the three scopes and repeat groups (C2) |
 
-These revisions are owner-approved through decisions N1–N24 and must be recorded in
-CellPatcher's `docs/plan.md`, `docs/normalization_contract.md` and `AGENTS.md` §5 when C1–C5
-are implemented.
+These revisions are owner-approved through decisions N29–N40 and must be recorded in
+CellPatcher's `docs/plan.md`, `docs/normalization_contract.md`, `docs/configuration_reference.md`
+and `AGENTS.md` §5 when C1–C4 are implemented.

@@ -2,95 +2,156 @@
 
 > See also: [Normalization brick plan](plan.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
-**Status:** plan; starts once the normalization brick has published a pinned release with the
-moved code (normalization plan, Milestone 1). Decision numbers refer to §12 of the
-[normalization plan](plan.md).
+**Status:** P1 done; P2–P5 planned (revised 26 October 2026). Decision numbers refer to §12 of
+the [normalization plan](plan.md).
 **Repository:** [CellMigrationLab/morphobricks-preprocessing](https://github.com/CellMigrationLab/morphobricks-preprocessing)
 
 ## Goal
 
 The preprocessing brick keeps its job (validate the input, walk the folders, read metadata,
-confirm axes, optional OME-Zarr conversion, write statistics files) and gains three things:
-the modality question, reference selection, and colour statistics. All statistics and
-normalization code comes from `morphobricks_normalization` (N1, N2).
+confirm axes, optional OME-Zarr conversion, write `plane_histograms.csv`) and gains:
+
+- dataset warnings in the folder check (P2);
+- the experiment design: pairing and confirming biological repeats, and marking controls
+  (P3);
+- the image type, `fluorescence` or `rgb` (P4);
+- intensity checks and plots after the histograms (P5).
+
+Statistics, normalization and intensity-check code comes from `morphobricks_normalization`
+(N1, N2). P2 and P3 do not depend on the normalization brick and may start before its
+`v0.2.0` release; P4 and P5 need it.
 
 ## P1 — Depend on the normalization brick (no behaviour change)
 
-- Add `morphobricks-normalization` as a required dependency, pinned to its first release.
-- Remove the moved modules and import them instead: `histogram.py`, the bin-count rules of
-  `dtypes.py`, `records.py`, `csv_io.py`, `pooling.py`, `normalization.py`. Their public names
-  stay importable from `morphobricks_preprocessing` for one version, with a
-  `DeprecationWarning` naming the new location (N6).
-- `plane_histograms.csv` stays schema version 2, and every output (CSV, manifest, OME-Zarr
-  copies) is bit-identical before and after.
-- Acceptance: the existing test suite passes unchanged, apart from tests that move with the
-  code to the normalization brick.
-- *Done (October 2026), preprocessing PRs #16 and #17. Agreed with the owner in review: the run
-  manifest also records the `morphobricks-normalization` version, the notebook's Step 0
-  installs the new dependency into older environments (both with small test updates), and
-  the text of preprocessing contract §3–§7 moved to this contract (§1.2, §8.2).*
+*Done* in [#16](https://github.com/CellMigrationLab/morphobricks-preprocessing/pull/16) and
+[#17](https://github.com/CellMigrationLab/morphobricks-preprocessing/pull/17): the moved
+modules are imported from `morphobricks_normalization`, with deprecated re-exports for one
+version, and every output is bit-identical.
 
-## P2 — Modality
+## P2 — Dataset warnings in the folder check (step 1)
 
-- A new notebook step and CLI option ask for the imaging modality (`fluorescence`,
-  `brightfield_gray`, `brightfield_rgb`, `phase_contrast`, `histology_rgb`,
-  `electron_microscopy`). Metadata may suggest one (an RGB samples axis suggests
-  `brightfield_rgb` or `histology_rgb`), but the user always confirms (N15).
-- The manifest records the modality, and that the channel axis came from RGB samples. These
-  are new optional manifest keys, so the manifest stays version 1, as with earlier additions.
-- The modality decides which statistics files are written (N7):
-  - `plane_histograms.csv` for every modality except `histology_rgb`;
-  - `colour_statistics.csv` and `colour_samples.npz` for `histology_rgb`.
-- Changing the modality on a rerun recomputes the affected statistics, like a change of bin
-  count today.
+Step 1 reads only folder names and image headers. Its results gain a **Dataset consistency**
+panel that gathers every consistency warning in one place (N37). Warnings never block.
 
-## P3 — References
+- **Balance.** A table with conditions as columns and biological repeats as rows, holding the
+  number of images in each cell (technical repeats added up), and a second count of technical
+  repeats per biological repeat. A cell with fewer than half or more than twice the median of
+  the non-empty cells is highlighted and reported (`unbalanced_images`).
+- **Repeats missing from some conditions.** A biological repeat that is not found in every
+  condition (after the pairing of P3) is reported (`repeat_missing_conditions`); it is still
+  used.
+- **Pixel size.** The physical pixel size (X, Y and the Z step) read from the metadata
+  differs between images (`different_pixel_sizes`), or is missing for some images and present
+  for others (`missing_pixel_size`). Read with the existing `read_physical_sizes`.
+- **Already checked today**, now listed in the same panel: mixed pixel types
+  (`mixed_dtypes`), inconsistent axes (`inconsistent_mapping`), different image sizes
+  (`different_sizes`, `inconsistent_dimensions`), different channel names
+  (`channel_names_differ`).
+- **New shape checks.** Different numbers of channels, Z planes or time points between images
+  (`different_plane_counts`).
 
-- After the modality, the user chooses the references the modality's methods may need
-  (N13, N14):
-  - a reference image (one image of the experiment);
-  - a reference group, chosen by labels (for example every `control` image);
-  - for `histology_rgb`, the published H&E or H-DAB standard (default).
-- The manifest records each reference by label path or `source_relative_path`, never by
-  absolute path.
-- A reference that no longer matches any analysed image after a rerun is an error with a
-  plain-language message.
+Each warning names the affected images or folders and what to check. The command line prints
+the same warnings.
 
-## P4 — Colour statistics
+## P3 — Experiment design (step 1)
 
-For `histology_rgb` experiments, computed with the normalization brick's functions:
+After the labels are confirmed, step 1 asks three things and writes the answers to
+`experiment_design.csv` in the output folder. Later steps stay locked until the biological
+repeats are confirmed (N35).
 
-- **Reading.** The three colour channels of a plane are read together (memory estimate
-  three times one channel). Planes over the memory limit are read in blocks, as for
-  histograms today; colour summaries add up across blocks and pixel samples use reservoir
-  sampling, so block reading gives identical results.
-- **Settings** in the manifest: I₀ mode and values, tissue-mask threshold and exclusions,
-  sample size and seed (N15a, N16a, N24). Changing a setting recomputes the colour
-  statistics; changing only I₀ or the tissue mask can be served from the stored raw pixel
-  samples for sample-based fits, but the exact summaries are recomputed.
-- **Incremental reruns, publication and backups** follow the same rules as
-  `plane_histograms.csv`, with the colour files staged and published together with the table
-  and manifest.
+1. **Pair the biological repeats across conditions** (N30).
+   - By default, repeats with the same folder name in different conditions are one repeat
+     group, named after the folder.
+   - A table lists every repeat group with its folder in each condition. When a repeat has a
+     different name in another condition (acquired a day later, for example), the user moves
+     it into the right group with a dropdown. Each folder belongs to exactly one group.
+   - Groups not present in every condition are shown in amber and reported (P2), not blocked.
+2. **Confirm the biological repeats** (N35).
+   - A yellow box asks for each repeat group: "Were these images prepared and acquired under
+     the same circumstances, so they are comparable with each other?" with a **Yes, they
+     are comparable** button.
+   - When there are no biological-repeat folders (every condition has the label `single`),
+     the question becomes: "All images of every condition come from one biological repeat:
+     were they prepared and acquired under the same circumstances?" (N31).
+   - Missing technical-repeat folders need no question: the images of the biological repeat
+     are used directly (N31).
+3. **Mark the controls** (N36). A checkbox per condition; none, one or several may be marked.
+   Recorded only; nothing uses it yet.
 
-## P5 — Normalized preview
+**`experiment_design.csv`** (schema version 1), one row per condition and biological-repeat
+folder, sorted by condition then biological repeat:
 
-- A notebook step shows before/after previews of a few planes using the normalization brick's
-  preview helpers, with the method, scope and purpose choices limited to those the modality
-  profile allows (N16).
-- The preview never writes normalized images; normalization of patches stays in CellPatcher.
+| Column | Meaning |
+|---|---|
+| `condition`, `biological_repeat` | Folder labels, as in `plane_histograms.csv` (`single` when absent) |
+| `repeat_group` | Label of the repeat group the folder belongs to (default: `biological_repeat`) |
+| `control` | `true` when the condition is marked as a control |
+| `image_count`, `technical_repeat_count` | Counts at the time of confirmation |
+| `confirmed` | `true` once the repeat group is confirmed |
+| `confirmed_on` | Date of the confirmation (ISO 8601) |
+| `schema_version` | `1` |
+
+- **Reruns.** When the file exists and its rows match the folders found, the pairing,
+  confirmations and controls are loaded and the questions are skipped, with a green line
+  saying when they were confirmed and a **Change** button. A new or renamed condition or
+  biological repeat asks again only for the groups it affects. Added or removed images
+  within a confirmed folder keep the confirmation.
+- **Command line.** `run` reads `experiment_design.csv` from the output folder, or from
+  `--design <file>`. Without a file, or with unconfirmed groups, it stops and writes a
+  template with `confirmed=false` for the user to review and set to `true`.
+- **Manifest.** Records the SHA-256 of the `experiment_design.csv` used, so CellPatcher can
+  check it matches (a new optional key; the manifest stays version 1).
+- The file format is defined in this brick's `docs/contract.md`; CellPatcher reads it with a
+  reader exported by this brick.
+
+## P4 — Image type (step 2)
+
+- After the axis roles, step 2 asks for the image type: **Fluorescence** or **RGB** (N34).
+  It suggests RGB when the metadata has an RGB samples axis (TIFF photometric RGB, three
+  samples per pixel) and Fluorescence otherwise; the user confirms with a **Yes** button.
+- RGB needs exactly three channels and an integer pixel type; otherwise the RGB option is
+  disabled with the reason.
+- The manifest records `image_type` and whether the channel axis came from RGB samples (new
+  optional keys; manifest version 1). Changing the type on a rerun does not recompute
+  histograms: they are the same for both types.
+- The statistics stay `plane_histograms.csv` only, one row per channel, for both types.
+
+## P5 — Intensity checks and plots (after step 3)
+
+Run automatically after the histograms are computed, and in step 4 for any table, using the
+normalization brick's `image_summaries` and `intensity_checks` (N38):
+
+- **Warnings** (limits adjustable under *Check settings*, default 3 robust deviations):
+  images far from the other images of their condition and biological repeat, biological
+  repeats shifted from the other repeats of their condition, saturated images, and images
+  without intensity spread. Comparisons stay within a condition, so treatment effects are
+  not reported.
+- **Plots, in the notebook only** (no files written), per channel:
+  - box plots of the image medians and 99.8th percentiles, grouped by condition and
+    biological repeat, with flagged images highlighted;
+  - overlaid intensity distributions per biological repeat within each condition.
+- The command line prints the warnings and draws no plots.
 
 ## Tests and acceptance
 
-- P1: bit-identical outputs; deprecated re-exports warn once per name.
-- P2: the modality is required before statistics run; the suggested modality never applies
-  without confirmation; the right statistics files are written for each modality.
-- P3: references survive reruns and are reported clearly when they stop matching.
-- P4: blockwise and whole-plane colour statistics are equal; reruns are idempotent and only
-  new or changed images are read.
-- P5: only allowed methods are offered for each modality and purpose.
+- P1: done.
+- P2: each new warning fires on a constructed folder (unbalanced counts, a repeat missing from
+  one condition, differing or missing pixel sizes, differing plane counts) and stays silent on
+  a balanced one.
+- P3: same-named repeats pair by default; manual pairing is saved and reloaded; later steps and
+  the command line are blocked until every group is confirmed; a rerun with unchanged folders
+  skips the questions; a new repeat asks only for its group; the all-`single` case asks the
+  single question.
+- P4: RGB is suggested only for RGB samples, never applied without confirmation, and refused
+  for images that are not three-channel integer images.
+- P5: the warnings match the normalization brick's checks on the same table; plots are drawn
+  from the table without reading images; nothing is written.
 
 ## Contract changes
 
-- `docs/contract.md`: modality (§2), references, colour statistics schema and settings, and
-  the files written per modality.
-- `AGENTS.md`: the dependency on the normalization brick and the moved modules.
+- `docs/contract.md`: `experiment_design.csv` (schema, reruns, command line), the new
+  validation codes of P2, the manifest keys of P3 and P4.
+- `docs/user_guide.md` and `README.md`: the new step 1 and step 2 questions, the checks and
+  plots; links to the normalization contract point to §6.2 for `plane_histograms.csv`
+  (previously §8.2).
+- `AGENTS.md`: the experiment design and image type.

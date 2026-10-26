@@ -9,7 +9,7 @@ description = "MorphoBricks normalization brick: per-plane statistics, their fil
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "CellMigrationLab" }]
 keywords = ["microscopy", "image analysis", "histogram", "normalization", "MorphoBricks"]
 classifiers = [
@@ -41,7 +41,7 @@ addopts = "-ra"
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]

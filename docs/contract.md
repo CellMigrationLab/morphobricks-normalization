@@ -624,7 +624,7 @@ UTF-8, comma-separated, one header row, one row per plane, rows in a determinist
 
 | Column | Type | Meaning |
 |---|---|---|
-| `position_id` | text or blank | From reliable metadata only; never inferred from file names. |
+| `position_id` | text or blank | The XY position within its technical repeat (MorphoBricks decision D02): from reliable metadata, or the image file name without extension when one file holds exactly one position, as morphobricks-preprocessing writes it. Blank only in tables written before it was filled. |
 | `image_file` | text | File name. |
 | `z`, `c`, `t` | integer | Zero-based plane coordinates, always written; 0 for an axis the image does not have (preprocessing contract §2). |
 | `condition`, `biological_repeat`, `technical_repeat` | text | Folder labels; `single` when absent. Always read as text. |

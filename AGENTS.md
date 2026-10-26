@@ -78,7 +78,7 @@ unchanged (contract §1).
    behaviour starts in Milestone 2.
 4. **Tests** use simulated data generated in the tests; real data only as an optional
    check. Each formula is tested against a direct implementation (plan §11).
-5. **Style** as in morphobricks-preprocessing: Python 3.10+, `ruff` (line length 100,
+5. **Style** as in morphobricks-preprocessing: Python 3.11+ (MorphoBricks decision D01), `ruff` (line length 100,
    NumPy docstrings), small modules with one job each, comments that explain why.
 6. **Done means** `ruff check .`, `ruff format --check .` and `pytest` pass and the docs
    are updated. Report honestly what was verified and what was not.

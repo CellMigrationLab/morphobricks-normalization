@@ -32,7 +32,9 @@ class PlaneRecord:
         Zero-based plane coordinates. An axis the image does not have, or has
         with length 1, has coordinate 0; None is stored as 0.
     position_id
-        Position identifier from reliable metadata, or None.
+        The XY position within its technical repeat (MorphoBricks decision D02):
+        from reliable metadata, or the file stem when one file is one position; None
+        only for records written before the field was filled.
     """
 
     source_relative_path: str

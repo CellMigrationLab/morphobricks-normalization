@@ -39,8 +39,34 @@ from morphobricks-preprocessing unchanged, with identical outputs:
 - Group statistics pooled from histograms (`pooling`)
 - Min-max, percentile, z-score and robust z-score parameters (`normalization`)
 
-The scopes, the RGB method and the intensity checks follow in Milestones 2–4 (see the
-plan).
+Milestone 2 added the settings, the scopes and the fitting interface for fluorescence
+images:
+
+- `NormalizationSettings` (image type, method, percentiles, consistency, scope, pooling
+  weight, per-time-point groups), stored with `to_dict`/`from_dict`, and `check_settings`
+  (`settings`)
+- The `biological_repeat`, `image` and `patch` scopes: `group_key`, `group_name` and
+  `scope_groups`, with repeat groups matched by name or paired by the calling brick
+  (`scopes`)
+- Pooling weighted per pixel or equally per condition (`WeightedHistogram` in `pooling`)
+- `fit` from `plane_histograms.csv` rows or from pixels, and `Parameters` with `apply`,
+  `to_columns` and `from_columns` (`fitting`)
+- Warnings returned as `Issue` objects (`issues`)
+
+```python
+from morphobricks_normalization import NormalizationSettings, check_settings, fit, scope_groups
+from morphobricks_normalization import group_name, read_plane_histograms
+
+settings = NormalizationSettings(scope="biological_repeat", pooling="pixels")
+warnings = check_settings(settings, statistics_file=True)
+records = read_plane_histograms("plane_histograms.csv")
+groups, group_warnings = scope_groups(records, settings, repeat_groups=None)
+for key, rows in groups.items():
+    parameters = fit(rows, settings, group=group_name(key))
+    columns = parameters.to_columns()  # normalization_* columns, numbers as text
+```
+
+The RGB method and the intensity checks follow in Milestones 3–4 (see the plan).
 
 ## Installation
 

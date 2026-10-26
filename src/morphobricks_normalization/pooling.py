@@ -155,6 +155,76 @@ class PooledHistogram:
         )
 
 
+class WeightedHistogram:
+    """Several pooled histograms added with a weight each (contract §4.3).
+
+    Every pixel of ``parts[i]`` counts ``weights[i]`` times. The statistics are
+    those of :class:`PooledHistogram` with weighted counts: the percentile is
+    the smallest representative whose cumulative weight reaches ``q / 100`` of
+    the total. With all weights 1 the numbers equal those of a
+    :class:`PooledHistogram` of the same planes exactly.
+
+    Parameters
+    ----------
+    parts
+        The histograms to add, for example one per condition.
+    weights
+        One positive, finite weight per part.
+    """
+
+    def __init__(self, parts: Sequence[PooledHistogram], weights: Sequence[float]):
+        if len(parts) == 0 or len(parts) != len(weights):
+            raise ValueError("Expected one weight for each of at least one pooled histogram.")
+        if not all(np.isfinite(w) and w > 0 for w in weights):
+            raise ValueError(f"Weights must be positive and finite; got {list(weights)}.")
+        self.n_planes = sum(part.n_planes for part in parts)
+        self.n_excluded_planes = sum(part.n_excluded_planes for part in parts)
+        self.pixel_count = sum(part.pixel_count for part in parts)
+        self.minimum = min(part.minimum for part in parts)
+        self.maximum = max(part.maximum for part in parts)
+        self.max_representative_error = max(part.max_representative_error for part in parts)
+        merged, inverse = np.unique(
+            np.concatenate([part.values for part in parts]), return_inverse=True
+        )
+        scaled = np.concatenate(
+            [part.counts * float(w) for part, w in zip(parts, weights, strict=True)]
+        )
+        self.values = merged
+        self.weights = np.bincount(inverse, weights=scaled)
+        self._cumulative = np.cumsum(self.weights)
+        self.total_weight = float(self._cumulative[-1])
+
+    @property
+    def mean(self) -> float:
+        """Weighted mean."""
+        return float(np.dot(self.weights, self.values) / self.total_weight)
+
+    @property
+    def std(self) -> float:
+        """Weighted population standard deviation."""
+        deviations = self.values - self.mean
+        return float(np.sqrt(np.dot(self.weights, deviations * deviations) / self.total_weight))
+
+    def percentile(self, q: float) -> float:
+        """Weighted inverse-CDF percentile, ``q`` in percent (0-100)."""
+        if not 0 <= q <= 100:
+            raise ValueError(f"Percentiles must be between 0 and 100; got {q}.")
+        return float(self.values[_weighted_index(self._cumulative, self.total_weight, q)])
+
+    @property
+    def median(self) -> float:
+        """Weighted 50th percentile."""
+        return self.percentile(50)
+
+    @property
+    def mad(self) -> float:
+        """Weighted median absolute deviation from the weighted median (unscaled)."""
+        deviations = np.abs(self.values - self.median)
+        order = np.argsort(deviations, kind="stable")
+        cumulative = np.cumsum(self.weights[order])
+        return float(deviations[order][_weighted_index(cumulative, cumulative[-1], 50)])
+
+
 def pooled_statistics(
     histograms: Iterable[PlaneHistogram | PlaneRecord],
     percentiles: Sequence[float] = DEFAULT_PERCENTILES,
@@ -166,3 +236,11 @@ def pooled_statistics(
 def _inverse_cdf_index(cumulative: np.ndarray, total: int, q: float) -> int:
     rank = max(1, int(np.ceil(q / 100 * total)))
     return int(np.searchsorted(cumulative, rank, side="left"))
+
+
+def _weighted_index(cumulative: np.ndarray, total: float, q: float) -> int:
+    # With whole-number weights, "cumulative >= q/100 * total" picks the same
+    # entry as the integer rank of _inverse_cdf_index, so unit weights give
+    # PooledHistogram's numbers exactly.
+    index = int(np.searchsorted(cumulative, q / 100 * total, side="left"))
+    return min(index, len(cumulative) - 1)

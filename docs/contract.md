@@ -17,7 +17,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | Section | Implemented in |
 |---|---|
 | 1. Existing code | Milestone 1 (moved unchanged; done) |
-| 2. Interface; 3.1–3.2 fluorescence methods; 4. Scopes and repeat groups; 8. Columns | Milestone 2 |
+| 2. Interface; 3.1–3.2 fluorescence methods; 4. Scopes and repeat groups; 8. Columns | Milestone 2 (done; `image_summaries` and `intensity_checks` of §2.2 follow in Milestone 4) |
 | 3.3 RGB method; 5. Image types | Milestone 3 |
 | 7. Intensity checks | Milestone 4 |
 | 9. Validation | With the milestone of each check |

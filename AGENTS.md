@@ -30,14 +30,21 @@ src/morphobricks_normalization/
                     compute_block_histogram for planes read in blocks), memory estimate
   records.py        PlaneRecord (one plane_histograms.csv row), plane_id, group_records
   csv_io.py         write/read plane_histograms.csv (atomic write, labels always text)
-  pooling.py        PooledHistogram: pooled counts, never mean-of-means
+  pooling.py        PooledHistogram: pooled counts, never mean-of-means;
+                    WeightedHistogram: histograms added with a weight each (Milestone 2)
   normalization.py  NormalizationParameters (offset, scale) and the four linear methods
+  settings.py       NormalizationSettings, check_settings, MethodNotAllowedError
+  scopes.py         group_key, group_name, scope_groups: groups at each scope, repeat groups
+  fitting.py        fit, Parameters (apply, to_columns, from_columns)
+  issues.py         Issue: warnings returned to the calling brick
 tests/              pytest with simulated planes (tests/simulation.py)
 ```
 
-These six modules were moved from morphobricks-preprocessing commit `fd923c9` in
-Milestone 1 with only the package name changed; keep their behaviour and messages
-unchanged (contract §1).
+The six modules `dtypes` to `normalization` were moved from morphobricks-preprocessing
+commit `fd923c9` in Milestone 1 with only the package name changed; keep their behaviour
+and messages unchanged (contract §1). Milestone 2 added `settings`, `scopes`, `fitting`,
+`issues` and `WeightedHistogram`; the RGB method (Milestone 3) and the intensity checks
+(Milestone 4) are still to come.
 
 ## 2. Rules of the repository
 

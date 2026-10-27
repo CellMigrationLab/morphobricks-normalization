@@ -2,8 +2,8 @@
 
 > See also: [Normalization brick plan](plan.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
-**Status:** P1 done; P2–P5 planned (revised 26 October 2026). Decision numbers refer to §12 of
-the [normalization plan](plan.md).
+**Status:** P1–P3 done; P3b, P4 and P5 planned (revised 27 October 2026). Decision numbers
+refer to §12 of the [normalization plan](plan.md).
 **Repository:** [CellMigrationLab/morphobricks-preprocessing](https://github.com/CellMigrationLab/morphobricks-preprocessing)
 
 ## Goal
@@ -14,12 +14,14 @@ confirm axes, optional OME-Zarr conversion, write `plane_histograms.csv`) and ga
 - dataset warnings in the folder check (P2);
 - the experiment design: pairing and confirming biological repeats, and marking controls
   (P3);
+- `plane_histograms.csv` with the channels in columns, schema version 3 (P3b);
 - the image type, `fluorescence` or `rgb` (P4);
 - intensity checks and plots after the histograms (P5).
 
 Statistics, normalization and intensity-check code comes from `morphobricks_normalization`
-(N1, N2). P2 and P3 do not depend on the normalization brick and may start before its
-`v0.2.0` release; P4 and P5 need it.
+(N1, N2). P2 and P3 did not depend on the normalization brick; P3b needs its Milestone 2b,
+P4 its Milestone 3 and P5 its Milestone 4. Until the brick's `v0.2.0` release, this brick
+pins it by commit.
 
 ## P1 — Depend on the normalization brick (no behaviour change)
 
@@ -104,6 +106,26 @@ folder, sorted by condition then biological repeat:
 - The file format is defined in this brick's `docs/contract.md`; CellPatcher reads it with a
   reader exported by this brick.
 
+## P3b — Channels across columns (step 3)
+
+Follows the normalization brick's Milestone 2b (N41–N44, its contract §1.3 and §6).
+
+- Step 3 writes `plane_histograms.csv` schema version 3 with the brick's writer: one row per
+  XYC plane (image, Z, T), each channel's extrema, counts and bins in its own
+  CellProfiler-style columns (`Histogram_Count_C0_00000`, …).
+- Planes are read with all their channels together, so the memory estimate and the
+  block-reading decision cover every channel of a plane; block reading keeps giving the same
+  histograms as reading whole.
+- **Channel count.** Images with different numbers of channels are an error before any
+  image is read (`different_channel_counts`, N43), with the images and their counts and
+  "every image of an experiment must have the same channels; split or exclude the
+  others". `different_plane_counts` keeps warning about Z, T and other planes only.
+- **Reruns.** A table of schema version 1 or 2 is recomputed completely on the next run, as
+  for any other version change. The manifest keeps version 1 and records schema version 3.
+- **Step 4** (statistics) reads the new layout; its table and plot do not change.
+- The histograms in the new table equal those of version 2, channel by channel (test against
+  a version-2 table written before the change).
+
 ## P4 — Image type (step 2)
 
 - After the axis roles, step 2 asks for the image type: **Fluorescence** or **RGB** (N34).
@@ -142,6 +164,8 @@ normalization brick's `image_summaries` and `intensity_checks` (N38):
   the command line are blocked until every group is confirmed; a rerun with unchanged folders
   skips the questions; a new repeat asks only for its group; the all-`single` case asks the
   single question.
+- P3b: one row per XYC plane with every channel's columns; histograms equal to version 2;
+  different channel counts stop the run before reading; a version-2 table is recomputed.
 - P4: RGB is suggested only for RGB samples, never applied without confirmation, and refused
   for images that are not three-channel integer images.
 - P5: the warnings match the normalization brick's checks on the same table; plots are drawn

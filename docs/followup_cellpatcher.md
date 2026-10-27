@@ -2,8 +2,8 @@
 
 > See also: [Normalization brick plan](plan.md) · [Preprocessing follow-up](followup_preprocessing.md)
 
-**Status:** plan, revised 26 October 2026; starts after the normalization brick's `v0.2.0`
-release and preprocessing P3–P4 (N6). Decision numbers N refer to §12 of the
+**Status:** plan, revised 27 October 2026; starts after the normalization brick's
+Milestones 2b–4 and preprocessing P3b–P4 (N6), pinned by commit until their releases. Decision numbers N refer to §12 of the
 [normalization plan](plan.md); D-numbers refer to CellPatcher's own `docs/plan.md`, and this
 plan revises some of them (see the last section).
 **Repository:** [CellMigrationLab/CellPatcher](https://github.com/CellMigrationLab/CellPatcher)
@@ -32,9 +32,21 @@ today (N29).
 - Raise the pins to normalization `v0.2.0` and the preprocessing release with P3–P4.
 - Replace CellPatcher's own parameter code with the brick's `fit`, `apply`, `to_columns` and
   `from_columns` for the `image` and `patch` scopes and the four fluorescence methods.
+- Read `plane_histograms.csv` schema version 3 (channels in columns, N41); a table of version
+  2 is refused with the brick's message asking to rerun the preprocessing brick.
+- **Parameter columns (N41, N42).** `patches.csv` replaces the `;`-separated
+  `normalization_offset` and `normalization_scale` with `Normalization_Offset_C<i>` and
+  `Normalization_Scale_C<i>`, one pair per channel of the image, grouped by channel. A
+  `split_channels` patch fills only the pair of its own channel. `normalization_method`,
+  `_scope`, `_group` and `_exact` keep their names. Normalizing raw patches on load
+  (`iter_exported_patches`, `ExportedPatchTorchDataset`) reads the new columns and keeps
+  reading the old `;`-separated ones of earlier tables.
+- **Channel count.** Images with different numbers of channels are an error when
+  normalization is enabled (N43).
 - Store `NormalizationSettings.to_dict()` in `run_config.json`.
-- Acceptance: identical patches, `patches.csv` and `run_config.json` (apart from the added
-  settings) before and after, for every delivery mode.
+- Acceptance: identical patches and `run_config.json` (apart from the added settings)
+  before and after, for every delivery mode; `patches.csv` identical apart from the
+  parameter columns, whose values are unchanged.
 
 ## C2 — Three scopes
 
@@ -95,6 +107,14 @@ today (N29).
 - Every scope and type gives the same arrays in all delivery modes (normalized files, raw
   files normalized on load, eager and lazy in memory).
 
+## Open question
+
+- **`split_channels` (N41).** With `extraction.split_channels=True`, CellPatcher makes one
+  single-channel patch per channel, one `patches.csv` row each, with the channel in `c`.
+  Rows are patches, not channel measurements, so this plan keeps the option and its `c`
+  column; whether it should stay under the channels-in-columns rule is the owner's decision
+  before C1.
+
 ## Revisions to CellPatcher's earlier decisions
 
 | CellPatcher decision | Revision |
@@ -102,8 +122,9 @@ today (N29).
 | D4: channels are never pooled | Except for `rgb`, where R, G and B share one offset and scale (C3) |
 | D5: scopes condition to patch | Three scopes; `biological_repeat` now spans all conditions (C2) |
 | D12: deprecate before removing | Not for the removed scopes: removed straight away (N29) |
+| D14 and contract §10: `normalization_offset`/`normalization_scale` as `;`-separated lists | One `Normalization_Offset_C<i>`/`Normalization_Scale_C<i>` pair per channel (C1, N41) |
 | Contract §7: scope table | Rewritten for the three scopes and repeat groups (C2) |
 
-These revisions are owner-approved through decisions N29–N40 and must be recorded in
+These revisions are owner-approved through decisions N29–N44 and must be recorded in
 CellPatcher's `docs/plan.md`, `docs/normalization_contract.md`, `docs/configuration_reference.md`
 and `AGENTS.md` §5 when C1–C4 are implemented.

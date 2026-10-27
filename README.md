@@ -85,7 +85,7 @@ python -m pytest
 
 | Document | Content |
 |---|---|
-| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N40 |
+| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N44 |
 | [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | [docs/followup_preprocessing.md](docs/followup_preprocessing.md) | Changes to morphobricks-preprocessing |
 | [docs/followup_cellpatcher.md](docs/followup_cellpatcher.md) | Changes to CellPatcher |

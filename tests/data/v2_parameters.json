@@ -1,0 +1,7708 @@
+{
+ "datasets": {
+  "uint16": {
+   "bin_count": 512,
+   "planes": [
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 1
+    }
+   ],
+   "fits": [
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      169.0,
+      143.0
+     ],
+     "scale": [
+      6338.0,
+      16463.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      148.0,
+      162.0
+     ],
+     "scale": [
+      5876.0,
+      11355.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      169.0,
+      143.0
+     ],
+     "scale": [
+      6236.0,
+      9758.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      264.0,
+      155.0
+     ],
+     "scale": [
+      6243.0,
+      16451.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      148.0,
+      162.0
+     ],
+     "scale": [
+      5876.0,
+      7945.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      201.0,
+      181.0
+     ],
+     "scale": [
+      4615.0,
+      11336.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      169.0,
+      143.0
+     ],
+     "scale": [
+      6338.0,
+      16463.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      148.0,
+      162.0
+     ],
+     "scale": [
+      5876.0,
+      11355.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      169.0,
+      143.0
+     ],
+     "scale": [
+      6236.0,
+      9758.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      264.0,
+      155.0
+     ],
+     "scale": [
+      6243.0,
+      16451.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      148.0,
+      162.0
+     ],
+     "scale": [
+      5876.0,
+      7945.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      201.0,
+      181.0
+     ],
+     "scale": [
+      4615.0,
+      11336.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      261.0,
+      155.0
+     ],
+     "scale": [
+      2500.0,
+      3601.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      169.0,
+      315.0
+     ],
+     "scale": [
+      2191.0,
+      8256.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      148.0,
+      228.0
+     ],
+     "scale": [
+      2924.0,
+      7626.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      166.0,
+      162.0
+     ],
+     "scale": [
+      2939.0,
+      4810.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      333.0,
+      143.0
+     ],
+     "scale": [
+      6174.0,
+      16463.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      682.0,
+      263.0
+     ],
+     "scale": [
+      3279.0,
+      11254.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      208.0,
+      223.0
+     ],
+     "scale": [
+      5816.0,
+      10916.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      261.0,
+      165.0
+     ],
+     "scale": [
+      2500.0,
+      3116.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      264.0,
+      155.0
+     ],
+     "scale": [
+      2133.0,
+      3601.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      169.0,
+      332.0
+     ],
+     "scale": [
+      1720.0,
+      3240.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      320.0,
+      315.0
+     ],
+     "scale": [
+      2040.0,
+      8256.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      148.0,
+      228.0
+     ],
+     "scale": [
+      2924.0,
+      4458.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      258.0,
+      473.0
+     ],
+     "scale": [
+      1725.0,
+      7381.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      166.0,
+      162.0
+     ],
+     "scale": [
+      1865.0,
+      3675.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      201.0,
+      181.0
+     ],
+     "scale": [
+      2904.0,
+      4791.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      333.0,
+      143.0
+     ],
+     "scale": [
+      6072.0,
+      9758.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      358.0,
+      331.0
+     ],
+     "scale": [
+      6149.0,
+      16275.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      736.0,
+      263.0
+     ],
+     "scale": [
+      3225.0,
+      7844.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      682.0,
+      739.0
+     ],
+     "scale": [
+      2928.0,
+      10778.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      403.0,
+      223.0
+     ],
+     "scale": [
+      5621.0,
+      5218.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      208.0,
+      353.0
+     ],
+     "scale": [
+      4608.0,
+      10786.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      261.0,
+      165.0
+     ],
+     "scale": [
+      2500.0,
+      3116.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      169.0,
+      332.0
+     ],
+     "scale": [
+      1720.0,
+      3240.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      148.0,
+      228.0
+     ],
+     "scale": [
+      2924.0,
+      4458.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      166.0,
+      162.0
+     ],
+     "scale": [
+      1865.0,
+      3675.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      333.0,
+      143.0
+     ],
+     "scale": [
+      6072.0,
+      9758.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      736.0,
+      263.0
+     ],
+     "scale": [
+      3225.0,
+      7844.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      403.0,
+      223.0
+     ],
+     "scale": [
+      5621.0,
+      5218.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      251.5,
+      172.0
+     ],
+     "scale": [
+      6178.0,
+      15751.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      179.5,
+      242.0
+     ],
+     "scale": [
+      5565.5,
+      10886.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      221.0,
+      172.0
+     ],
+     "scale": [
+      6060.5,
+      9530.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      387.0,
+      173.0
+     ],
+     "scale": [
+      6066.5,
+      16100.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      171.5,
+      230.0
+     ],
+     "scale": [
+      5705.5,
+      7640.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      277.5,
+      260.5
+     ],
+     "scale": [
+      4435.5,
+      10994.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      265.0,
+      172.0
+     ],
+     "scale": [
+      6188.5,
+      16037.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      179.5,
+      242.0
+     ],
+     "scale": [
+      5565.5,
+      10886.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      231.0,
+      152.5
+     ],
+     "scale": [
+      6050.5,
+      9568.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      405.5,
+      173.0
+     ],
+     "scale": [
+      6048.0,
+      16132.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      171.5,
+      230.0
+     ],
+     "scale": [
+      5705.5,
+      7640.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      277.5,
+      260.5
+     ],
+     "scale": [
+      4435.5,
+      10994.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      337.0,
+      166.0
+     ],
+     "scale": [
+      2374.0,
+      3524.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      204.0,
+      385.5
+     ],
+     "scale": [
+      2127.5,
+      8065.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      162.5,
+      293.0
+     ],
+     "scale": [
+      2782.0,
+      7454.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      193.5,
+      187.0
+     ],
+     "scale": [
+      2813.0,
+      4725.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      457.5,
+      152.5
+     ],
+     "scale": [
+      5996.0,
+      16152.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      896.5,
+      393.0
+     ],
+     "scale": [
+      3018.0,
+      10904.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      303.0,
+      360.5
+     ],
+     "scale": [
+      5574.0,
+      10663.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      332.0,
+      180.5
+     ],
+     "scale": [
+      2408.0,
+      3086.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      337.0,
+      158.5
+     ],
+     "scale": [
+      2033.5,
+      3594.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      191.0,
+      385.5
+     ],
+     "scale": [
+      1687.0,
+      3172.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      369.5,
+      371.5
+     ],
+     "scale": [
+      1978.0,
+      8160.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      162.5,
+      267.0
+     ],
+     "scale": [
+      2816.0,
+      4389.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      307.0,
+      639.0
+     ],
+     "scale": [
+      1665.0,
+      7165.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      178.5,
+      187.0
+     ],
+     "scale": [
+      1837.0,
+      3597.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      249.5,
+      185.5
+     ],
+     "scale": [
+      2808.0,
+      4754.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      422.0,
+      152.5
+     ],
+     "scale": [
+      5930.5,
+      9682.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      484.5,
+      442.5
+     ],
+     "scale": [
+      6005.0,
+      16053.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      896.5,
+      332.0
+     ],
+     "scale": [
+      3024.5,
+      7630.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      879.5,
+      1128.5
+     ],
+     "scale": [
+      2711.5,
+      10231.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      496.0,
+      279.0
+     ],
+     "scale": [
+      5425.0,
+      5086.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      276.0,
+      469.0
+     ],
+     "scale": [
+      4527.0,
+      10597.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      334.0,
+      181.0
+     ],
+     "scale": [
+      2408.0,
+      3088.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      191.0,
+      387.0
+     ],
+     "scale": [
+      1686.0,
+      3169.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      160.0,
+      268.0
+     ],
+     "scale": [
+      2817.0,
+      4389.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      179.0,
+      188.0
+     ],
+     "scale": [
+      1836.0,
+      3596.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      426.0,
+      156.0
+     ],
+     "scale": [
+      5930.0,
+      9676.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      896.0,
+      325.0
+     ],
+     "scale": [
+      3023.0,
+      7637.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      493.0,
+      282.0
+     ],
+     "scale": [
+      5429.0,
+      5080.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      221.0,
+      158.5
+     ],
+     "scale": [
+      5548.5,
+      7793.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      171.5,
+      209.0
+     ],
+     "scale": [
+      4019.5,
+      8267.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      197.5,
+      152.5
+     ],
+     "scale": [
+      4696.0,
+      7014.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      341.5,
+      166.0
+     ],
+     "scale": [
+      5656.0,
+      8541.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      162.5,
+      201.5
+     ],
+     "scale": [
+      4528.5,
+      4889.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      260.5,
+      223.0
+     ],
+     "scale": [
+      3606.5,
+      9474.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      231.0,
+      152.5
+     ],
+     "scale": [
+      5718.5,
+      8596.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      171.5,
+      209.0
+     ],
+     "scale": [
+      4019.5,
+      8267.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      204.0,
+      152.5
+     ],
+     "scale": [
+      5104.5,
+      7757.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      364.0,
+      166.0
+     ],
+     "scale": [
+      5813.5,
+      10607.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      162.5,
+      201.5
+     ],
+     "scale": [
+      4528.5,
+      4889.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      260.5,
+      223.0
+     ],
+     "scale": [
+      3606.5,
+      9474.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      317.0,
+      158.5
+     ],
+     "scale": [
+      2008.0,
+      2840.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      191.0,
+      355.5
+     ],
+     "scale": [
+      1725.5,
+      6628.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      162.5,
+      267.0
+     ],
+     "scale": [
+      1762.5,
+      6052.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      178.5,
+      185.5
+     ],
+     "scale": [
+      2448.0,
+      4174.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      422.0,
+      152.5
+     ],
+     "scale": [
+      5791.5,
+      10621.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      782.0,
+      332.0
+     ],
+     "scale": [
+      2767.5,
+      9744.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      276.0,
+      279.0
+     ],
+     "scale": [
+      4975.0,
+      8638.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      317.0,
+      174.5
+     ],
+     "scale": [
+      2159.0,
+      2630.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      320.5,
+      158.5
+     ],
+     "scale": [
+      1950.0,
+      2961.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      184.0,
+      354.0
+     ],
+     "scale": [
+      1476.0,
+      2950.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      341.5,
+      355.5
+     ],
+     "scale": [
+      1754.0,
+      7386.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      150.5,
+      241.0
+     ],
+     "scale": [
+      2040.0,
+      3632.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      290.0,
+      566.5
+     ],
+     "scale": [
+      1598.0,
+      6459.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      175.0,
+      173.0
+     ],
+     "scale": [
+      1625.5,
+      3274.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      215.5,
+      185.5
+     ],
+     "scale": [
+      2592.5,
+      4502.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      374.5,
+      152.5
+     ],
+     "scale": [
+      5456.0,
+      8596.5
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      424.5,
+      410.5
+     ],
+     "scale": [
+      5849.0,
+      13065.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      783.5,
+      286.0
+     ],
+     "scale": [
+      2892.0,
+      6834.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      753.5,
+      918.0
+     ],
+     "scale": [
+      2580.0,
+      9747.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      474.0,
+      248.5
+     ],
+     "scale": [
+      5106.0,
+      4546.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      240.0,
+      385.0
+     ],
+     "scale": [
+      4248.0,
+      9586.0
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      315.0,
+      175.0
+     ],
+     "scale": [
+      2162.0,
+      2628.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      183.0,
+      357.0
+     ],
+     "scale": [
+      1477.0,
+      2946.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      151.0,
+      238.0
+     ],
+     "scale": [
+      2040.0,
+      3636.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      175.0,
+      173.0
+     ],
+     "scale": [
+      1627.0,
+      3277.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      377.0,
+      154.0
+     ],
+     "scale": [
+      5452.0,
+      8594.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      781.0,
+      280.0
+     ],
+     "scale": [
+      2892.0,
+      6842.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      477.0,
+      247.0
+     ],
+     "scale": [
+      5103.0,
+      4545.0
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      1988.263454861111,
+      2787.071759259259
+     ],
+     "scale": [
+      1603.3688382960217,
+      2516.9416842755604
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1838.4878472222222,
+      3331.3454861111113
+     ],
+     "scale": [
+      1223.043542300407,
+      2519.489034034186
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1654.84375,
+      2273.428240740741
+     ],
+     "scale": [
+      1317.0863049442073,
+      1861.4659636730157
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      2321.683159722222,
+      3300.715277777778
+     ],
+     "scale": [
+      1784.5250150632644,
+      2945.721647057392
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1794.6334635416667,
+      2268.54296875
+     ],
+     "scale": [
+      1383.8758019118516,
+      1594.790631905022
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1882.3422309027778,
+      4394.148003472223
+     ],
+     "scale": [
+      1035.718283932595,
+      2809.4829495490408
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      2373.3790147569443,
+      3137.7735460069443
+     ],
+     "scale": [
+      1798.7770157672169,
+      2822.6810799006794
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1838.4878472222222,
+      3331.3454861111113
+     ],
+     "scale": [
+      1223.043542300407,
+      2519.489034034186
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1913.3036024305557,
+      2500.3083767361113
+     ],
+     "scale": [
+      1491.973202599279,
+      2173.543598850975
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      2833.4544270833335,
+      3775.238715277778
+     ],
+     "scale": [
+      1954.9615591043948,
+      3224.5994320978066
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1794.6334635416667,
+      2268.54296875
+     ],
+     "scale": [
+      1383.8758019118516,
+      1594.790631905022
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1882.3422309027778,
+      4394.148003472223
+     ],
+     "scale": [
+      1035.718283932595,
+      2809.4829495490408
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1439.5581597222222,
+      1503.1280381944443
+     ],
+     "scale": [
+      589.2431693931414,
+      872.9995818140694
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      996.5065104166666,
+      2668.2083333333335
+     ],
+     "scale": [
+      507.1803935125226,
+      1795.3059631444676
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      938.7178819444445,
+      2438.3537326388887
+     ],
+     "scale": [
+      589.298877059131,
+      1774.0386104619251
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      1223.6783854166667,
+      1781.2764756944443
+     ],
+     "scale": [
+      730.0502501206424,
+      1211.9682869775575
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      3528.7256944444443,
+      4189.87890625
+     ],
+     "scale": [
+      1857.48544577525,
+      3374.7928337083376
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2466.5651041666665,
+      5043.244791666667
+     ],
+     "scale": [
+      741.7153156546824,
+      2890.8861186069103
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2724.9900173611113,
+      4062.5069444444443
+     ],
+     "scale": [
+      1478.1779590686594,
+      2398.4688408094275
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      1365.0,
+      1623.3003472222222
+     ],
+     "scale": [
+      597.7147111022579,
+      749.326315534599
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      1514.1163194444443,
+      1382.9557291666667
+     ],
+     "scale": [
+      570.9941428093327,
+      966.3766578453185
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      910.8480902777778,
+      2016.0355902777778
+     ],
+     "scale": [
+      492.2946888712059,
+      798.03542090657
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      1082.1649305555557,
+      3320.3810763888887
+     ],
+     "scale": [
+      507.3806387268402,
+      2226.8201310418913
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      734.4071180555555,
+      1538.5243055555557
+     ],
+     "scale": [
+      595.6423772981243,
+      1081.8727478952442
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      1143.0286458333333,
+      3338.183159722222
+     ],
+     "scale": [
+      506.2318785805787,
+      1872.055379653794
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      924.4140625,
+      1482.704861111111
+     ],
+     "scale": [
+      477.9707221974381,
+      980.2114057039955
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      1522.9427083333333,
+      2079.848090277778
+     ],
+     "scale": [
+      811.4015369611662,
+      1341.130060559613
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2688.683159722222,
+      3180.948784722222
+     ],
+     "scale": [
+      1702.4010107085649,
+      2807.9005234113124
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      4368.768229166667,
+      5198.809027777777
+     ],
+     "scale": [
+      1609.6559386984352,
+      3585.8427198181275
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2528.1848958333335,
+      3234.7265625
+     ],
+     "scale": [
+      830.5767653399405,
+      1997.5007994729635
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      2404.9453125,
+      6851.763020833333
+     ],
+     "scale": [
+      634.6900490639546,
+      2486.5557076319137
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      2991.527777777778,
+      2818.2161458333335
+     ],
+     "scale": [
+      1592.2719339217106,
+      1290.7501824815358
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      2458.4522569444443,
+      5306.797743055556
+     ],
+     "scale": [
+      1301.001725726038,
+      2596.6806396002507
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1365.0538194444443,
+      1623.3194444444443
+     ],
+     "scale": [
+      597.706053689735,
+      749.2781447720364
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      910.8680555555555,
+      2016.154513888889
+     ],
+     "scale": [
+      492.3604603016385,
+      798.0933477673262
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      734.5416666666666,
+      1538.5538194444443
+     ],
+     "scale": [
+      595.6467117413923,
+      1081.7855339890214
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      924.3993055555555,
+      1482.6631944444443
+     ],
+     "scale": [
+      477.96798649138503,
+      980.4099948948887
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      2688.6944444444443,
+      3180.9114583333335
+     ],
+     "scale": [
+      1702.5406098427081,
+      2808.2932126475034
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2528.2048611111113,
+      3234.4322916666665
+     ],
+     "scale": [
+      830.6995941198082,
+      1997.7008813603213
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2991.4375,
+      2818.3107638888887
+     ],
+     "scale": [
+      1592.346230229809,
+      1290.7935418423492
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      1451.5,
+      2110.5
+     ],
+     "scale": [
+      1001.4977986005342,
+      1553.767124993871
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1608.5,
+      2662.0
+     ],
+     "scale": [
+      1295.0530378646433,
+      2237.2467477249534
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1304.0,
+      1951.5
+     ],
+     "scale": [
+      840.6354578926763,
+      1151.2406226696
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      1699.5,
+      2459.0
+     ],
+     "scale": [
+      1214.251216956088,
+      2243.1771565989757
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1319.5,
+      1932.0
+     ],
+     "scale": [
+      1220.9229269393634,
+      1670.8927002558135
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1780.0,
+      4008.0
+     ],
+     "scale": [
+      1124.5537827364992,
+      3220.95331970342
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      1691.5,
+      2317.5
+     ],
+     "scale": [
+      1344.720212184581,
+      1884.38741972062
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1608.5,
+      2662.0
+     ],
+     "scale": [
+      1295.0530378646433,
+      2237.2467477249534
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1438.0,
+      2006.5
+     ],
+     "scale": [
+      1013.358616348579,
+      1421.0742264376195
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      2083.5,
+      2867.0
+     ],
+     "scale": [
+      1997.065188327046,
+      2647.9275622510054
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1319.5,
+      1932.0
+     ],
+     "scale": [
+      1220.9229269393634,
+      1670.8927002558135
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1780.0,
+      4008.0
+     ],
+     "scale": [
+      1124.5537827364992,
+      3220.95331970342
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1445.5,
+      1525.5
+     ],
+     "scale": [
+      747.2315181268234,
+      1028.925939642888
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      934.0,
+      2274.5
+     ],
+     "scale": [
+      564.1301441413816,
+      1326.9289855625138
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      785.0,
+      1936.5
+     ],
+     "scale": [
+      601.1951996040216,
+      1581.9365671454773
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      1122.5,
+      1561.5
+     ],
+     "scale": [
+      816.9138223965867,
+      1154.2058271066112
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      3743.5,
+      3398.5
+     ],
+     "scale": [
+      2486.3239204338947,
+      3110.499454424753
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2579.0,
+      4760.0
+     ],
+     "scale": [
+      781.3313691524522,
+      3479.667406832648
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2605.0,
+      3714.5
+     ],
+     "scale": [
+      1851.770170913497,
+      2191.2860789512797
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      1304.0,
+      1757.0
+     ],
+     "scale": [
+      673.1014072015433,
+      703.4947526809082
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      1604.0,
+      1165.0
+     ],
+     "scale": [
+      704.9773548994137,
+      1125.2950838457518
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      860.0,
+      2101.5
+     ],
+     "scale": [
+      667.1709983275209,
+      891.0439333218668
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      979.5,
+      2645.5
+     ],
+     "scale": [
+      508.5325609474215,
+      2152.738421270134
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      596.5,
+      1234.0
+     ],
+     "scale": [
+      389.9243834669733,
+      994.826088617259
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      1190.0,
+      2902.5
+     ],
+     "scale": [
+      664.2057938905098,
+      1838.4267509469464
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      962.5,
+      1372.0
+     ],
+     "scale": [
+      524.0998842417304,
+      1031.891144079899
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      1548.5,
+      1842.0
+     ],
+     "scale": [
+      1051.1649729204719,
+      1303.948651175677
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2213.0,
+      2497.0
+     ],
+     "scale": [
+      1846.5810631487273,
+      2825.8398284716773
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      4700.5,
+      4543.0
+     ],
+     "scale": [
+      1584.9017715824887,
+      2686.475219932151
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2661.0,
+      3029.0
+     ],
+     "scale": [
+      962.2088398101357,
+      2044.5084593192253
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      2487.0,
+      7086.0
+     ],
+     "scale": [
+      678.2905149663129,
+      2683.5100154951397
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      2879.0,
+      2858.0
+     ],
+     "scale": [
+      2068.2300948153147,
+      1481.1196162870965
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      2400.0,
+      5293.5
+     ],
+     "scale": [
+      1681.2709157853526,
+      2780.6204608072567
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1306.0,
+      1759.0
+     ],
+     "scale": [
+      674.5840094200489,
+      696.8230426976329
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      861.0,
+      2103.0
+     ],
+     "scale": [
+      667.1709983275209,
+      892.5265355403724
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      598.0,
+      1231.0
+     ],
+     "scale": [
+      392.88958790398453,
+      993.3434863987534
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      963.0,
+      1369.0
+     ],
+     "scale": [
+      521.875980913972,
+      1039.304155172427
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      2214.0,
+      2498.0
+     ],
+     "scale": [
+      1854.735375350508,
+      2824.357226253172
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2664.0,
+      3025.0
+     ],
+     "scale": [
+      956.2784309361133,
+      2060.8170837227867
+     ],
+     "exact": true
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2875.0,
+      2853.0
+     ],
+     "scale": [
+      2066.747492596809,
+      1490.01522959813
+     ],
+     "exact": true
+    }
+   ]
+  },
+  "float32": {
+   "bin_count": 64,
+   "planes": [
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_01",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_01/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "control/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "control",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "control/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_01",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep1"
+     ],
+     "path": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "c": 1,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 0,
+     "t": 1
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 0
+    },
+    {
+     "labels": [
+      "treated",
+      "2024_05_02",
+      "tech_rep2"
+     ],
+     "path": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "c": 1,
+     "t": 1
+    }
+   ],
+   "fits": [
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      8.897961616516113,
+      -16.865564346313477
+     ],
+     "scale": [
+      6338.216784477234,
+      16463.006189346313
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      -11.50145149230957,
+      2.2434420585632324
+     ],
+     "scale": [
+      5875.46580696106,
+      11354.694057941437
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      8.897961616516113,
+      -16.865564346313477
+     ],
+     "scale": [
+      6236.204089164734,
+      9758.347009658813
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      104.20204162597656,
+      154.89157104492188
+     ],
+     "scale": [
+      6242.912704467773,
+      16291.249053955078
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      -11.50145149230957,
+      2.2434420585632324
+     ],
+     "scale": [
+      5875.46580696106,
+      7945.082241535187
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      40.832462310791016,
+      20.77004051208496
+     ],
+     "scale": [
+      4615.092830657959,
+      11336.167459487915
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      8.897961616516113,
+      -16.865564346313477
+     ],
+     "scale": [
+      6338.216784477234,
+      16463.006189346313
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      -11.50145149230957,
+      2.2434420585632324
+     ],
+     "scale": [
+      5875.46580696106,
+      11354.694057941437
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      8.897961616516113,
+      -16.865564346313477
+     ],
+     "scale": [
+      6236.204089164734,
+      9758.347009658813
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      104.20204162597656,
+      154.89157104492188
+     ],
+     "scale": [
+      6242.912704467773,
+      16291.249053955078
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      -11.50145149230957,
+      2.2434420585632324
+     ],
+     "scale": [
+      5875.46580696106,
+      7945.082241535187
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      40.832462310791016,
+      20.77004051208496
+     ],
+     "scale": [
+      4615.092830657959,
+      11336.167459487915
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      101.45112609863281,
+      5.051723480224609
+     ],
+     "scale": [
+      2499.095016479492,
+      3116.1868019104004
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      8.897961616516113,
+      154.89157104492188
+     ],
+     "scale": [
+      2191.348864555359,
+      8255.959014892578
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      -11.50145149230957,
+      67.53050231933594
+     ],
+     "scale": [
+      2923.7148303985596,
+      7626.645278930664
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      6.27336311340332,
+      2.2434420585632324
+     ],
+     "scale": [
+      2939.1248302459717,
+      4809.387417316437
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      172.75213623046875,
+      -16.865564346313477
+     ],
+     "scale": [
+      6174.362609863281,
+      16463.006189346313
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      521.6535034179688,
+      103.30587005615234
+     ],
+     "scale": [
+      3278.9116821289062,
+      11253.631629943848
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      48.16154098510742,
+      63.079105377197266
+     ],
+     "scale": [
+      5815.802814483643,
+      10916.139644622803
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      101.45112609863281,
+      5.051723480224609
+     ],
+     "scale": [
+      2499.095016479492,
+      3116.1868019104004
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "error": "NoValidPixelsError"
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      8.897961616516113,
+      171.61968994140625
+     ],
+     "scale": [
+      1720.061266899109,
+      3240.0973510742188
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      159.6692352294922,
+      154.89157104492188
+     ],
+     "scale": [
+      2040.5775909423828,
+      8255.959014892578
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      -11.50145149230957,
+      67.53050231933594
+     ],
+     "scale": [
+      2923.7148303985596,
+      4458.295669555664
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      98.20274353027344,
+      312.81787109375
+     ],
+     "scale": [
+      1725.068862915039,
+      7381.35791015625
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      6.27336311340332,
+      2.2434420585632324
+     ],
+     "scale": [
+      1864.6419200897217,
+      3674.7758450508118
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      40.832462310791016,
+      20.77004051208496
+     ],
+     "scale": [
+      2904.565731048584,
+      4790.860818862915
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      172.75213623046875,
+      -16.865564346313477
+     ],
+     "scale": [
+      6072.349914550781,
+      9758.347009658813
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      197.5654754638672,
+      170.89212036132812
+     ],
+     "scale": [
+      6149.549270629883,
+      16275.248504638672
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      576.4476928710938,
+      103.30587005615234
+     ],
+     "scale": [
+      3224.1174926757812,
+      7844.019813537598
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      521.6535034179688,
+      579.2846069335938
+     ],
+     "scale": [
+      2928.7732543945312,
+      10777.652893066406
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      242.76922607421875,
+      63.079105377197266
+     ],
+     "scale": [
+      5621.195129394531,
+      5217.673824310303
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      48.16154098510742,
+      192.6775360107422
+     ],
+     "scale": [
+      4607.763751983643,
+      10786.541213989258
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      101.45112609863281,
+      5.051723480224609
+     ],
+     "scale": [
+      2499.095016479492,
+      3116.1868019104004
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      8.897961616516113,
+      171.61968994140625
+     ],
+     "scale": [
+      1720.061266899109,
+      3240.0973510742188
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      -11.50145149230957,
+      67.53050231933594
+     ],
+     "scale": [
+      2923.7148303985596,
+      4458.295669555664
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      6.27336311340332,
+      2.2434420585632324
+     ],
+     "scale": [
+      1864.6419200897217,
+      3674.7758450508118
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      172.75213623046875,
+      -16.865564346313477
+     ],
+     "scale": [
+      6072.349914550781,
+      9758.347009658813
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      576.4476928710938,
+      103.30587005615234
+     ],
+     "scale": [
+      3224.1174926757812,
+      7844.019813537598
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "minmax",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      242.76922607421875,
+      63.079105377197266
+     ],
+     "scale": [
+      5621.195129394531,
+      5217.673824310303
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      102.96381215006113,
+      59.371521666646004
+     ],
+     "scale": [
+      6196.107580266893,
+      15751.017208620906
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      11.340070620179176,
+      88.37100092694163
+     ],
+     "scale": [
+      5545.215176209807,
+      10847.564432937652
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      49.21189755946398,
+      59.371521666646004
+     ],
+     "scale": [
+      6053.569452099502,
+      9453.398665606976
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      239.37929737567902,
+      298.04249930381775
+     ],
+     "scale": [
+      6059.692095041275,
+      15766.646988868713
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      11.340070620179176,
+      88.37100092694163
+     ],
+     "scale": [
+      5720.8775240033865,
+      7675.110468287021
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      108.9082216322422,
+      133.05584095418453
+     ],
+     "scale": [
+      4439.022608399391,
+      10971.280419364572
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      102.96381215006113,
+      59.371521666646004
+     ],
+     "scale": [
+      6196.107580266893,
+      16005.317966505885
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      11.340070620179176,
+      88.37100092694163
+     ],
+     "scale": [
+      5545.215176209807,
+      10847.564432937652
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      76.08785485476255,
+      59.371521666646004
+     ],
+     "scale": [
+      6026.6934948042035,
+      9453.398665606976
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      239.37929737567902,
+      298.04249930381775
+     ],
+     "scale": [
+      6059.692095041275,
+      15766.646988868713
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      11.340070620179176,
+      88.37100092694163
+     ],
+     "scale": [
+      5720.8775240033865,
+      7675.110468287021
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      108.9082216322422,
+      133.05584095418453
+     ],
+     "scale": [
+      4439.022608399391,
+      10971.280419364572
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      187.5262302160263,
+      29.396932870149612
+     ],
+     "scale": [
+      2354.4473729133606,
+      3067.4963831305504
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      49.21189755946398,
+      219.39125084877014
+     ],
+     "scale": [
+      2135.0929161831737,
+      8126.959655284882
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      11.340070620179176,
+      102.36093723773956
+     ],
+     "scale": [
+      2786.665697723627,
+      7534.147985339165
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      20.84087811410427,
+      30.9526283480227
+     ],
+     "scale": [
+      2811.0977163761854,
+      4743.249630879611
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      315.0728373527527,
+      59.371521666646004
+     ],
+     "scale": [
+      5983.998555064201,
+      16005.317966505885
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      752.7666182518005,
+      287.1500844359398
+     ],
+     "scale": [
+      3022.610149383545,
+      10817.186175882816
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      156.15600392222404,
+      185.36833563447
+     ],
+     "scale": [
+      5576.061590701342,
+      10709.580561131239
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      160.0236655473709,
+      29.396932870149612
+     ],
+     "scale": [
+      2420.998297214508,
+      3067.4963831305504
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "error": "NoValidPixelsError"
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      22.3359402641654,
+      247.55947160720825
+     ],
+     "scale": [
+      1693.1853096038103,
+      3138.8443088531494
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      207.49527251720428,
+      219.39125084877014
+     ],
+     "scale": [
+      1976.8095412254333,
+      8126.959655284882
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      11.340070620179176,
+      102.36093723773956
+     ],
+     "scale": [
+      2786.665697723627,
+      4388.634799718857
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      138.63404500484467,
+      485.8184471130371
+     ],
+     "scale": [
+      1671.160460948944,
+      7150.690475463867
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      20.84087811410427,
+      30.9526283480227
+     ],
+     "scale": [
+      1835.5068900883198,
+      3617.357472471893
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      108.9082216322422,
+      58.198640659451485
+     ],
+     "scale": [
+      2768.4142124056816,
+      4716.003618568182
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      220.19236993789673,
+      59.371521666646004
+     ],
+     "scale": [
+      5977.469447135925,
+      9605.872837632895
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      341.69553649425507,
+      298.04249930381775
+     ],
+     "scale": [
+      5957.375855922699,
+      16020.947746753693
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      752.7666182518005,
+      164.58727484941483
+     ],
+     "scale": [
+      3022.610149383545,
+      7598.894194364548
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      727.5828728675842,
+      1000.2866730690002
+     ],
+     "scale": [
+      2699.9628438949585,
+      10272.450413703918
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      374.5159869194031,
+      103.8421821296215
+     ],
+     "scale": [
+      5357.701607704163,
+      5136.147670805454
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      84.15969529747963,
+      276.94738924503326
+     ],
+     "scale": [
+      4535.767443358898,
+      10618.001507520676
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      174.04983632736207,
+      21.411704190254213
+     ],
+     "scale": [
+      2408.1279578796384,
+      3087.829502013016
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      30.65673664278984,
+      226.86334977722169
+     ],
+     "scale": [
+      1686.0040538145065,
+      3169.139219085693
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      0.047222087764740905,
+      107.8780781288147
+     ],
+     "scale": [
+      2816.7068676059725,
+      4389.192086677551
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      18.673231881999968,
+      27.783134181666373
+     ],
+     "scale": [
+      1836.299362904358,
+      3595.7681643822193
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      266.5699424102783,
+      -3.691795883274077
+     ],
+     "scale": [
+      5929.649691558838,
+      9675.401060076714
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      736.5251263824463,
+      164.8814255924225
+     ],
+     "scale": [
+      3022.2877376342776,
+      7636.937690460205
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      332.98940790100096,
+      122.29970328311921
+     ],
+     "scale": [
+      5428.950255969238,
+      5079.40546796608
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      49.21189755946398,
+      29.396932870149612
+     ],
+     "scale": [
+      5577.252543382347,
+      8111.105706170201
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      11.340070620179176,
+      58.198640659451485
+     ],
+     "scale": [
+      4032.6165990382433,
+      8308.654659077525
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      49.21189755946398,
+      29.396932870149612
+     ],
+     "scale": [
+      4725.242908291519,
+      7043.786501988769
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      187.5262302160263,
+      219.39125084877014
+     ],
+     "scale": [
+      5631.111625432968,
+      10504.982321739197
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      11.340070620179176,
+      30.9526283480227
+     ],
+     "scale": [
+      4491.241089448333,
+      4913.584220375866
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      84.15969529747963,
+      58.198640659451485
+     ],
+     "scale": [
+      3599.8154312372208,
+      9530.530181571841
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      76.08785485476255,
+      59.371521666646004
+     ],
+     "scale": [
+      5742.550000794232,
+      8538.553633451462
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      11.340070620179176,
+      58.198640659451485
+     ],
+     "scale": [
+      4032.6165990382433,
+      8308.654659077525
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      49.21189755946398,
+      29.396932870149612
+     ],
+     "scale": [
+      5104.7647779509425,
+      7653.683190092444
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      207.49527251720428,
+      219.39125084877014
+     ],
+     "scale": [
+      5803.315997838974,
+      10504.982321739197
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      11.340070620179176,
+      30.9526283480227
+     ],
+     "scale": [
+      4491.241089448333,
+      4913.584220375866
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      84.15969529747963,
+      58.198640659451485
+     ],
+     "scale": [
+      3599.8154312372208,
+      9530.530181571841
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      154.1965547800064,
+      29.396932870149612
+     ],
+     "scale": [
+      1999.7805261611938,
+      2629.2826141119003
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      22.3359402641654,
+      219.39125084877014
+     ],
+     "scale": [
+      1747.4765503183007,
+      6578.967339992523
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      11.340070620179176,
+      102.36093723773956
+     ],
+     "scale": [
+      1744.5460333675146,
+      6034.809659838676
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      20.84087811410427,
+      30.9526283480227
+     ],
+     "scale": [
+      2448.0269999951124,
+      4144.392028521746
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      220.19236993789673,
+      59.371521666646004
+     ],
+     "scale": [
+      5790.618900418282,
+      10665.002050921321
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      601.6361107826233,
+      164.58727484941483
+     ],
+     "scale": [
+      2770.7259702682495,
+      9760.943200290203
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      84.15969529747963,
+      103.8421821296215
+     ],
+     "scale": [
+      5033.239682048559,
+      8600.09053054452
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      160.0236655473709,
+      29.396932870149612
+     ],
+     "scale": [
+      2147.6597797870636,
+      2629.2826141119003
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "error": "NoValidPixelsError"
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      22.3359402641654,
+      196.93295049667358
+     ],
+     "scale": [
+      1478.1776512414217,
+      2936.3382244110107
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      175.61124765872955,
+      219.39125084877014
+     ],
+     "scale": [
+      1753.6213672161102,
+      7352.963497638702
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      11.340070620179176,
+      102.36093723773956
+     ],
+     "scale": [
+      2010.0539458990097,
+      3622.365231513977
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      138.63404500484467,
+      370.4847297668457
+     ],
+     "scale": [
+      1590.2978579998016,
+      6458.688171386719
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      20.84087811410427,
+      30.9526283480227
+     ],
+     "scale": [
+      1631.5616800785065,
+      3272.8472369983792
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      63.52438208460808,
+      58.198640659451485
+     ],
+     "scale": [
+      2586.878854215145,
+      4491.432017683983
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      220.19236993789673,
+      59.371521666646004
+     ],
+     "scale": [
+      5408.18664264679,
+      8538.553633451462
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      245.60882914066315,
+      298.04249930381775
+     ],
+     "scale": [
+      5861.289148569107,
+      12969.338652133942
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      601.6361107826233,
+      164.58727484941483
+     ],
+     "scale": [
+      2921.8564777374268,
+      6740.954527258873
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      590.2966265678406,
+      831.8858466148376
+     ],
+     "scale": [
+      2562.676597595215,
+      9598.847107887268
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      286.6848130226135,
+      103.8421821296215
+     ],
+     "scale": [
+      5094.208086013794,
+      4565.464596271515
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      84.15969529747963,
+      276.94738924503326
+     ],
+     "scale": [
+      4247.7822088599205,
+      9606.763268709183
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      154.55689519882202,
+      14.556093226051331
+     ],
+     "scale": [
+      2162.7168272613526,
+      2628.1919487312316
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      22.57244868836403,
+      196.73044441223144
+     ],
+     "scale": [
+      1477.0166098862649,
+      2945.89651159668
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      -8.723922403430938,
+      78.00749714279175
+     ],
+     "scale": [
+      2039.8758371690749,
+      3635.740118522644
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      14.757483849811555,
+      13.084030801463127
+     ],
+     "scale": [
+      1627.0865394702912,
+      3276.797621031809
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      217.383908102417,
+      -6.619299986171724
+     ],
+     "scale": [
+      5451.755753283692,
+      8594.176211406519
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      621.424131893921,
+      120.17051265525818
+     ],
+     "scale": [
+      2891.710979180908,
+      6842.338483348846
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "percentile",
+      "percentile": [
+       0.5,
+       95.0
+      ],
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      316.68794202575685,
+      86.81952127780914
+     ],
+     "scale": [
+      5103.483057977295,
+      4545.115668356705
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      1828.17060875953,
+      2908.516505891695
+     ],
+     "scale": [
+      1603.9029464362618,
+      2632.153738176957
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1678.4134297789747,
+      3171.834711746534
+     ],
+     "scale": [
+      1223.1355593397914,
+      2520.34096316592
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1494.5401232427123,
+      2113.7867905709168
+     ],
+     "scale": [
+      1317.4264743965207,
+      1859.1008722202394
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      2161.8010942763476,
+      4100.611078872863
+     ],
+     "scale": [
+      1785.1549529384333,
+      3125.3346576503322
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1634.6528479520541,
+      2109.3891965715866
+     ],
+     "scale": [
+      1383.8289305550343,
+      1594.417989895025
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1722.1740116058952,
+      4234.280226921482
+     ],
+     "scale": [
+      1036.0061326836717,
+      2811.4920361424874
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      2213.3965169248663,
+      3095.610589172204
+     ],
+     "scale": [
+      1799.4196001491632,
+      2800.225624872575
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1678.4134297789747,
+      3171.834711746534
+     ],
+     "scale": [
+      1223.1355593397914,
+      2520.34096316592
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1752.8956104729893,
+      2341.178331059352
+     ],
+     "scale": [
+      1492.4329629664257,
+      2170.4633307803306
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      2673.897423376743,
+      4100.611078872863
+     ],
+     "scale": [
+      1955.5928707599655,
+      3125.3346576503322
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1634.6528479520541,
+      2109.3891965715866
+     ],
+     "scale": [
+      1383.8289305550343,
+      1594.417989895025
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1722.1740116058952,
+      4234.280226921482
+     ],
+     "scale": [
+      1036.0061326836717,
+      2811.4920361424874
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1279.3657194525003,
+      1463.143795587226
+     ],
+     "scale": [
+      589.2291206891591,
+      748.5748641065946
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      836.0718654052148,
+      2508.6383613608778
+     ],
+     "scale": [
+      507.10028482517106,
+      1794.298596509669
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      778.3582543593366,
+      2278.3098167621843
+     ],
+     "scale": [
+      589.3084757175588,
+      1773.235399926019
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      1063.4774792586816,
+      1621.627454466555
+     ],
+     "scale": [
+      729.7913690334284,
+      1211.0181277675592
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      3369.074241420875,
+      4031.0810055747475
+     ],
+     "scale": [
+      1858.3168731358583,
+      3369.909333232296
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2306.5791311504113,
+      4884.126113729862
+     ],
+     "scale": [
+      741.2614065575173,
+      2891.3418238845297
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2565.2388543474694,
+      3903.2754620275355
+     ],
+     "scale": [
+      1478.3764633148953,
+      2401.9182658063437
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      1205.24520862682,
+      1463.143795587226
+     ],
+     "scale": [
+      597.9337100063274,
+      748.5748641065946
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "error": "NoValidPixelsError"
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      750.4130889374969,
+      1854.863623600867
+     ],
+     "scale": [
+      492.25903074875595,
+      797.6982802175063
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      921.7306418729326,
+      3162.4130991208885
+     ],
+     "scale": [
+      507.2549579983833,
+      2224.376214839753
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      573.8918634808829,
+      1380.0815792965393
+     ],
+     "scale": [
+      595.5492323471783,
+      1081.2936008626493
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      982.8246452377903,
+      3176.538054227829
+     ],
+     "scale": [
+      506.23814648648374,
+      1872.4058808585773
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      764.2393779936247,
+      1323.7631734452443
+     ],
+     "scale": [
+      478.23515137940313,
+      979.67062895219
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      1362.7155805237385,
+      1919.491735487866
+     ],
+     "scale": [
+      810.7990762939102,
+      1340.1227594944517
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2527.9620721638203,
+      3023.3529525246577
+     ],
+     "scale": [
+      1703.4131489713563,
+      2802.5690302915973
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      4210.186410677929,
+      5038.809058624837
+     ],
+     "scale": [
+      1609.3873005991252,
+      3581.5015009147273
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2368.6735951039527,
+      3075.6667851849147
+     ],
+     "scale": [
+      829.7393039873926,
+      1997.9830320063909
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      2244.48466719687,
+      6692.585442274809
+     ],
+     "scale": [
+      634.6323252202175,
+      2487.313531282276
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      2831.8065552297567,
+      2658.0452483596487
+     ],
+     "scale": [
+      1591.6274829429092,
+      1289.9514049262666
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      2298.671153465182,
+      5148.505675695423
+     ],
+     "scale": [
+      1302.2285558996155,
+      2602.5471204368837
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1205.0645014958543,
+      1463.3254378995075
+     ],
+     "scale": [
+      597.7125623359874,
+      749.2663423545569
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      750.8544518806352,
+      1856.1626157550281
+     ],
+     "scale": [
+      492.35903375410027,
+      798.0784578317964
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      574.5206398257017,
+      1378.5643268510103
+     ],
+     "scale": [
+      595.6580553755282,
+      1081.7742505220504
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      764.4008346182159,
+      1322.638889811053
+     ],
+     "scale": [
+      477.9661353946842,
+      980.4029966759425
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      2528.683690829881,
+      3020.9197188627445
+     ],
+     "scale": [
+      1702.5430724556343,
+      2808.30100374439
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2368.2179646110644,
+      3074.455796535751
+     ],
+     "scale": [
+      830.6919657277156,
+      1997.711418908873
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2831.4398600787376,
+      2658.3002440508885
+     ],
+     "scale": [
+      1592.3543278915258,
+      1290.785789211889
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      1291.5521177053452,
+      2120.740752696991
+     ],
+     "scale": [
+      992.6978457913104,
+      1651.2978353013866
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1452.0895591676235,
+      2493.280656993389
+     ],
+     "scale": [
+      1300.488535136328,
+      2213.5161927818162
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1151.1261466667056,
+      1782.2520089447498
+     ],
+     "scale": [
+      836.7734321199013,
+      1155.0163664475592
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      1546.624316573143,
+      3444.3752410411835
+     ],
+     "scale": [
+      1224.3674261035433,
+      2779.6255640170007
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1164.996551990509,
+      1774.2218133211136
+     ],
+     "scale": [
+      1236.3051796607297,
+      1652.4697626092866
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "pixels",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1621.1150990724564,
+      3830.496250152588
+     ],
+     "scale": [
+      1121.2119675432864,
+      3248.8864789132667
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_01",
+     "offset": [
+      1546.624316573143,
+      2221.9937949180603
+     ],
+     "scale": [
+      1361.058985950474,
+      1821.5345541810552
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": false
+     },
+     "group": "2024_05_02",
+     "offset": [
+      1452.0895591676235,
+      2493.280656993389
+     ],
+     "scale": [
+      1300.488535136328,
+      2213.5161927818162
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=0",
+     "offset": [
+      1263.8775115013123,
+      1879.6328465044498
+     ],
+     "scale": [
+      984.6899403747975,
+      1443.7704580594489
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_01::t=1",
+     "offset": [
+      1920.669352889061,
+      3444.3752410411835
+     ],
+     "scale": [
+      2019.9711063549228,
+      2779.6255640170007
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=0",
+     "offset": [
+      1164.996551990509,
+      1774.2218133211136
+     ],
+     "scale": [
+      1236.3051796607297,
+      1652.4697626092866
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "biological_repeat",
+      "pooling": "conditions",
+      "per_time_point": true
+     },
+     "group": "2024_05_02::t=1",
+     "offset": [
+      1621.1150990724564,
+      3830.496250152588
+     ],
+     "scale": [
+      1121.2119675432864,
+      3248.8864789132667
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1287.405519604683,
+      1587.4903338253498
+     ],
+     "scale": [
+      745.1678840061323,
+      721.8852290297244
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      774.8627445325255,
+      2120.740752696991
+     ],
+     "scale": [
+      557.8489547466008,
+      1351.0618652465892
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      605.2196455448866,
+      1774.2218133211136
+     ],
+     "scale": [
+      609.5680444443705,
+      1549.190402446206
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      953.1618381589651,
+      1405.6282459646463
+     ],
+     "scale": [
+      820.7175422098089,
+      1186.8110547191004
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      3608.6435865163803,
+      3261.329134210944
+     ],
+     "scale": [
+      2431.784257554772,
+      3147.1620171772183
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2415.2022004127502,
+      4576.8484199643135
+     ],
+     "scale": [
+      805.8940478921751,
+      3452.52597458597
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": false
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2460.0378799140453,
+      3527.9406293332577
+     ],
+     "scale": [
+      1814.6120771514213,
+      2176.6358059633635
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      1136.2326563596725,
+      1587.4903338253498
+     ],
+     "scale": [
+      694.718215441648,
+      721.8852290297244
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "error": "NoValidPixelsError"
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      694.2348726466298,
+      1918.2346682548523
+     ],
+     "scale": [
+      677.3880164780153,
+      900.7079101643927
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      813.2917448282242,
+      2541.3797237873077
+     ],
+     "scale": [
+      519.9845858906864,
+      2295.056840882074
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      422.4874686449766,
+      1077.613114953041
+     ],
+     "scale": [
+      406.37869629624697,
+      1032.793601630804
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      1028.1226774454117,
+      2792.4927940368652
+     ],
+     "scale": [
+      679.3600889837054,
+      1880.9342772655755
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      807.4866881519556,
+      1236.7384525053203
+     ],
+     "scale": [
+      518.3479213956688,
+      1021.5432788218372
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      1379.6557289659977,
+      1705.0570471435785
+     ],
+     "scale": [
+      1076.578899161994,
+      1331.8014147370732
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2022.92125082016,
+      2346.4841020554304
+     ],
+     "scale": [
+      1828.709889267481,
+      2938.761094235619
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      4569.5106600522995,
+      4366.854625463486
+     ],
+     "scale": [
+      1567.0420204046732,
+      2639.1880746554834
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=0",
+     "offset": [
+      2515.9558720588684,
+      2860.969085752964
+     ],
+     "scale": [
+      970.9545111832784,
+      1998.8308273918774
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif::t=1",
+     "offset": [
+      2329.2557463645935,
+      6894.315598964691
+     ],
+     "scale": [
+      678.4696444476881,
+      2746.3858278903017
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=0",
+     "offset": [
+      2745.957682132721,
+      2712.679094284773
+     ],
+     "scale": [
+      2083.4990923733044,
+      1450.4502726301994
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "image",
+      "per_time_point": true
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif::t=1",
+     "offset": [
+      2244.048954039812,
+      5164.598876833916
+     ],
+     "scale": [
+      1707.8701902601613,
+      2748.6507698826317
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      1146.4477072395325,
+      1598.8254633172987
+     ],
+     "scale": [
+      674.7103308369285,
+      697.1678787877472
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_01/tech_rep2/img_01.tif",
+     "offset": [
+      700.9646123533726,
+      1943.1429166412352
+     ],
+     "scale": [
+      666.6135623806236,
+      893.0218693309905
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      438.01970368146897,
+      1071.3157723197937
+     ],
+     "scale": [
+      392.2909014913104,
+      993.4648212807031
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "control/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      803.3145518557549,
+      1209.2235683655024
+     ],
+     "scale": [
+      521.1124436431124,
+      1038.9776174470633
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_01/tech_rep1/img_01.tif",
+     "offset": [
+      2054.2697572540283,
+      2338.3114864348413
+     ],
+     "scale": [
+      1855.4934556456756,
+      2824.1041998512883
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep1/img_01.tif",
+     "offset": [
+      2503.663924118042,
+      2864.7930454120633
+     ],
+     "scale": [
+      956.9727662222393,
+      2061.921196780101
+     ],
+     "exact": false
+    },
+    {
+     "settings": {
+      "method": "robust_zscore",
+      "scope": "patch"
+     },
+     "group": "treated/2024_05_02/tech_rep2/img_01.tif",
+     "offset": [
+      2714.689784225464,
+      2692.5258291383743
+     ],
+     "scale": [
+      2066.831099634318,
+      1490.676093524477
+     ],
+     "exact": false
+    }
+   ]
+  }
+ }
+}

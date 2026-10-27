@@ -40,7 +40,8 @@ today (N29).
   `split_channels` patch fills only the pair of its own channel. `normalization_method`,
   `_scope`, `_group` and `_exact` keep their names. Normalizing raw patches on load
   (`iter_exported_patches`, `ExportedPatchTorchDataset`) reads the new columns and keeps
-  reading the old `;`-separated ones of earlier tables.
+  reading the old `;`-separated ones of earlier tables; the brick's `from_columns` reads
+  only the new columns, so CellPatcher converts old rows itself (N47).
 - **Channel count.** Images with different numbers of channels are an error when
   normalization is enabled (N43).
 - Store `NormalizationSettings.to_dict()` in `run_config.json`.
@@ -123,7 +124,8 @@ extraction keeps multichannel patches, with per-channel values in columns (N41).
   that is not a channel of the images is an error before any image is read, naming the
   channel count.
 - Normalization parameters stay per channel of the image (`Normalization_Offset_C<i>`,
-  `Normalization_Scale_C<i>`); a single-channel patch fills only its channel's pair.
+  `Normalization_Scale_C<i>`); a single-channel patch fills only its channel's pair, from
+  the group's `Parameters.select([i])` (N46).
 - `rgb` images keep their three channels together, so any channel splitting with `rgb` is
   an error (C3).
 - **Notebook:** a "Channels" choice with one checkbox per channel (`C0`, `C1`, …, with the

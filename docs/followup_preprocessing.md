@@ -20,8 +20,8 @@ confirm axes, optional OME-Zarr conversion, write `plane_histograms.csv`) and ga
 
 Statistics, normalization and intensity-check code comes from `morphobricks_normalization`
 (N1, N2). P2 and P3 did not depend on the normalization brick; P3b needs its Milestone 2b,
-P4 its Milestone 3 and P5 its Milestone 4. Until the brick's `v0.2.0` release, this brick
-pins it by commit.
+P4 its Milestone 3 and P5 its Milestone 4. This brick pins the brick's `v0.2.0` release
+(P3b pinned the Milestone 2b commit before it).
 
 ## P1 — Depend on the normalization brick (no behaviour change)
 

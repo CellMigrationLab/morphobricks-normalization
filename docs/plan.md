@@ -239,11 +239,12 @@ their formula is implemented here.
   `Issue.channel` (N50–N53). Summaries tested against NumPy on simulated pixels; each check
   fires on simulated shifted, saturated and constant images, stays silent on balanced data
   with a treatment effect, and matches a direct implementation of contract §7.2.*
-- **Release `v0.2.0`**, pinned by the other bricks.
+- **Release `v0.2.0`**, pinned by the other bricks. *Released (27 October 2026): Milestones
+  2, 2b, 3 and 4.*
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
-  schema version 3) follows Milestone 2b. Until the release, the other bricks pin this brick
-  by commit.
+  schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag
+  instead of a commit.
 
 Deferred: before/after preview helpers for notebooks; image correction (N3).
 

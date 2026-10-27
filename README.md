@@ -127,7 +127,7 @@ for issue in intensity_checks(summaries, IntensityCheckSettings(outlier_limit=3.
     print(issue.code, issue.items, issue.channel, issue.message)
 ```
 
-The next step is the `v0.2.0` release, pinned by the other bricks (see the plan).
+Milestones 2–4 are released as `v0.2.0` (27 October 2026); the other bricks pin that tag.
 
 ## Installation
 

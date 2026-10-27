@@ -2,7 +2,8 @@
 
 > See also: [Preprocessing follow-up](followup_preprocessing.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
-**Status:** design brief, simplified on 26 October 2026 (decisions N29–N40, §12). The earlier
+**Status:** design brief, simplified on 26 October 2026 (decisions N29–N40, §12), with
+channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
 (N4–N28) is withdrawn where §12 says so. What is still to be measured is listed in §13.
 **Scope:** one importable library with the normalization methods for fluorescence and RGB
@@ -46,6 +47,7 @@ morphobricks-preprocessing ──▶ plane_histograms.csv ──▶ CellPatcher 
 | **Method** | One normalization algorithm (§3). |
 | **Scope** | Which pixels share one set of parameters: biological repeat, image or patch (§4). |
 | **Repeat group** | The images of one biological repeat across every condition, technical repeats merged (§4.1). |
+| **Plane** | One XYC plane: every channel of one image at one Z and T position. One row of a table (N41). |
 | **Statistics** | Per-plane histograms computed once over the dataset, so parameters for any scope can be derived without rereading images (§7). |
 | **Parameters** | An offset and a scale per channel (§8). |
 
@@ -155,10 +157,31 @@ The preprocessing notebook shows the warnings and draws the plots (follow-up P5)
 
 ## 7. Statistics
 
-`plane_histograms.csv`, schema version 2, unchanged: one row per 2D plane and channel, with
-exact extrema, pixel counts and binned counts. It serves both image types (an RGB plane has
-three rows, `c` = 0, 1, 2), every scope and the intensity checks. No other statistics file is
-written (N33).
+`plane_histograms.csv`, schema version 3 (N41): one row per XYC plane, that is per image, Z
+and T, with every channel's exact extrema, pixel counts and binned counts side by side in
+per-channel columns named as in CellProfiler (`Histogram_Count_C0_00000`, …, N42). The
+histograms themselves are those of schema version 2; only the layout changes. It serves both
+image types (an RGB plane is one row with channels C0, C1, C2), every scope and the intensity
+checks. No other statistics file is written (N33).
+
+### 7.1 Channels across columns (every MorphoBricks table)
+
+Every MorphoBricks table that holds values per channel puts the channels side by side in
+columns, never in separate rows (N41):
+
+- One row per plane (or image, or patch), not per channel; such tables have no `c` column.
+  One exception: CellPatcher's single-channel patches for deep-learning training, one row
+  per patch with its channel in `c`, for the channels the user selects (N45).
+- Per-channel columns follow CellProfiler's naming, `<Category>_<Feature>_C<index>` with an
+  optional `_<parameter>` after the channel, e.g. `Intensity_MinIntensity_C0`,
+  `Histogram_Count_C1_00042`, `Normalization_Offset_C2`. The channel token is the zero-based
+  channel index (N42); channel names stay in the metadata.
+- The MorphoBricks shared columns (`condition`, `biological_repeat`, `technical_repeat`,
+  `position_id`, `image_file`, `z`, `t`, `source_relative_path`, `plane_id`, …) keep their
+  names and format (N44).
+- Every image of an experiment has the same number of channels; a different count is an error
+  (N43).
+- The feature-extraction bricks follow the same rule (`Intensity_C0`, `Intensity_C1`, …).
 
 ## 8. Parameters as columns
 
@@ -172,7 +195,7 @@ calling brick.
 | `normalization_scope` | `biological_repeat`, `image` or `patch` |
 | `normalization_group` | Repeat group label, `source_relative_path`, or `<source_relative_path>::<patch id>` |
 | `normalization_exact` | Whether every pooled histogram was exact |
-| `normalization_offset`, `normalization_scale` | One value per channel, `;`-separated; for `rgb` the shared value three times |
+| `Normalization_Offset_C<i>`, `Normalization_Scale_C<i>` | One pair per channel (N41); for `rgb` the shared value in C0, C1 and C2 |
 
 ## 9. Dependencies
 
@@ -191,11 +214,17 @@ their formula is implemented here.
   pooling weights; the `image` and `patch` scopes; per-time-point groups. *Done (26 October
   2026): modules `settings`, `scopes`, `fitting` and `issues`, and `WeightedHistogram` in
   `pooling`; fluorescence methods only.*
+- **Milestone 2b — Channels across columns:** `plane_histograms.csv` schema version 3, with
+  one row per XYC plane and CellProfiler-style per-channel columns; `PlaneRecord`, the reader
+  and writer, grouping and fitting move to whole planes; the parameter columns
+  `Normalization_Offset_C<i>` and `Normalization_Scale_C<i>` (N41–N44).
 - **Milestone 3 — RGB:** the StarDist percentile method, the `rgb` image type and its checks.
 - **Milestone 4 — Intensity checks:** per-image summaries and the warnings of §6.
 - **Release `v0.2.0`**, pinned by the other bricks.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
-  steps P2 and P3 do not depend on this brick and may start earlier.
+  steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
+  schema version 3) follows Milestone 2b. Until the release, the other bricks pin this brick
+  by commit.
 
 Deferred: before/after preview helpers for notebooks; image correction (N3).
 
@@ -203,7 +232,10 @@ Deferred: before/after preview helpers for notebooks; image correction (N3).
 
 Use simulated data generated in the tests; real data only as an optional check.
 
-- Moved code keeps giving bit-identical histograms, CSVs and parameters.
+- Moved code keeps giving bit-identical histograms and parameters; schema version 3 holds
+  exactly the histograms of version 2, one channel group per former row.
+- A table round-trips through the writer and reader; images with different channel counts are
+  refused; every per-channel column name follows §7.1.
 - Every method's `apply` matches a direct implementation of its formula; `to_columns` and
   `from_columns` round-trip exactly.
 - `biological_repeat` pools exactly the planes of its repeat group across conditions and
@@ -286,6 +318,25 @@ Added with the project owner on 26 October 2026:
 33. **N39** RGB uses only the StarDist percentile method (default 1–99.8).
 34. **N40** The RGB method reproduces StarDist exactly: NumPy's linear-interpolation
     percentiles and the 10⁻²⁰ term added to the scale. Fluorescence methods are unchanged.
+
+Added with the project owner on 27 October 2026:
+
+35. **N41** Channels go across columns, not rows, in every MorphoBricks table: a plane is XYC,
+    one row per plane (image, Z, T), with each channel's values in its own columns.
+    `plane_histograms.csv` becomes schema version 3; `normalization_offset` and
+    `normalization_scale` become per-channel columns.
+36. **N42** Per-channel columns follow CellProfiler's naming,
+    `<Category>_<Feature>_C<index>[_<parameter>]`, with the zero-based channel index as the
+    channel token.
+37. **N43** All images of an experiment must have the same number of channels; a different
+    count is an error (it was a warning).
+38. **N44** The MorphoBricks shared columns keep their names and format; only per-channel
+    columns follow the CellProfiler pattern.
+39. **N45** CellPatcher keeps single-channel patches for deep-learning training, where rows
+    are patches rather than channel measurements, and lets the user choose the channels: one,
+    several or all (all is the earlier `split_channels=True`). Each selected channel gives
+    its own single-channel patch and row, with the channel in `c`. Feature extraction keeps
+    multichannel patches with the channels in columns.
 
 ## 13. Still to measure
 

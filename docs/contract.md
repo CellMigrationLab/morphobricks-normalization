@@ -6,7 +6,7 @@
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
 the validation severities. It implements the decisions of the [plan](plan.md) (§12) as
-simplified on 26 October 2026 (N29–N40); it does not change any of them. The earlier contract
+simplified on 26 October 2026 (N29–N40) and with channels in columns (N41–N45); it does not change any of them. The earlier contract
 with modality profiles, purpose rules, colour statistics and references is withdrawn.
 
 - Changing a file format (§6) requires a new `schema_version` of that file.
@@ -19,6 +19,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 1. Existing code | Milestone 1 (moved unchanged; done) |
 | 2. Interface; 3.1–3.2 fluorescence methods; 4. Scopes and repeat groups; 8. Columns | Milestone 2 (done; `image_summaries` and `intensity_checks` of §2.2 follow in Milestone 4) |
 | 3.3 RGB method; 5. Image types | Milestone 3 |
+| 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b |
 | 7. Intensity checks | Milestone 4 |
 | 9. Validation | With the milestone of each check |
 
@@ -58,7 +59,22 @@ keep using theirs):
 - The preprocessing brick keeps deprecated re-exports for one version (N6, follow-up P1).
 
 Additions in later milestones extend these modules or add new ones; they never change the
-behaviour of the names above.
+behaviour of the names above, with one owner-approved exception (§1.3).
+
+### 1.3 Channels across columns (Milestone 2b)
+
+Decisions N41–N44 change the layout of the moved code's table: `plane_histograms.csv` holds
+one row per XYC plane with every channel in its own columns (schema version 3, §6.2), instead
+of one row per plane and channel. Accordingly, in Milestone 2b:
+
+- `PlaneRecord` describes one XYC plane and holds one histogram per channel; `plane_id` has
+  no channel coordinate.
+- `write_plane_histograms` and `read_plane_histograms` write and read schema version 3
+  only; a table of version 1 or 2 is refused with `CsvFormatError` naming its version
+  (the preprocessing brick recomputes it on its next run).
+- `group_records`, pooling and fitting take a channel index wherever they used the row's
+  `c`; pooled statistics, parameters and the histograms themselves are unchanged, bit for
+  bit.
 
 ### 1.2 Pixel types, histograms, group statistics, linear parameters
 
@@ -81,7 +97,7 @@ and the same bin count for all its planes (preprocessing contract §3).
 #### 1.2.2 Histogram semantics
 
 Notation in this section: `n` = `bin_count`, `lo` = `binning_min`, `hi` = `binning_max`
-(columns of §6.2).
+(the per-channel columns of §6.2).
 
 ##### Integer planes
 
@@ -229,7 +245,7 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
 ```
 
 - `percentile = [low, high]`, default `[1.0, 99.8]` (StarDist's examples), same rule as §3.2.
-- One pooled histogram of the R, G and B planes of the group (§4): the three channels' rows
+- One pooled histogram of the R, G and B planes of the group (§4): the three channel groups
   of `plane_histograms.csv` pooled together, or the group's pixels of all three channels.
 - Every channel gets the same offset and scale, so colour ratios are kept. Output float32,
   no clipping (as `normalize(..., clip=False)`).
@@ -323,39 +339,63 @@ The library defines the statistics and owns the reader and writer (N2); the prep
 brick runs the computation over the dataset and writes the file next to its
 `run_manifest.json`.
 
-### 6.1 Shared columns
+### 6.1 Shared and per-channel columns
 
-The file starts with these columns, in this order: `position_id`, `image_file`, `z`, `c`, `t`,
-`condition`, `biological_repeat`, `technical_repeat`, `source_relative_path`, `plane_id`.
-Their meaning is that of §6.2. Labels are always read as text.
+Every MorphoBricks table with values per channel puts the channels in columns, never in rows
+(N41): one row per plane (or image, or patch), and no `c` column.
+
+- **Shared columns** keep the MorphoBricks names and format (N44). A table of planes starts
+  with `position_id`, `image_file`, `z`, `t`, `condition`, `biological_repeat`,
+  `technical_repeat`, `source_relative_path`, `plane_id`, in this order. Labels are always
+  read as text.
+- **Per-channel columns** follow CellProfiler's naming (N42):
+  `<Category>_<Feature>_C<index>`, with an optional `_<parameter>` after the channel, e.g.
+  `Intensity_MinIntensity_C0` or `Histogram_Count_C1_00042`. The channel token is `C` and the
+  zero-based channel index, in the image's channel order; channel names are recorded in the
+  preprocessing brick's manifest, never in column names. Category and feature are written in
+  CamelCase and contain no underscore, so names split unambiguously on `_`.
+- Columns are grouped by channel: every column of `C0`, then of `C1`, and so on.
+- Every row of a table has the same channels: all images of an experiment have the same
+  number of channels (N43).
 
 Common format: UTF-8, comma-separated, one header row, rows in a deterministic order, floats
 written at full precision (Python `repr`), blanks for missing values, written to a temporary
 file and replaced only once writing succeeded.
 
-### 6.2 `plane_histograms.csv` (schema version 2)
+### 6.2 `plane_histograms.csv` (schema version 3)
 
-Unchanged: one row per 2D plane and channel (an RGB plane has three rows, `c` = 0, 1, 2),
-with the histogram of §1.2.2, written and read by the moved `csv_io.py` (§1.1). The
-preprocessing contract §5 defined it until follow-up P1 moved the text here:
+One row per XYC plane: every channel of one image at one Z and T position (an RGB plane is one
+row with channels C0, C1, C2), with each channel's histogram of §1.2.2. The histograms are
+those of schema version 2; only the layout changes (§1.3).
+
+**Plane columns**
 
 | Column | Type | Meaning |
 |---|---|---|
 | `position_id` | text or blank | The XY position within its technical repeat (MorphoBricks decision D02): from reliable metadata, or the image file name without extension when one file holds exactly one position, as morphobricks-preprocessing writes it. Blank only in tables written before it was filled. |
 | `image_file` | text | File name. |
-| `z`, `c`, `t` | integer | Zero-based plane coordinates, always written; 0 for an axis the image does not have (preprocessing contract §2). |
+| `z`, `t` | integer | Zero-based plane coordinates, always written; 0 for an axis the image does not have (preprocessing contract §2). |
 | `condition`, `biological_repeat`, `technical_repeat` | text | Folder labels; `single` when absent. Always read as text. |
 | `source_relative_path` | text | Path relative to the experiment root, `/`-separated. |
-| `plane_id` | text | `source_relative_path::z=…,c=…,t=…`, always with all three coordinates (`control/img.tif::z=0,c=0,t=0` for a 2D image). Row key. |
-| `dtype` | text | NumPy dtype name, e.g. `uint16`. |
+| `plane_id` | text | `source_relative_path::z=…,t=…`, always with both coordinates (`control/img.tif::z=0,t=0` for a 2D image). Row key. |
+| `dtype` | text | NumPy dtype name, e.g. `uint16`; the same for every channel. |
 | `bit_depth` | integer | Storage bits (8, 16, 32, 64). |
-| `pixel_min`, `pixel_max` | number or blank | Exact finite extrema. Floats written at full precision. |
-| `total_pixel_count` | integer | All pixels in the plane. |
-| `valid_pixel_count` | integer | Finite pixels; equals the sum of the bin columns. |
-| `binning_min`, `binning_max` | number or blank | Range the bins cover (equal to the extrema). |
-| `bin_count` | integer | Number of bin columns. |
-| `schema_version` | text | `2`. Version 1 left `z`, `c`, `t` blank for absent axes and out of `plane_id`; a table of another version is recomputed on the next run. |
-| `histogram_bin_00000` … | integer | Pixel count per bin. |
+| `channel_count` | integer | Number of channels; the same in every row. |
+| `total_pixel_count` | integer | Pixels in one channel of the plane (height × width). |
+| `bin_count` | integer | Number of histogram bins per channel; the same in every row. |
+| `schema_version` | text | `3`. Versions 1 and 2 had one row per plane and channel with a `c` column; a table of another version is recomputed on the next run. |
+
+**Per-channel columns**, for each channel `i` from 0 to `channel_count − 1`, in this order:
+
+| Column | Type | Meaning |
+|---|---|---|
+| `Intensity_MinIntensity_C<i>`, `Intensity_MaxIntensity_C<i>` | number or blank | Exact finite extrema of the channel. Floats written at full precision. |
+| `Histogram_ValidPixelCount_C<i>` | integer | Finite pixels; equals the sum of the channel's count columns. |
+| `Histogram_BinningMin_C<i>`, `Histogram_BinningMax_C<i>` | number or blank | Range the channel's bins cover (equal to its extrema). |
+| `Histogram_Count_C<i>_00000` … `Histogram_Count_C<i>_<bin_count − 1>` | integer | Pixel count per bin, the bin number written with five digits. |
+
+A 16-bit image with exact histograms has 65,536 count columns per channel, so the table is
+very wide; read it with `read_plane_histograms`, not a spreadsheet program.
 
 The biological-repeat pairing, its confirmation and the controls are not part of this file;
 they are in the preprocessing brick's `experiment_design.csv` (follow-up P3).
@@ -368,14 +408,18 @@ Computed from `plane_histograms.csv` rows alone (N38).
 
 ### 7.1 Image summaries
 
-`image_summaries(records)` returns one row per image and channel, pooling all Z and T planes
-of the image (§1.2.3): `source_relative_path`, `condition`, `biological_repeat`, `c`,
-`median`, `p_low`, `p_high` (default the 1st and 99.8th percentiles), `saturated_fraction`
-and `exact`.
+`image_summaries(records)` returns one row per image, pooling all Z and T planes of the image
+(§1.2.3), with the shared columns `source_relative_path`, `condition`, `biological_repeat`,
+`technical_repeat`, `image_file`, and for each channel `i` (§6.1):
 
-- `saturated_fraction`: pixels equal to the type's maximum over valid pixels, for integer
-  types whose histogram holds the maximum value in a bin of its own; blank otherwise (float
-  images, or inexact top bins).
+| Column | Meaning |
+|---|---|
+| `Intensity_MedianIntensity_C<i>` | Median |
+| `Intensity_LowPercentile_C<i>`, `Intensity_HighPercentile_C<i>` | Default the 1st and 99.8th percentiles |
+| `Intensity_SaturatedFraction_C<i>` | Pixels equal to the type's maximum over valid pixels, for integer types whose histogram holds the maximum value in a bin of its own; blank otherwise (float images, or inexact top bins) |
+| `Histogram_Exact_C<i>` | Whether every pooled histogram of the channel was exact |
+
+The checks below call these values `median`, `p_low`, `p_high` and `saturated_fraction`.
 
 ### 7.2 Checks
 
@@ -409,12 +453,14 @@ written (N23); the settings are written once in the calling brick's run configur
 | `normalization_scope` | text | `biological_repeat`, `image` or `patch` |
 | `normalization_group` | text | §4.1 group text |
 | `normalization_exact` | `true`/`false` | `true` exactly when every pooled histogram has `max_representative_error == 0` (§1.2.4), at every scope |
-| `normalization_offset`, `normalization_scale` | text | One value per channel of the patch, in channel order, separated by `;`; a single value for one channel; for `rgb`, the shared value three times |
+| `Normalization_Offset_C<i>`, `Normalization_Scale_C<i>` | number or blank | One pair per channel `i` of the image (§6.1, N41), grouped by channel. A row whose patch holds only some channels (CellPatcher's `split_channels`) fills the pairs of those channels and leaves the others blank. For `rgb`, the shared value in C0, C1 and C2. |
 
 ### 8.2 Formatting
 
 - Numbers at full precision (Python `repr` of the float), read back unchanged.
-- The existing linear columns keep their names and meaning (CellPatcher follow-up C1).
+- `Normalization_Offset_C<i>` and `Normalization_Scale_C<i>` replace the `;`-separated
+  `normalization_offset` and `normalization_scale` columns (N41); readers of earlier tables
+  may still accept those (CellPatcher follow-up C1).
 - Column order within a file is the calling brick's; readers select columns by name.
 
 ### 8.3 Run level
@@ -460,7 +506,9 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Zero or non-finite scale (fluorescence only; `rgb` adds `1e-20`, §3.3) | `ValueError` | Existing message |
 | Percentiles outside `0 ≤ low < high ≤ 100`; unknown `pooling` or `image_type` | `ValueError` | Existing message for percentiles; the allowed values otherwise |
 | Statistics file with unexpected columns, schema version or inconsistent counts | `CsvFormatError` | Existing messages |
-| `from_columns` with a missing or unreadable column, or a list of the wrong length | `ValueError` | Names the column |
+| Statistics file of schema version 1 or 2 (one row per channel) | `CsvFormatError` | "This plane_histograms.csv was written with schema version {version}, one row per channel. Run the preprocessing brick again on this experiment: it rewrites the table with the channels in columns (schema version 3)." |
+| Rows or images with different numbers of channels (N43) | `CsvFormatError` (table), `ValueError` (pixels) | Names the images and their channel counts, and says that every image of an experiment must have the same channels |
+| `from_columns` with a missing or unreadable column, or a channel without both its offset and scale | `ValueError` | Names the column |
 
 ### 9.2 Warnings
 

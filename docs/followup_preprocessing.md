@@ -143,14 +143,15 @@ Follows the normalization brick's Milestone 2b (N41–N44, its contract §1.3 an
 Run automatically after the histograms are computed, and in step 4 for any table, using the
 normalization brick's `image_summaries` and `intensity_checks` (N38):
 
-- **Warnings** (limits adjustable under *Check settings*, default 3 robust deviations):
+- **Warnings** (limits adjustable under *Check settings*, default 3 robust deviations, stored
+  with `IntensityCheckSettings.to_dict()` in the run configuration):
   images far from the other images of their condition and biological repeat, biological
   repeats shifted from the other repeats of their condition, saturated images, and images
   without intensity spread. Comparisons stay within a condition, so treatment effects are
   not reported.
 - **Plots, in the notebook only** (no files written), per channel:
   - box plots of the image medians and 99.8th percentiles, grouped by condition and
-    biological repeat, with flagged images highlighted;
+    biological repeat, with flagged images highlighted (`Issue.items` and `Issue.channel`);
   - overlaid intensity distributions per biological repeat within each condition.
 - The command line prints the warnings and draws no plots.
 

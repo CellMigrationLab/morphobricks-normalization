@@ -102,7 +102,32 @@ parameters = fit(rgb_pixels, settings, group="img.tif", channel_axis=-1)  # (Y, 
 normalized = parameters.apply(rgb_pixels, channel_axis=-1)
 ```
 
-The intensity checks follow in Milestone 4 (see the plan).
+Milestone 4 added the intensity checks, computed from `plane_histograms.csv` rows alone
+(decisions N38, N50–N53):
+
+- `image_summaries(records)` gives one `ImageSummary` per image, all Z and T planes pooled per
+  channel: median, 1st and 99.8th percentiles, the fraction of pixels at the pixel type's
+  maximum and whether the histograms were exact. `to_row()` gives the CellProfiler-style
+  columns (`Intensity_MedianIntensity_C0`, ...) for a table; the library writes no file.
+- `intensity_checks(summaries, settings)` returns warnings: images far from the other images
+  of their condition and biological repeat (`image_intensity_outlier`), biological repeats
+  shifted from the other repeats of their condition (`repeat_intensity_shift`), saturated
+  images and images without spread. Images are compared only within a condition, so a
+  treatment effect is never reported. Each `Issue` names the image or repeat and the channel
+  (`Issue.channel`).
+- The limits are an `IntensityCheckSettings` (default 3 robust deviations, 1 % saturated
+  pixels, at least 5 images per comparison, provisional).
+
+```python
+from morphobricks_normalization import IntensityCheckSettings, image_summaries, intensity_checks
+
+summaries = image_summaries(records)
+table = [summary.to_row() for summary in summaries]  # e.g. pandas.DataFrame(table)
+for issue in intensity_checks(summaries, IntensityCheckSettings(outlier_limit=3.0)):
+    print(issue.code, issue.items, issue.channel, issue.message)
+```
+
+The next step is the `v0.2.0` release, pinned by the other bricks (see the plan).
 
 ## Installation
 
@@ -121,7 +146,7 @@ python -m pytest
 
 | Document | Content |
 |---|---|
-| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N49 |
+| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N53 |
 | [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | [docs/followup_preprocessing.md](docs/followup_preprocessing.md) | Changes to morphobricks-preprocessing |
 | [docs/followup_cellpatcher.md](docs/followup_cellpatcher.md) | Changes to CellPatcher |

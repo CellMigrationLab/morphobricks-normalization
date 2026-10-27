@@ -152,7 +152,7 @@ saturated pixels, and whether the channel has any spread. It returns warnings (N
 | Check | Compared with | Default limit |
 |---|---|---|
 | Image intensity outlier | The other images of the same condition and biological repeat | Median or 99.8th percentile more than 3 robust deviations (MAD × 1.4826) away |
-| Biological repeat shifted | The other biological repeats of the same condition | Median of the repeat's image medians more than 3 robust deviations of the other repeats' images away |
+| Biological repeat shifted | The other biological repeats of the same condition | Median of the repeat's image medians more than 3 robust deviations of the other repeats' images away (at least 5 images in the other repeats) |
 | Saturated image | — | More than 1 % of the pixels at the type's maximum (integer images) |
 | No intensity spread | — | 1st and 99.8th percentiles equal: the image cannot be normalized at the image scope |
 
@@ -234,6 +234,11 @@ their formula is implemented here.
   `np.percentile` and a direct NumPy implementation on simulated 8- and 16-bit images, and
   bit for bit against `csbdeep.utils.normalize` when CSBDeep is installed (N48, N49).*
 - **Milestone 4 — Intensity checks:** per-image summaries and the warnings of §6.
+  *Done (27 October 2026): modules `summaries` (`image_summaries`, `ImageSummary`,
+  `summary_columns`) and `checks` (`intensity_checks`, `IntensityCheckSettings`), and
+  `Issue.channel` (N50–N53). Summaries tested against NumPy on simulated pixels; each check
+  fires on simulated shifted, saturated and constant images, stays silent on balanced data
+  with a treatment effect, and matches a direct implementation of contract §7.2.*
 - **Release `v0.2.0`**, pinned by the other bricks.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
@@ -375,8 +380,23 @@ Added with the project owner on 27 October 2026, for Milestone 3:
     equals the pixel rule exactly when every weight is 1 (one condition, or equal pixel
     counts).
 
+Added with the project owner on 27 October 2026, for Milestone 4:
+
+44. **N50** `image_summaries` returns `ImageSummary` objects with named per-channel values;
+    `to_row()` gives the columns of contract §7.1 as a dictionary and `summary_columns` their
+    order. The library writes no summary file, so no new file format is defined.
+45. **N51** The limits are an `IntensityCheckSettings(outlier_limit, saturation_limit,
+    min_images)` with `to_dict`/`from_dict`, passed as `intensity_checks(summaries,
+    settings=None)` (the contract's `check_settings` keyword would shadow the function of that
+    name).
+46. **N52** One `Issue` per finding (image or repeat, channel and compared value). `Issue`
+    gains an optional `channel` (None for other warnings), so plots can mark flagged images
+    per channel without parsing messages.
+47. **N53** The repeat-shift check also needs at least `min_images` images in the other
+    repeats of the condition, like the outlier check.
+
 ## 13. Still to measure
 
 - **Pooling weights** on real data: whether equal weighting per condition changes the
   parameters enough to matter (N32).
-- **Minimum images per group** for the outlier check (provisional 5).
+- **Minimum images per group** for the outlier and repeat-shift checks (provisional 5).

@@ -1,12 +1,14 @@
 """MorphoBricks normalization brick.
 
 Defines and computes the per-plane statistics that normalization needs, reads
-and writes their files, and turns pooled statistics into normalization
-parameters. Other bricks (preprocessing, patch extraction) call it; it never
-reads folders or modifies source images.
+and writes their files, turns pooled statistics into normalization
+parameters, and checks the images' intensities from those statistics. Other
+bricks (preprocessing, patch extraction) call it; it never reads folders or
+modifies source images.
 """
 
 from ._version import __version__
+from .checks import IntensityCheckSettings, intensity_checks
 from .csv_io import OUTPUT_FILENAME, read_plane_histograms, write_plane_histograms
 from .dtypes import UnsupportedDtypeError, default_bin_count
 from .fitting import Parameters, fit
@@ -30,10 +32,13 @@ from .records import SINGLE, PlaneRecord, group_records, make_plane_id
 from .rgb import apply_rgb, rgb_percentile
 from .scopes import group_key, group_name, scope_groups
 from .settings import MethodNotAllowedError, NormalizationSettings, check_settings
+from .summaries import ImageSummary, image_summaries, summary_columns
 
 __all__ = [
     "OUTPUT_FILENAME",
     "SINGLE",
+    "ImageSummary",
+    "IntensityCheckSettings",
     "Issue",
     "MethodNotAllowedError",
     "NoValidPixelsError",
@@ -56,6 +61,8 @@ __all__ = [
     "group_key",
     "group_name",
     "group_records",
+    "image_summaries",
+    "intensity_checks",
     "make_plane_id",
     "min_max",
     "percentile_range",
@@ -64,6 +71,7 @@ __all__ = [
     "rgb_percentile",
     "robust_z_score",
     "scope_groups",
+    "summary_columns",
     "write_plane_histograms",
     "z_score",
 ]

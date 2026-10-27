@@ -6,7 +6,7 @@
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
 the validation severities. It implements the decisions of the [plan](plan.md) (§12) as
-simplified on 26 October 2026 (N29–N40), with channels in columns (N41–N47) and with the RGB details of Milestone 3 (N48–N49); it does not change any of them. The earlier contract
+simplified on 26 October 2026 (N29–N40), with channels in columns (N41–N47) and with the RGB details of Milestone 3 (N48–N49) and the intensity-check interface of Milestone 4 (N50–N53); it does not change any of them. The earlier contract
 with modality profiles, purpose rules, colour statistics and references is withdrawn.
 
 - Changing a file format (§6) requires a new `schema_version` of that file.
@@ -17,10 +17,10 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | Section | Implemented in |
 |---|---|
 | 1. Existing code | Milestone 1 (moved unchanged; done) |
-| 2. Interface; 3.1–3.2 fluorescence methods; 4. Scopes and repeat groups; 8. Columns | Milestone 2 (done; `image_summaries` and `intensity_checks` of §2.2 follow in Milestone 4) |
+| 2. Interface; 3.1–3.2 fluorescence methods; 4. Scopes and repeat groups; 8. Columns | Milestone 2 (done; `image_summaries` and `intensity_checks` of §2.2 in Milestone 4, done) |
 | 3.3 RGB method; 5. Image types | Milestone 3 (done) |
-| 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b (done; the columns of 7.1 follow in Milestone 4) |
-| 7. Intensity checks | Milestone 4 |
+| 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b (done; the columns of 7.1 in Milestone 4, done) |
+| 7. Intensity checks | Milestone 4 (done) |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered
@@ -182,7 +182,9 @@ pooled histogram has `max_representative_error == 0`.
 | Source statistics | Pooled plane histograms of a group (§1.2), or pixel arrays from which the library computes the same statistics | Not stored by the library |
 | `RepeatGroups` | Mapping from `(condition, biological_repeat)` to the repeat group's label (§4.2), built by the calling brick from `experiment_design.csv` | Not stored by the library |
 | `Parameters` | Offset and scale per channel of one group, with the image's channel indices they belong to (`channels`, N46) (§8) | Per-row columns (N21, N23) |
-| `Issue` | Severity, code, message, affected items, suggested action | Reported by the calling brick |
+| `Issue` | Severity, code, message, affected items, suggested action, and for the intensity checks the channel (`channel`, N52) | Reported by the calling brick |
+| `ImageSummary` | Intensity summary of one image, all Z and T planes pooled per channel (§7.1) | Not stored by the library (N50) |
+| `IntensityCheckSettings` | The limits of the intensity checks (§7.2) | Run configuration of the calling brick |
 
 ### 2.2 Functions
 
@@ -195,8 +197,9 @@ patch_parameters = parameters.select([2])                # one channel of the im
 columns = parameters.to_columns()                        # dict[str, str]
 parameters = Parameters.from_columns(columns, settings)
 settings.to_dict(); NormalizationSettings.from_dict(...)
-summaries = image_summaries(records)                     # §7
-issues = intensity_checks(summaries, check_settings=None)
+summaries = image_summaries(records, percentile=(1.0, 99.8))  # §7.1
+row = summaries[0].to_row()                              # dict of the §7.1 columns
+issues = intensity_checks(summaries, settings=None)      # §7.2, IntensityCheckSettings
 ```
 
 | Function | Rule |
@@ -428,9 +431,16 @@ Computed from `plane_histograms.csv` rows alone (N38).
 
 ### 7.1 Image summaries
 
-`image_summaries(records)` returns one row per image, pooling all Z and T planes of the image
-(§1.2.3), with the shared columns `source_relative_path`, `condition`, `biological_repeat`,
-`technical_repeat`, `image_file`, and for each channel `i` (§6.1):
+`image_summaries(records, percentile=(1.0, 99.8))` returns one `ImageSummary` per image, sorted
+by condition, biological repeat, technical repeat and path, pooling all Z and T planes of the
+image with the group statistics of §1.2.3 (inverse-CDF percentiles, exact for 8- and 16-bit
+histograms). Images with different numbers of channels are refused with `ValueError` (N43).
+`ImageSummary.to_row()` gives the columns below as a dictionary, in this order (numbers as
+floats, a blank as `None`, `Histogram_Exact_C<i>` as a bool), and `summary_columns(n)` their
+names for `n` channels, so the calling brick can show the rows as a table or write them; the
+library writes no file (N50). The columns are the shared columns `source_relative_path`,
+`condition`, `biological_repeat`, `technical_repeat`, `image_file`, and for each channel `i`
+(§6.1):
 
 | Column | Meaning |
 |---|---|
@@ -439,24 +449,35 @@ Computed from `plane_histograms.csv` rows alone (N38).
 | `Intensity_SaturatedFraction_C<i>` | Pixels equal to the type's maximum over valid pixels, for integer types whose histogram holds the maximum value in a bin of its own; blank otherwise (float images, or inexact top bins) |
 | `Histogram_Exact_C<i>` | Whether every pooled histogram of the channel was exact |
 
-The checks below call these values `median`, `p_low`, `p_high` and `saturated_fraction`.
+The checks below call these values `median`, `p_low`, `p_high` and `saturated_fraction`, the
+attributes of `ImageSummary` that hold one value per channel. A channel without finite pixels
+has blank values and is not checked.
 
 ### 7.2 Checks
 
-`intensity_checks` compares images only within one condition, so differences between
-conditions are never reported. A robust deviation is `MAD × 1.482602218505602` of the
-compared values.
+`intensity_checks(summaries, settings=None)` compares images only within one condition, so
+differences between conditions are never reported. `settings` is an `IntensityCheckSettings`
+with the limits below (N51), stored by the calling brick with `to_dict()` and read back with
+`from_dict()`; None uses the defaults. A robust deviation is `MAD × 1.482602218505602` of the
+values compared with, around their median (`numpy.median`).
 
 | Code | Fires when | Setting, default |
 |---|---|---|
 | `image_intensity_outlier` | An image's `median` or `p_high` in a channel is more than `outlier_limit` robust deviations from the median of the other images of the same condition and biological repeat | `outlier_limit` 3.0; groups with fewer than `min_images` images are skipped (`min_images` 5, **Provisional**) |
-| `repeat_intensity_shift` | In one condition and channel, the median of a biological repeat's image `median` values is more than `outlier_limit` robust deviations of the other repeats' image medians away from their median | `outlier_limit` 3.0; needs at least two biological repeats in the condition |
+| `repeat_intensity_shift` | In one condition and channel, the median of a biological repeat's image `median` values is more than `outlier_limit` robust deviations of the other repeats' image medians away from their median | `outlier_limit` 3.0; needs at least two biological repeats in the condition, and at least `min_images` images in the other repeats together (N53) |
 | `saturated_image` | `saturated_fraction` above `saturation_limit` in a channel | `saturation_limit` 0.01 |
 | `no_intensity_spread` | `p_low == p_high` in a channel: the image cannot be normalized at the image scope with a percentile method | — |
 
-A zero robust deviation (identical values) skips the comparison rather than firing. Each
-warning names the image or repeat, the channel, the value and the group value it was
-compared with.
+A zero robust deviation (identical values) skips the comparison rather than firing. With two
+biological repeats, each is compared with the other, so a shift may be reported for both.
+
+Each finding is one `Issue` (N52): one per image or repeat, channel and compared value (an
+image whose median and high percentile are both outliers gives two). Its message names the
+image or repeat, the channel (`C<i>`), the value and the group value it was compared with, or
+the limit; `items` holds the image's `source_relative_path`, or `<condition>/<biological
+repeat>` for a repeat; `channel` holds the channel index, so the calling brick can mark the
+image in that channel's plots. The issues come in the order of the table above, each sorted by
+condition, biological repeat, image and channel.
 
 ---
 

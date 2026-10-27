@@ -17,6 +17,12 @@ REPEAT_MISSING_CONDITIONS = "repeat_missing_conditions"
 APPROXIMATE_PARAMETERS = "approximate_parameters"
 PLANES_WITHOUT_FINITE_PIXELS = "planes_without_finite_pixels"
 
+# Intensity checks of contract §7.2, Milestone 4.
+IMAGE_INTENSITY_OUTLIER = "image_intensity_outlier"
+REPEAT_INTENSITY_SHIFT = "repeat_intensity_shift"
+SATURATED_IMAGE = "saturated_image"
+NO_INTENSITY_SPREAD = "no_intensity_spread"
+
 
 @dataclass(frozen=True)
 class Issue:
@@ -34,6 +40,10 @@ class Issue:
         The affected images, planes or groups.
     action
         What the user can do about it.
+    channel
+        The zero-based channel the warning is about, for the intensity checks
+        (N52), so a calling brick can mark the image in that channel's plots;
+        None for warnings about whole images or groups.
     """
 
     severity: str
@@ -41,3 +51,4 @@ class Issue:
     message: str
     items: tuple[str, ...] = ()
     action: str = ""
+    channel: int | None = None

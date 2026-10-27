@@ -6,7 +6,7 @@
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
 the validation severities. It implements the decisions of the [plan](plan.md) (§12) as
-simplified on 26 October 2026 (N29–N40) and with channels in columns (N41–N45); it does not change any of them. The earlier contract
+simplified on 26 October 2026 (N29–N40) and with channels in columns (N41–N47); it does not change any of them. The earlier contract
 with modality profiles, purpose rules, colour statistics and references is withdrawn.
 
 - Changing a file format (§6) requires a new `schema_version` of that file.
@@ -19,7 +19,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 1. Existing code | Milestone 1 (moved unchanged; done) |
 | 2. Interface; 3.1–3.2 fluorescence methods; 4. Scopes and repeat groups; 8. Columns | Milestone 2 (done; `image_summaries` and `intensity_checks` of §2.2 follow in Milestone 4) |
 | 3.3 RGB method; 5. Image types | Milestone 3 |
-| 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b |
+| 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b (done; the columns of 7.1 follow in Milestone 4) |
 | 7. Intensity checks | Milestone 4 |
 | 9. Validation | With the milestone of each check |
 
@@ -75,6 +75,15 @@ of one row per plane and channel. Accordingly, in Milestone 2b:
 - `group_records`, pooling and fitting take a channel index wherever they used the row's
   `c`; pooled statistics, parameters and the histograms themselves are unchanged, bit for
   bit.
+
+The names that change:
+
+| Module | Milestone 2b |
+|---|---|
+| `records.py` | `PlaneRecord(..., histograms, z, t, position_id)`: `histograms` holds one `PlaneHistogram` per channel (a single histogram is accepted for one channel), all with the same pixel type, bin count and size; `channel_count`, `channel_histogram(c)`. No `c` and no `histogram`. `make_plane_id(path, z=, t=)`. `group_records` and `PlaneRecord.group_key` never used `c` and are unchanged. |
+| `csv_io.py` | `SCHEMA_VERSION = "3"`; `METADATA_COLUMNS` are the plane columns of §6.2; `CHANNEL_FEATURES`, `channel_column(feature, c)`, `channel_columns(c, bin_count)`; `BIN_COLUMN_PREFIX = "Histogram_Count"` and `bin_column(c, index)`. The writer raises `ValueError` and the reader `CsvFormatError` for different channel counts (N43). |
+| `pooling.py` | `PooledHistogram(histograms, channel=None)` and `pooled_statistics(..., channel=None)`: `channel` picks the channel of records and may be left out when every record has one channel. `WeightedHistogram` adds pooled histograms of one channel, as before. |
+| `fitting.py` | `fit` pools channel `i` of every row of the group; rows with different channel counts are refused. `Parameters.channels` and `select` (N46); `COLUMNS` holds the four `normalization_*` columns, `offset_column(i)` and `scale_column(i)` the per-channel ones. |
 
 ### 1.2 Pixel types, histograms, group statistics, linear parameters
 
@@ -172,7 +181,7 @@ pooled histogram has `max_representative_error == 0`.
 | `NormalizationSettings` | Image type, method and its options, scope, pooling weight, per-time-point option (§8.3) | Run configuration of the calling brick, once per run |
 | Source statistics | Pooled plane histograms of a group (§1.2), or pixel arrays from which the library computes the same statistics | Not stored by the library |
 | `RepeatGroups` | Mapping from `(condition, biological_repeat)` to the repeat group's label (§4.2), built by the calling brick from `experiment_design.csv` | Not stored by the library |
-| `Parameters` | Offset and scale per channel of one group (§8) | Per-row columns (N21, N23) |
+| `Parameters` | Offset and scale per channel of one group, with the image's channel indices they belong to (`channels`, N46) (§8) | Per-row columns (N21, N23) |
 | `Issue` | Severity, code, message, affected items, suggested action | Reported by the calling brick |
 
 ### 2.2 Functions
@@ -182,6 +191,7 @@ issues = check_settings(settings, *, statistics_file: bool)
 key = group_key(record, settings, repeat_groups=None)     # group of one plane_histograms row
 parameters = fit(statistics, settings)                   # one group
 normalized = parameters.apply(pixels, channel_axis=...)
+patch_parameters = parameters.select([2])                # one channel of the image (§8.1)
 columns = parameters.to_columns()                        # dict[str, str]
 parameters = Parameters.from_columns(columns, settings)
 settings.to_dict(); NormalizationSettings.from_dict(...)
@@ -195,7 +205,8 @@ issues = intensity_checks(summaries, check_settings=None)
 | `group_key` | The group of a row at the settings' scope (§4.1). `biological_repeat` needs `repeat_groups`; without it, repeats match by name (§4.2). |
 | `fit` | One entry point for every method; dispatches on `settings.image_type` and `settings.method`. Statistics are pooled histograms per channel, or pixels; with `pooling="conditions"` the histograms carry their condition (§4.3). Never reads files and never walks folders. |
 | `apply` | Returns a new float32 array; the input is never modified. `channel_axis` gives the channel axis of `pixels`; it may be left out for one channel. No clipping (N19). Non-finite pixels stay non-finite. |
-| `to_columns` / `from_columns` | The columns of §8.1 as text in the format of §8.2; `from_columns(to_columns(p)) == p` exactly. |
+| `select` | The parameters of some of the image's channels, e.g. of a single-channel patch; `channels` keeps their indices (N46). |
+| `to_columns` / `from_columns` | The columns of §8.1 as text in the format of §8.2; `from_columns(to_columns(p)) == p` exactly. `to_columns` writes the pairs of `channels` only; `from_columns` reads every channel whose pair is filled and skips channels whose pair is blank (N46). |
 | `to_dict` / `from_dict` | JSON-compatible dictionaries (§8.3) that round-trip exactly. |
 | `image_summaries`, `intensity_checks` | §7. |
 
@@ -460,7 +471,8 @@ written (N23); the settings are written once in the calling brick's run configur
 - Numbers at full precision (Python `repr` of the float), read back unchanged.
 - `Normalization_Offset_C<i>` and `Normalization_Scale_C<i>` replace the `;`-separated
   `normalization_offset` and `normalization_scale` columns (N41); readers of earlier tables
-  may still accept those (CellPatcher follow-up C1).
+  may still accept those (CellPatcher follow-up C1). `from_columns` reads only the new
+  columns, so CellPatcher converts earlier rows itself (N47).
 - Column order within a file is the calling brick's; readers select columns by name.
 
 ### 8.3 Run level

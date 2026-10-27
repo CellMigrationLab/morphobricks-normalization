@@ -63,8 +63,21 @@ records = read_plane_histograms("plane_histograms.csv")
 groups, group_warnings = scope_groups(records, settings, repeat_groups=None)
 for key, rows in groups.items():
     parameters = fit(rows, settings, group=group_name(key))
-    columns = parameters.to_columns()  # normalization_* columns, numbers as text
+    columns = parameters.to_columns()  # normalization_* and Normalization_*_C<i> columns
 ```
+
+Milestone 2b put the channels across columns (decisions N41–N47):
+
+- `plane_histograms.csv` schema version 3: one row per XYC plane (image, Z and T), with
+  each channel's extrema, pixel counts and bins in CellProfiler-style columns
+  (`Intensity_MinIntensity_C0`, `Histogram_Count_C1_00042`, ...). Tables of versions 1 and
+  2 are refused with a message asking to run the preprocessing brick again; images with
+  different numbers of channels are an error.
+- `PlaneRecord.histograms` holds one histogram per channel; pooling and fitting take the
+  channel index. Histograms, pooled statistics and parameters are bit-identical to those of
+  Milestone 2, checked against a version-2 fixture written by that code (`tests/data`).
+- Parameters are written as `Normalization_Offset_C<i>` and `Normalization_Scale_C<i>`, one
+  pair per channel; `Parameters.select([i])` gives the pair of a single-channel patch.
 
 The RGB method and the intensity checks follow in Milestones 3–4 (see the plan).
 
@@ -85,7 +98,7 @@ python -m pytest
 
 | Document | Content |
 |---|---|
-| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N45 |
+| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N47 |
 | [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | [docs/followup_preprocessing.md](docs/followup_preprocessing.md) | Changes to morphobricks-preprocessing |
 | [docs/followup_cellpatcher.md](docs/followup_cellpatcher.md) | Changes to CellPatcher |

@@ -55,8 +55,9 @@ def simulate_experiment(
 
 
 def make_records(planes, bin_count=None):
+    """One single-channel record per plane of :func:`simulate_experiment`."""
     return [
-        PlaneRecord(path, *labels, histogram=compute_plane_histogram(pixels, bin_count))
+        PlaneRecord(path, *labels, histograms=compute_plane_histogram(pixels, bin_count))
         for labels, path, pixels in planes
     ]
 
@@ -89,6 +90,9 @@ def simulate_design(
 ):
     """Return ``[(labels, path, c, t, pixels), ...]`` for multi-channel, multi-time images.
 
+    One entry per image, channel and time point; :func:`make_design_records`
+    gathers the channels of each image and time point into one XYC plane.
+
     ``design`` maps each condition to its biological-repeat labels (default:
     two dated repeats in ``control`` and ``treated``). Brightness differs between
     conditions, repeats and channels, so pooling the wrong planes changes the
@@ -114,9 +118,14 @@ def simulate_design(
 
 
 def make_design_records(planes, bin_count=None):
+    """One record per XYC plane (image and time point) of :func:`simulate_design`."""
+    by_plane = {}
+    for labels, path, c, t, pixels in planes:
+        _, channels = by_plane.setdefault((path, t), (labels, {}))
+        channels[c] = compute_plane_histogram(pixels, bin_count)
     return [
-        PlaneRecord(path, *labels, histogram=compute_plane_histogram(pixels, bin_count), c=c, t=t)
-        for labels, path, c, t, pixels in planes
+        PlaneRecord(path, *labels, histograms=[channels[c] for c in sorted(channels)], t=t)
+        for (path, t), (labels, channels) in by_plane.items()
     ]
 
 

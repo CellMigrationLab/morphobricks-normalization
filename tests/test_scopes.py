@@ -18,10 +18,10 @@ REPEAT = NormalizationSettings(scope="biological_repeat")
 IMAGE = NormalizationSettings(scope="image")
 
 
-def record(condition, repeat, technical=SINGLE, image="img.tif", c=0, t=0):
+def record(condition, repeat, technical=SINGLE, image="img.tif", t=0):
     path = f"{condition}/{repeat}/{technical}/{image}"
     histogram = compute_plane_histogram(np.arange(4, dtype=np.uint8))
-    return PlaneRecord(path, condition, repeat, technical, histogram, c=c, t=t)
+    return PlaneRecord(path, condition, repeat, technical, (histogram, histogram), t=t)
 
 
 def test_repeats_with_the_same_name_form_one_group_across_conditions():
@@ -40,7 +40,7 @@ def test_biological_repeat_pools_its_planes_across_conditions_and_technical_repe
         assert {r.plane_id for r in members} == expected
         assert {r.condition for r in members} == {"control", "treated"}
         assert {r.technical_repeat for r in members} == {"tech_rep1", "tech_rep2"}
-        assert {r.c for r in members} == {0, 1}
+        assert {r.channel_count for r in members} == {2}
     assert sum(len(members) for members in groups.values()) == len(records)
 
 
@@ -57,8 +57,7 @@ def test_pairing_differently_named_repeats_changes_only_the_grouping():
             if r.condition == "treated"
             else r.biological_repeat,
             r.technical_repeat,
-            r.histogram,
-            c=r.c,
+            r.histograms,
             t=r.t,
         )
         for r in matching
@@ -142,7 +141,7 @@ def test_image_scope_pools_all_planes_of_one_image():
     assert issues == []
     for (path,), members in groups.items():
         assert {r.source_relative_path for r in members} == {path}
-        assert len(members) == 2 * 2  # channels x time points
+        assert len(members) == 2  # time points; each row holds both channels
 
 
 def test_patch_scope_has_no_row_groups():

@@ -65,16 +65,25 @@ class PooledHistogram:
     Parameters
     ----------
     histograms
-        Plane histograms, or :class:`PlaneRecord` objects carrying them. Planes
-        without finite pixels are skipped and counted in ``n_excluded_planes``.
+        Plane histograms, or :class:`PlaneRecord` objects carrying one histogram
+        per channel. Planes without finite pixels are skipped and counted in
+        ``n_excluded_planes``.
+    channel
+        For records, the channel to pool (zero-based); it may be left out when
+        every record has one channel. Plane histograms are used as given.
 
     Raises
     ------
     NoValidPixelsError
         If none of the planes has a finite pixel.
+    ValueError
+        If a record has more than one channel and ``channel`` is not given, or
+        has no channel ``channel``.
     """
 
-    def __init__(self, histograms: Iterable[PlaneHistogram | PlaneRecord]):
+    def __init__(
+        self, histograms: Iterable[PlaneHistogram | PlaneRecord], channel: int | None = None
+    ):
         values, weights = [], []
         self.n_planes = 0
         self.n_excluded_planes = 0
@@ -82,7 +91,7 @@ class PooledHistogram:
         self.maximum = -np.inf
         self.max_representative_error = 0.0
         for item in histograms:
-            hist = item.histogram if isinstance(item, PlaneRecord) else item
+            hist = _channel_histogram(item, channel) if isinstance(item, PlaneRecord) else item
             if hist.is_empty:
                 self.n_excluded_planes += 1
                 continue
@@ -167,7 +176,8 @@ class WeightedHistogram:
     Parameters
     ----------
     parts
-        The histograms to add, for example one per condition.
+        The histograms to add, for example one per condition, all of the same
+        channel.
     weights
         One positive, finite weight per part.
     """
@@ -228,9 +238,25 @@ class WeightedHistogram:
 def pooled_statistics(
     histograms: Iterable[PlaneHistogram | PlaneRecord],
     percentiles: Sequence[float] = DEFAULT_PERCENTILES,
+    *,
+    channel: int | None = None,
 ) -> PooledStatistics:
-    """Pool a group of planes and return its summary statistics."""
-    return PooledHistogram(histograms).summary(percentiles)
+    """Pool a group of planes and return its summary statistics.
+
+    ``channel`` selects the channel of records, as for :class:`PooledHistogram`.
+    """
+    return PooledHistogram(histograms, channel).summary(percentiles)
+
+
+def _channel_histogram(record: PlaneRecord, channel: int | None) -> PlaneHistogram:
+    if channel is None:
+        if record.channel_count != 1:
+            raise ValueError(
+                f"Plane {record.plane_id} has {record.channel_count} channels; give the "
+                f"channel to pool, from 0 to {record.channel_count - 1}."
+            )
+        channel = 0
+    return record.channel_histogram(channel)
 
 
 def _inverse_cdf_index(cumulative: np.ndarray, total: int, q: float) -> int:

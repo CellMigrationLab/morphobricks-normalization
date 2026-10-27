@@ -217,7 +217,11 @@ their formula is implemented here.
 - **Milestone 2b — Channels across columns:** `plane_histograms.csv` schema version 3, with
   one row per XYC plane and CellProfiler-style per-channel columns; `PlaneRecord`, the reader
   and writer, grouping and fitting move to whole planes; the parameter columns
-  `Normalization_Offset_C<i>` and `Normalization_Scale_C<i>` (N41–N44).
+  `Normalization_Offset_C<i>` and `Normalization_Scale_C<i>` (N41–N44). *Done (27 October
+  2026): `PlaneRecord.histograms` (one per channel), schema version 3 in `csv_io` (versions
+  1 and 2 refused), a channel index in `PooledHistogram` and `fit`, and `Parameters.channels`
+  and `select` for single-channel patches (N46); tested against a version-2 fixture written
+  by the Milestone 2 code (`tests/data`). Other bricks pin the merge commit.*
 - **Milestone 3 — RGB:** the StarDist percentile method, the `rgb` image type and its checks.
 - **Milestone 4 — Intensity checks:** per-image summaries and the warnings of §6.
 - **Release `v0.2.0`**, pinned by the other bricks.
@@ -337,6 +341,17 @@ Added with the project owner on 27 October 2026:
     several or all (all is the earlier `split_channels=True`). Each selected channel gives
     its own single-channel patch and row, with the channel in `c`. Feature extraction keeps
     multichannel patches with the channels in columns.
+
+Added with the project owner on 27 October 2026, for Milestone 2b:
+
+40. **N46** `Parameters` records the image's channel indices it holds (`channels`, by
+    default all). `select([i])` gives the parameters of a single-channel patch of channel
+    `i`; `to_columns` writes only those channels' pairs, and `from_columns` skips channels
+    whose two columns are blank.
+41. **N47** `from_columns` reads only the `Normalization_Offset_C<i>` and
+    `Normalization_Scale_C<i>` columns. CellPatcher converts the `;`-separated
+    `normalization_offset` and `normalization_scale` of its earlier tables itself (follow-up
+    C1).
 
 ## 13. Still to measure
 

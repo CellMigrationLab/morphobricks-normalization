@@ -377,13 +377,6 @@ def test_biological_repeat_scope_needs_rows_not_pixels():
         fit(np.arange(10, dtype=np.uint8), NormalizationSettings(scope="biological_repeat"))
 
 
-def test_rgb_waits_for_milestone_3():
-    with pytest.raises(MethodNotAllowedError, match="StarDist"):
-        fit(np.zeros((3, 4), np.uint8), NormalizationSettings(image_type="rgb", method="zscore"))
-    with pytest.raises(NotImplementedError, match="RGB normalization is not available"):
-        fit(np.zeros((3, 4), np.uint8), NormalizationSettings(image_type="rgb"), channel_axis=0)
-
-
 def test_fit_refuses_inputs_it_cannot_read():
     with pytest.raises(ValueError, match="No plane_histograms.csv rows"):
         fit([], NormalizationSettings())

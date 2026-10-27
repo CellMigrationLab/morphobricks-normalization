@@ -45,6 +45,12 @@ _KEYS = (
 )
 
 
+_RGB_METHOD_MESSAGE = (
+    "RGB images are normalized with StarDist's percentile method only, which scales the three "
+    "colour channels together. Use method 'percentile'."
+)
+
+
 class MethodNotAllowedError(ValueError):
     """Raised for a method the image type does not allow, or a scope the statistics cannot give."""
 
@@ -57,9 +63,10 @@ class NormalizationSettings:
     ----------
     image_type
         ``"fluorescence"`` (default): each channel separately; ``"rgb"``: R, G and B
-        together (Milestone 3).
+        together, with StarDist's percentile normalization (contract §3.3).
     method
-        ``"minmax"``, ``"percentile"`` (default), ``"zscore"`` or ``"robust_zscore"``.
+        ``"minmax"``, ``"percentile"`` (default), ``"zscore"`` or ``"robust_zscore"``;
+        ``"percentile"`` only for RGB images.
     percentile
         ``(low, high)`` in percent for the percentile method, ``0 <= low < high <= 100``;
         default ``(1.0, 99.8)``.
@@ -76,6 +83,8 @@ class NormalizationSettings:
 
     Raises
     ------
+    MethodNotAllowedError
+        For an RGB image type with a method other than ``"percentile"``.
     ValueError
         For an unknown image type, method, scope or pooling weight, or invalid
         percentiles or consistency factor.
@@ -101,6 +110,8 @@ class NormalizationSettings:
                 "'zscore' or 'robust_zscore' for fluorescence images, or 'percentile' for "
                 "RGB images."
             )
+        if self.image_type == "rgb" and self.method not in RGB_METHODS:
+            raise MethodNotAllowedError(_RGB_METHOD_MESSAGE)
         if self.scope not in SCOPES:
             raise ValueError(
                 f"Scope '{self.scope}' does not exist. Choose 'biological_repeat' (one "
@@ -197,10 +208,7 @@ def check_settings(settings: NormalizationSettings, *, statistics_file: bool) ->
         statistics file and it is not available.
     """
     if settings.image_type == "rgb" and settings.method not in RGB_METHODS:
-        raise MethodNotAllowedError(
-            "RGB images are normalized with StarDist's percentile method only, which scales "
-            "the three colour channels together. Use method 'percentile'."
-        )
+        raise MethodNotAllowedError(_RGB_METHOD_MESSAGE)
     if settings.scope == "biological_repeat" and not statistics_file:
         raise MethodNotAllowedError(
             "The biological-repeat scope needs the preprocessing brick's plane_histograms.csv, "

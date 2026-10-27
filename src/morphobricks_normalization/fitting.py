@@ -11,8 +11,11 @@ numbers whenever the histograms are exact.
 
 The fluorescence methods are those of
 :mod:`~morphobricks_normalization.normalization`, applied to each channel
-separately. Parameters are stored as one ``Normalization_Offset_C<i>`` and
-``Normalization_Scale_C<i>`` pair per channel (contract §8.1, N41, N42).
+separately. The RGB method is StarDist's percentile normalization of
+:mod:`~morphobricks_normalization.rgb`: the three channels are pooled together
+and share one offset and scale. Parameters are stored as one
+``Normalization_Offset_C<i>`` and ``Normalization_Scale_C<i>`` pair per channel
+(contract §8.1, N41, N42); for RGB the shared value is written for C0, C1 and C2.
 """
 
 from __future__ import annotations
@@ -36,6 +39,7 @@ from .normalization import (
 )
 from .pooling import NoValidPixelsError, PooledHistogram, WeightedHistogram
 from .records import PlaneRecord, different_channel_counts
+from .rgb import RGB_CHANNEL_COUNT, apply_rgb, check_rgb, rgb_percentile
 from .settings import NormalizationSettings, check_settings
 
 # Columns written once per row; the per-channel pairs follow (offset_column,
@@ -120,6 +124,11 @@ class Parameters:
         """Number of channels the parameters normalize."""
         return len(self.offset)
 
+    @property
+    def image_type(self) -> str:
+        """``"rgb"`` for StarDist's RGB method (``rgb percentile ...``), else ``"fluorescence"``."""
+        return "rgb" if self.method.startswith("rgb ") else "fluorescence"
+
     def select(self, channels: Iterable[int]) -> Parameters:
         """Return the parameters of some of the channels only.
 
@@ -154,7 +163,9 @@ class Parameters:
 
         Computed in float64 as ``(pixels - offset) / scale`` and returned as
         float32, without clipping; non-finite pixels stay non-finite and the
-        input is never modified.
+        input is never modified. RGB parameters repeat CSBDeep's float32
+        arithmetic instead, so the result is bit-identical to StarDist's
+        normalization (:func:`~morphobricks_normalization.rgb.apply_rgb`, N48).
 
         Parameters
         ----------
@@ -170,7 +181,9 @@ class Parameters:
         ValueError
             If the channel axis is missing or does not hold one entry per channel.
         """
-        values = np.asarray(pixels, dtype=np.float64)
+        values = np.asarray(pixels)
+        if self.image_type == "fluorescence":
+            values = values.astype(np.float64, copy=False)
         if channel_axis is None:
             if self.channel_count != 1:
                 raise ValueError(
@@ -189,6 +202,8 @@ class Parameters:
             shape[axis] = self.channel_count
             offset = np.asarray(self.offset).reshape(shape)
             scale = np.asarray(self.scale).reshape(shape)
+        if self.image_type == "rgb":
+            return apply_rgb(values, offset, scale)
         return ((values - offset) / scale).astype(np.float32, copy=False)
 
     def to_columns(self) -> dict[str, str]:
@@ -283,6 +298,8 @@ class Parameters:
                 "is blank, so it holds no parameters. Read the parameters from a row written "
                 "with normalization."
             )
+        if settings.image_type == "rgb":
+            _check_rgb_columns(channels, offset, scale)
         return cls(
             method=method,
             scope=_text(columns["normalization_scope"]),
@@ -307,8 +324,9 @@ def fit(
     ----------
     statistics
         The ``plane_histograms.csv`` rows of one group (each row an XYC plane;
-        each channel gets its own parameters, in channel order), or a pixel
-        array of one image or patch (image and patch scopes only).
+        each channel gets its own parameters, in channel order, or for RGB the
+        R, G and B values of every row are pooled together), or a pixel array
+        of one image or patch (image and patch scopes only).
     settings
         The run's settings.
     group
@@ -332,49 +350,66 @@ def fit(
     NoValidPixelsError
         If a channel of the group has no finite pixel.
     ValueError
-        If a channel's scale is zero or not finite, or the rows have different
-        numbers of channels (N43).
+        If a fluorescence channel's scale is zero or not finite, the rows have
+        different numbers of channels (N43), or RGB images do not have exactly
+        three channels of an integer type (contract §5).
     """
     from_pixels = isinstance(statistics, np.ndarray)
     check_settings(settings, statistics_file=not from_pixels)
-    if settings.image_type == "rgb":
-        raise NotImplementedError(
-            "RGB normalization is not available in this version of morphobricks-normalization "
-            "yet. Use image type 'fluorescence', or a version with the RGB method."
-        )
     if from_pixels:
-        channels = _pixel_channels(statistics, channel_axis)
+        # One histogram per channel of the array, pooled like the rows' channels.
+        items: list[PlaneRecord] | list[PlaneHistogram] = _pixel_histograms(
+            statistics, channel_axis
+        )
+        channel_count = len(items)
         excluded: list[str] = []
     else:
         if channel_axis is not None:
             raise ValueError("channel_axis applies to pixel arrays only, not to histogram rows.")
-        records = _records(statistics, group)
-        channels = {channel: records for channel in range(records[0].channel_count)}
+        items = _records(statistics, group)
+        channel_count = items[0].channel_count
         excluded = [
             f"{record.plane_id} (channel {channel})"
-            for record in records
+            for record in items
             for channel, histogram in enumerate(record.histograms)
             if histogram.is_empty
         ]
-    parameters, exact = [], True
-    for channel, items in channels.items():
-        where = f"Group '{group}', channel {channel}" if group else f"Channel {channel}"
+    rgb = settings.image_type == "rgb"
+    if rgb:
+        check_rgb(channel_count, _dtypes(items))
+        # Contract §3.3: R, G and B pooled together give one shared offset and scale.
+        channel_sets = [tuple(range(channel_count))]
+    else:
+        channel_sets = [(channel,) for channel in range(channel_count)]
+    offset, scale, exact = [], [], True
+    for channels in channel_sets:
+        if rgb:
+            where = f"Group '{group}', channels R, G and B" if group else "Channels R, G and B"
+        else:
+            where = f"Group '{group}', channel {channels[0]}" if group else f"Channel {channels[0]}"
         try:
-            pooled = _pool(items, settings, channel)
+            pooled = _pool(items, settings, channels)
         except NoValidPixelsError as exc:
             raise NoValidPixelsError(f"{where}: {exc}") from exc
-        try:
-            parameters.append(_channel_parameters(pooled, settings))
-        except ValueError as exc:
-            raise ValueError(f"{where}: {exc}") from exc
+        if rgb:
+            shared = rgb_percentile(pooled, *settings.percentile)
+            offset += [shared[0]] * len(channels)
+            scale += [shared[1]] * len(channels)
+        else:
+            try:
+                parameters = _channel_parameters(pooled, settings)
+            except ValueError as exc:
+                raise ValueError(f"{where}: {exc}") from exc
+            offset.append(parameters.offset)
+            scale.append(parameters.scale)
         exact = exact and pooled.max_representative_error == 0
     return Parameters(
-        method=parameters[0].method,
+        method=settings.method_name,
         scope=settings.scope,
         group=group,
         exact=exact,
-        offset=tuple(p.offset for p in parameters),
-        scale=tuple(p.scale for p in parameters),
+        offset=tuple(offset),
+        scale=tuple(scale),
         issues=_fit_issues(group, exact, excluded),
     )
 
@@ -398,36 +433,50 @@ def _records(statistics: Iterable[PlaneRecord], group: str | None) -> list[Plane
     return records
 
 
-def _pixel_channels(pixels: np.ndarray, channel_axis: int | None) -> dict[int, list]:
+def _pixel_histograms(pixels: np.ndarray, channel_axis: int | None) -> list[PlaneHistogram]:
     if channel_axis is None:
-        return {0: [compute_plane_histogram(pixels)]}
+        return [compute_plane_histogram(pixels)]
     axis = _axis_index(channel_axis, pixels.ndim)
-    return {
-        c: [compute_plane_histogram(np.take(pixels, c, axis=axis))]
-        for c in range(pixels.shape[axis])
-    }
+    return [
+        compute_plane_histogram(np.take(pixels, c, axis=axis)) for c in range(pixels.shape[axis])
+    ]
+
+
+def _dtypes(items: list[PlaneRecord] | list[PlaneHistogram]) -> set[np.dtype]:
+    if isinstance(items[0], PlaneHistogram):
+        return {histogram.dtype for histogram in items}
+    return {histogram.dtype for record in items for histogram in record.histograms}
+
+
+def _channel_histograms(
+    items: list[PlaneRecord] | list[PlaneHistogram], channels: tuple[int, ...]
+) -> list[PlaneHistogram]:
+    # The histograms of ``channels`` in every row, or of a pixel array's channels.
+    if isinstance(items[0], PlaneHistogram):
+        return [items[c] for c in channels]
+    return [record.channel_histogram(c) for record in items for c in channels]
 
 
 def _pool(
     items: list[PlaneRecord] | list[PlaneHistogram],
     settings: NormalizationSettings,
-    channel: int,
+    channels: tuple[int, ...],
 ) -> PooledHistogram | WeightedHistogram:
     if settings.pooling != "conditions":
-        return PooledHistogram(items, channel)
+        return PooledHistogram(_channel_histograms(items, channels))
     # Contract §4.3: each condition's counts are scaled to the same total. The
     # largest condition is the reference, so conditions with equal pixel
     # counts get weight exactly 1 and the numbers equal those of "pixels".
     by_condition: dict[str, list[PlaneRecord]] = {}
     for record in items:
         by_condition.setdefault(record.condition, []).append(record)
-    parts = [
-        PooledHistogram(members, channel)
-        for _, members in sorted(by_condition.items())
-        if any(not record.histograms[channel].is_empty for record in members)
-    ]
+    parts = []
+    for _, members in sorted(by_condition.items()):
+        histograms = _channel_histograms(members, channels)
+        if any(not histogram.is_empty for histogram in histograms):
+            parts.append(PooledHistogram(histograms))
     if not parts:
-        return PooledHistogram(items, channel)  # raises NoValidPixelsError
+        return PooledHistogram(_channel_histograms(items, channels))  # raises NoValidPixelsError
     reference = max(part.pixel_count for part in parts)
     return WeightedHistogram(parts, [reference / part.pixel_count for part in parts])
 
@@ -474,6 +523,30 @@ def _fit_issues(group: str | None, exact: bool, excluded: list[str]) -> tuple[Is
             )
         )
     return tuple(issues)
+
+
+def _check_rgb_columns(channels: list[int], offset: list[float], scale: list[float]) -> None:
+    # Contract §8.1: an RGB row holds the shared value in C0, C1 and C2.
+    expected = list(range(RGB_CHANNEL_COUNT))
+    if channels != expected:
+        missing = [c for c in expected if c not in channels]
+        names = [name for c in missing for name in (offset_column(c), scale_column(c))]
+        extra = [c for c in channels if c not in expected]
+        problem = (
+            f"the column(s) {', '.join(names)} are blank or missing"
+            if missing
+            else f"it also holds channel(s) {extra}"
+        )
+        raise ValueError(
+            "An RGB row holds one offset and scale in each of channels C0, C1 and C2, but "
+            f"{problem}. Read the parameters from a row written with RGB normalization."
+        )
+    if len(set(offset)) != 1 or len(set(scale)) != 1:
+        raise ValueError(
+            "An RGB row holds the same offset and scale in channels C0, C1 and C2, but "
+            f"Normalization_Offset_C0..C2 are {offset} and Normalization_Scale_C0..C2 are "
+            f"{scale}. Read the parameters from a row written with RGB normalization."
+        )
 
 
 def _axis_index(axis: int, ndim: int) -> int:

@@ -27,6 +27,7 @@ from .pooling import (
     pooled_statistics,
 )
 from .records import SINGLE, PlaneRecord, group_records, make_plane_id
+from .rgb import apply_rgb, rgb_percentile
 from .scopes import group_key, group_name, scope_groups
 from .settings import MethodNotAllowedError, NormalizationSettings, check_settings
 
@@ -46,6 +47,7 @@ __all__ = [
     "UnsupportedDtypeError",
     "WeightedHistogram",
     "__version__",
+    "apply_rgb",
     "check_settings",
     "compute_block_histogram",
     "compute_plane_histogram",
@@ -59,6 +61,7 @@ __all__ = [
     "percentile_range",
     "pooled_statistics",
     "read_plane_histograms",
+    "rgb_percentile",
     "robust_z_score",
     "scope_groups",
     "write_plane_histograms",

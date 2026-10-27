@@ -138,3 +138,67 @@ def cached_design(seed=0, bin_count=None, **kwargs):
     """
     planes = simulate_design(seed=seed, **kwargs)
     return planes, make_design_records(planes, bin_count)
+
+
+def simulate_rgb_plane(rng, dtype=np.uint8, shape=(24, 24), brightness=1.0, top=None):
+    """A brightfield-like colour plane, ``(Y, X, 3)``: bright background, darker stained blobs.
+
+    ``top`` is the white level (default the type's maximum); 16-bit cameras
+    often store 12-bit values, so 16-bit tests use ``top=4095``.
+    """
+    top = np.iinfo(dtype).max if top is None else top
+    yy, xx = np.mgrid[0 : shape[0], 0 : shape[1]]
+    absorbance = np.zeros((*shape, 3))
+    stains = np.array([(0.65, 0.70, 0.29), (0.07, 0.99, 0.11)])  # haematoxylin-, eosin-like
+    for _ in range(int(rng.integers(3, 8))):
+        cy, cx = rng.uniform(0, shape[0]), rng.uniform(0, shape[1])
+        radius = rng.uniform(2, 6)
+        stain = stains[rng.integers(0, len(stains))] * rng.lognormal(0, 0.3)
+        blob = np.exp(-((yy - cy) ** 2 + (xx - cx) ** 2) / (2 * radius**2))
+        absorbance += blob[..., None] * stain
+    light = 0.9 * brightness * np.exp(-absorbance) * top
+    return np.clip(np.rint(rng.normal(light, 0.01 * top)), 0, top).astype(dtype)
+
+
+def simulate_rgb_design(seed=0, design=None, n_images=2, n_times=1, shape=(24, 24), **kwargs):
+    """Return ``[(labels, path, t, pixels), ...]`` of RGB images, ``pixels`` of shape ``(Y, X, 3)``.
+
+    ``design`` maps each condition to its biological-repeat labels (default:
+    two dated repeats in ``control`` and ``treated``); ``n_images`` is the
+    number of images per repeat. Brightness differs between conditions and repeats.
+    """
+    rng = np.random.default_rng(seed)
+    if design is None:
+        design = {c: ("2024_05_01", "2024_05_02") for c in ("control", "treated")}
+    images = []
+    for k, (condition, repeats) in enumerate(design.items()):
+        for repeat in repeats:
+            repeat_factor = rng.lognormal(0, 0.05)
+            for i in range(1, n_images + 1):
+                labels = (condition, repeat, SINGLE)
+                path = f"{condition}/{repeat}/img_{i:02d}.tif"
+                for t in range(n_times):
+                    brightness = min(1.1, (1 - 0.1 * k) * repeat_factor)
+                    pixels = simulate_rgb_plane(rng, shape=shape, brightness=brightness, **kwargs)
+                    images.append((labels, path, t, pixels))
+    return images
+
+
+def make_rgb_records(images, bin_count=None):
+    """One record per RGB plane of :func:`simulate_rgb_design`, channels R, G, B."""
+    return [
+        PlaneRecord(
+            path,
+            *labels,
+            histograms=[compute_plane_histogram(pixels[..., c], bin_count) for c in range(3)],
+            t=t,
+        )
+        for labels, path, t, pixels in images
+    ]
+
+
+@functools.cache
+def cached_rgb_design(seed=0, bin_count=None, **kwargs):
+    """``(images, records)`` of :func:`simulate_rgb_design`, computed once per argument set."""
+    images = simulate_rgb_design(seed=seed, **kwargs)
+    return images, make_rgb_records(images, bin_count)

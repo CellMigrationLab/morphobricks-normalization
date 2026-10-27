@@ -125,11 +125,18 @@ def test_from_dict_refuses_unknown_keys_and_ignores_the_version():
 
 @pytest.mark.parametrize("method", ["minmax", "zscore", "robust_zscore"])
 def test_rgb_allows_only_the_percentile_method(method):
-    settings = NormalizationSettings(image_type="rgb", method=method)
+    with pytest.raises(MethodNotAllowedError) as error:
+        NormalizationSettings(image_type="rgb", method=method)
+    assert str(error.value) == RGB_MESSAGE
+    assert isinstance(error.value, ValueError)
+    with pytest.raises(MethodNotAllowedError, match="StarDist's percentile method only"):
+        NormalizationSettings.from_dict({"image_type": "rgb", "method": method})
+    # check_settings refuses the choice too, for settings that skipped the constructor.
+    settings = NormalizationSettings(method=method)
+    object.__setattr__(settings, "image_type", "rgb")
     with pytest.raises(MethodNotAllowedError) as error:
         check_settings(settings, statistics_file=True)
     assert str(error.value) == RGB_MESSAGE
-    assert isinstance(error.value, ValueError)
     assert check_settings(NormalizationSettings(image_type="rgb"), statistics_file=True) == []
 
 

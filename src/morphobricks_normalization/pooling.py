@@ -11,7 +11,9 @@ Definitions
     percentile  Inverse-CDF definition: the smallest representative value such
                 that at least q% of pixels are at or below it (numpy
                 ``method="inverted_cdf"``). The median is the 50th percentile.
-    mad         Median absolute deviation from the median, unscaled.
+    linear      NumPy's default linear-interpolation percentile, used only by
+                the RGB method (contract §3.3).
+    mad        Median absolute deviation from the median, unscaled.
     min, max    Exact: taken from the planes' stored extrema.
 
 Accuracy
@@ -23,6 +25,7 @@ Accuracy
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
@@ -134,6 +137,18 @@ class PooledHistogram:
             raise ValueError(f"Percentiles must be between 0 and 100; got {q}.")
         return float(self.values[_inverse_cdf_index(self._cumulative, self.pixel_count, q)])
 
+    def linear_percentile(self, q: float) -> float:
+        """Percentile with NumPy's default linear interpolation, ``q`` in percent (0-100).
+
+        The value ``np.percentile(pixels, q)`` gives for the pooled pixels,
+        bit for bit when every histogram is exact (one value per bin); used by
+        the RGB method (contract §3.3). The fluorescence methods use
+        :meth:`percentile`.
+        """
+        if not 0 <= q <= 100:
+            raise ValueError(f"Percentiles must be between 0 and 100; got {q}.")
+        return _linear_percentile(self.values, self._cumulative, self.pixel_count, q)
+
     @property
     def median(self) -> float:
         """50th percentile."""
@@ -221,6 +236,20 @@ class WeightedHistogram:
             raise ValueError(f"Percentiles must be between 0 and 100; got {q}.")
         return float(self.values[_weighted_index(self._cumulative, self.total_weight, q)])
 
+    def linear_percentile(self, q: float) -> float:
+        """Weighted linear-interpolation percentile, ``q`` in percent (0-100) (N49).
+
+        NumPy's linear rule with the cumulative weights as positions: the
+        values are placed as if each were repeated by its weight, and the
+        total weight ``W`` takes the place of the pixel count, so the result
+        depends on the scale of the weights (``fit`` gives each pixel of the
+        largest condition weight 1). With all weights 1 the result equals
+        :meth:`PooledHistogram.linear_percentile` of the same planes exactly.
+        """
+        if not 0 <= q <= 100:
+            raise ValueError(f"Percentiles must be between 0 and 100; got {q}.")
+        return _linear_percentile(self.values, self._cumulative, self.total_weight, q)
+
     @property
     def median(self) -> float:
         """Weighted 50th percentile."""
@@ -262,6 +291,29 @@ def _channel_histogram(record: PlaneRecord, channel: int | None) -> PlaneHistogr
 def _inverse_cdf_index(cumulative: np.ndarray, total: int, q: float) -> int:
     rank = max(1, int(np.ceil(q / 100 * total)))
     return int(np.searchsorted(cumulative, rank, side="left"))
+
+
+def _linear_percentile(values: np.ndarray, cumulative: np.ndarray, total: float, q: float) -> float:
+    # NumPy's "linear" method (Hyndman & Fan type 7), step by step as
+    # numpy.lib's _quantile and _lerp compute it, so the result is bit-identical
+    # to np.percentile on the pixels: the virtual index h = (N - 1) * (q / 100)
+    # lies between the sorted positions k and k + 1, and the interpolation
+    # starts from the nearer of the two values.
+    h = (total - 1) * (q / 100)
+    if h >= total - 1:
+        return float(values[-1])
+    k = math.floor(h)
+    gamma = h - k
+    # The value at zero-based sorted position i is the first whose cumulative
+    # count exceeds i.
+    last = len(values) - 1
+    below, above = (
+        values[min(int(np.searchsorted(cumulative, i, side="right")), last)] for i in (k, k + 1)
+    )
+    difference = above - below
+    if gamma >= 0.5:
+        return float(above - difference * (1 - gamma))
+    return float(below + difference * gamma)
 
 
 def _weighted_index(cumulative: np.ndarray, total: float, q: float) -> int:

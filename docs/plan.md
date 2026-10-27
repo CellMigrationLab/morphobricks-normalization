@@ -87,6 +87,11 @@ histograms), and the scale includes the 10⁻²⁰ term, so a region without spr
 instead of being refused. The fluorescence methods keep the library's inverse-CDF percentiles
 and zero-scale error.
 
+Applying the parameters repeats CSBDeep's float32 arithmetic, so normalized RGB pixels are
+bit-identical to StarDist's (N48). With equal weight per condition (§4.2) the same linear
+rule uses the cumulative weights as positions, which gives the pixel rule exactly when every
+weight is 1 (N49).
+
 ## 4. Scopes
 
 | Scope | Pixels pooled | Removes differences between |
@@ -223,6 +228,11 @@ their formula is implemented here.
   and `select` for single-channel patches (N46); tested against a version-2 fixture written
   by the Milestone 2 code (`tests/data`). Other bricks pin the merge commit.*
 - **Milestone 3 — RGB:** the StarDist percentile method, the `rgb` image type and its checks.
+  *Done (27 October 2026): module `rgb` (`rgb_percentile`, `apply_rgb` with CSBDeep's
+  float32 arithmetic, `check_rgb`) and `linear_percentile` in `pooling`; every scope and both
+  pooling weights, from `plane_histograms.csv` rows or pixels. Tested against
+  `np.percentile` and a direct NumPy implementation on simulated 8- and 16-bit images, and
+  bit for bit against `csbdeep.utils.normalize` when CSBDeep is installed (N48, N49).*
 - **Milestone 4 — Intensity checks:** per-image summaries and the warnings of §6.
 - **Release `v0.2.0`**, pinned by the other bricks.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
@@ -247,7 +257,7 @@ Use simulated data generated in the tests; real data only as an optional check.
   missing from some conditions gives its warning.
 - `pooling="conditions"` gives each condition equal weight; both weights agree when the
   conditions have equal pixel counts, and at the image and patch scopes.
-- The RGB method gives the same offset and scale to all three channels and matches `csbdeep.utils.normalize(x, 1, 99.8, axis=(0, 1, 2))` on 8-bit images
+- The RGB method gives the same offset and scale to all three channels and matches `csbdeep.utils.normalize(x, 1, 99.8, axis=(0, 1, 2))` bit for bit on 8- and 16-bit images
   (CSBDeep is used only in the tests, as an optional check).
 - Each intensity check fires on simulated shifted, saturated and constant images and stays
   silent on balanced data; a difference between conditions alone never fires.
@@ -352,6 +362,18 @@ Added with the project owner on 27 October 2026, for Milestone 2b:
     `Normalization_Scale_C<i>` columns. CellPatcher converts the `;`-separated
     `normalization_offset` and `normalization_scale` of its earlier tables itself (follow-up
     C1).
+
+Added with the project owner on 27 October 2026, for Milestone 3:
+
+42. **N48** RGB `apply` repeats CSBDeep's float32 arithmetic: the offset and the rebuilt
+    high percentile (`offset + scale − 10⁻²⁰`) are rounded to float32 and
+    `(x − mi) / (ma − mi + 10⁻²⁰)` is computed in float32, so normalized pixels are
+    bit-identical to `csbdeep.utils.normalize`. Fluorescence keeps its float64 `apply`.
+43. **N49** With `pooling="conditions"`, the RGB percentiles use the linear rule with the
+    cumulative weights as positions: `h = (W − 1)·q/100` over the total weight `W`, with the
+    weights scaled so that each pixel of the condition with the most pixels weighs 1. It
+    equals the pixel rule exactly when every weight is 1 (one condition, or equal pixel
+    counts).
 
 ## 13. Still to measure
 

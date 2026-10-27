@@ -6,7 +6,7 @@
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
 the validation severities. It implements the decisions of the [plan](plan.md) (§12) as
-simplified on 26 October 2026 (N29–N40) and with channels in columns (N41–N47); it does not change any of them. The earlier contract
+simplified on 26 October 2026 (N29–N40), with channels in columns (N41–N47) and with the RGB details of Milestone 3 (N48–N49); it does not change any of them. The earlier contract
 with modality profiles, purpose rules, colour statistics and references is withdrawn.
 
 - Changing a file format (§6) requires a new `schema_version` of that file.
@@ -18,7 +18,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 |---|---|
 | 1. Existing code | Milestone 1 (moved unchanged; done) |
 | 2. Interface; 3.1–3.2 fluorescence methods; 4. Scopes and repeat groups; 8. Columns | Milestone 2 (done; `image_summaries` and `intensity_checks` of §2.2 follow in Milestone 4) |
-| 3.3 RGB method; 5. Image types | Milestone 3 |
+| 3.3 RGB method; 5. Image types | Milestone 3 (done) |
 | 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b (done; the columns of 7.1 follow in Milestone 4) |
 | 7. Intensity checks | Milestone 4 |
 | 9. Validation | With the milestone of each check |
@@ -204,7 +204,7 @@ issues = intensity_checks(summaries, check_settings=None)
 | `check_settings` | Checks the method against the image type (§5) and the scope against the available statistics (§4.5) using the settings alone, so a calling brick can refuse a choice before reading any image. Raises `MethodNotAllowedError` (a `ValueError`) with a message of §9.1. |
 | `group_key` | The group of a row at the settings' scope (§4.1). `biological_repeat` needs `repeat_groups`; without it, repeats match by name (§4.2). |
 | `fit` | One entry point for every method; dispatches on `settings.image_type` and `settings.method`. Statistics are pooled histograms per channel, or pixels; with `pooling="conditions"` the histograms carry their condition (§4.3). Never reads files and never walks folders. |
-| `apply` | Returns a new float32 array; the input is never modified. `channel_axis` gives the channel axis of `pixels`; it may be left out for one channel. No clipping (N19). Non-finite pixels stay non-finite. |
+| `apply` | Returns a new float32 array; the input is never modified. `channel_axis` gives the channel axis of `pixels`; it may be left out for one channel. No clipping (N19). Non-finite pixels stay non-finite. Computed in float64 for fluorescence (§3.2) and with CSBDeep's float32 arithmetic for `rgb` (§3.3). |
 | `select` | The parameters of some of the image's channels, e.g. of a single-channel patch; `channels` keeps their indices (N46). |
 | `to_columns` / `from_columns` | The columns of §8.1 as text in the format of §8.2; `from_columns(to_columns(p)) == p` exactly. `to_columns` writes the pairs of `channels` only; `from_columns` reads every channel whose pair is filled and skips channels whose pair is blank (N46). |
 | `to_dict` / `from_dict` | JSON-compatible dictionaries (§8.3) that round-trip exactly. |
@@ -260,11 +260,20 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
   of `plane_histograms.csv` pooled together, or the group's pixels of all three channels.
 - Every channel gets the same offset and scale, so colour ratios are kept. Output float32,
   no clipping (as `normalize(..., clip=False)`).
+- **`apply` (N48):** CSBDeep's float32 arithmetic, `mi = float32(offset)`,
+  `ma = float32(offset + scale − 1e-20)` and `y = (float32(x) − mi) / (ma − mi + float32(1e-20))`
+  in float32, so the result is bit-identical to `normalize`.
 - **Percentile definition (N40):** NumPy's default linear interpolation, as StarDist, `P(q) = v[k] + (h − k)·(v[k+1] − v[k])` with
   `h = (N − 1)·q/100`, `k = floor(h)` and `v` the sorted pooled values, computed from the
   cumulative counts; exact for histograms with one bin per value, within the histogram bound
   otherwise. Because of the `1e-20` term, a group without spread gives zeros instead of an
   error, and such patches are not discarded.
+- **Weighted pooling (N49):** with `pooling="conditions"` (§4.3) the same rule uses the
+  cumulative weights as positions. The weights of §4.3 are scaled so that each pixel of the
+  condition with the most pixels weighs 1 (every condition then weighs as much as that one);
+  the total weight `W` replaces `N`, and `v[i]` is the smallest value whose cumulative weight
+  exceeds `i`. With every weight 1 (one condition, or equal pixel counts) it is the rule
+  above exactly.
 
 ---
 
@@ -303,7 +312,7 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
 | `pooling` | Rule |
 |---|---|
 | `pixels` (default) | The group's histograms are added: each pixel counts once (§1.2.3) |
-| `conditions` | Each condition's histograms in the group are added, then scaled by `1 / n_condition` (its valid pixel count), so every condition has total weight 1; percentiles, mean, standard deviation, median and MAD use these weights (percentile: smallest representative whose cumulative weight reaches `q/100` of the total) |
+| `conditions` | Each condition's histograms in the group are added, then scaled by `1 / n_condition` (its valid pixel count), so every condition has total weight 1; percentiles, mean, standard deviation, median and MAD use these weights (percentile: smallest representative whose cumulative weight reaches `q/100` of the total; for `rgb`, the weighted linear rule of §3.3) |
 
 Minimum and maximum do not depend on the weights. At the `image` and `patch` scopes, and in a
 group with a single condition, both options give identical parameters. `normalization_exact`

@@ -6,7 +6,7 @@ Read it, and the documents below, before changing anything.
 
 | File | What it fixes |
 |---|---|
-| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N47 (§12) and what is still to be measured (§13) |
+| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N49 (§12) and what is still to be measured (§13) |
 | `docs/contract.md` | Rules other bricks rely on: methods and formulas, interface, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | `docs/followup_preprocessing.md`, `docs/followup_cellpatcher.md` | What the two calling bricks change once this brick is released |
 
@@ -33,10 +33,13 @@ src/morphobricks_normalization/
   csv_io.py         write/read plane_histograms.csv schema version 3, channels in
                     CellProfiler-style columns (atomic write, labels always text)
   pooling.py        PooledHistogram: pooled counts, never mean-of-means;
-                    WeightedHistogram: histograms added with a weight each (Milestone 2)
+                    WeightedHistogram: histograms added with a weight each (Milestone 2);
+                    linear_percentile: NumPy's linear interpolation (Milestone 3)
   normalization.py  NormalizationParameters (offset, scale) and the four linear methods
   settings.py       NormalizationSettings, check_settings, MethodNotAllowedError
   scopes.py         group_key, group_name, scope_groups: groups at each scope, repeat groups
+  rgb.py            StarDist's percentile normalization: rgb_percentile, apply_rgb
+                    (CSBDeep's float32 arithmetic), check_rgb
   fitting.py        fit, Parameters (apply, select, to_columns, from_columns with
                     Normalization_Offset_C<i> and Normalization_Scale_C<i>)
   issues.py         Issue: warnings returned to the calling brick
@@ -49,8 +52,8 @@ commit `fd923c9` in Milestone 1 with only the package name changed; keep their b
 and messages unchanged (contract §1), apart from the owner-approved move of the channels
 into columns (contract §1.3). Milestone 2 added `settings`, `scopes`, `fitting`, `issues`
 and `WeightedHistogram`; Milestone 2b put the channels across columns (`plane_histograms.csv`
-schema version 3, per-channel parameter columns). The RGB method (Milestone 3) and the
-intensity checks (Milestone 4) are still to come.
+schema version 3, per-channel parameter columns); Milestone 3 added `rgb` and
+`linear_percentile` for RGB images. The intensity checks (Milestone 4) are still to come.
 
 ## 2. Rules of the repository
 
@@ -83,7 +86,7 @@ intensity checks (Milestone 4) are still to come.
 ## 3. How we work
 
 1. **Read first:** the plan, the contract and the modules you touch.
-2. **Ask before deciding.** Decisions N1–N47 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
+2. **Ask before deciding.** Decisions N1–N49 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
 3. **Milestone 1 moves code unchanged.** The histogram, bin-count, record, CSV, pooling

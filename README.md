@@ -79,7 +79,30 @@ Milestone 2b put the channels across columns (decisions N41–N47):
 - Parameters are written as `Normalization_Offset_C<i>` and `Normalization_Scale_C<i>`, one
   pair per channel; `Parameters.select([i])` gives the pair of a single-channel patch.
 
-The RGB method and the intensity checks follow in Milestones 3–4 (see the plan).
+Milestone 3 added RGB images, with StarDist's percentile normalization (decisions N33,
+N39, N40, N48, N49):
+
+- `NormalizationSettings(image_type="rgb")` allows only `method="percentile"` (default
+  1–99.8, written `rgb percentile 1-99.8`); another method raises `MethodNotAllowedError`.
+- `fit` pools the R, G and B values of the group together, at every scope, from
+  `plane_histograms.csv` rows or from pixels: `offset = P(low)`, `scale = P(high) − P(low) +
+  1e-20`, with NumPy's linear-interpolation percentiles (`linear_percentile` in `pooling`,
+  exact for 8- and 16-bit histograms). The three channels share the values, so colour
+  ratios are kept; a region without spread becomes zeros instead of an error.
+- `Parameters.apply` repeats CSBDeep's float32 arithmetic, so the result equals
+  `csbdeep.utils.normalize(x, 1, 99.8, axis=(0, 1, 2))` bit for bit (`rgb`). CSBDeep is
+  not a dependency; the tests compare with it when it is installed.
+- RGB needs exactly three channels of an integer type; anything else is refused with a
+  message that suggests checking the axis mapping or choosing `fluorescence`.
+- Fluorescence methods are unchanged, bit for bit.
+
+```python
+settings = NormalizationSettings(image_type="rgb", scope="image")
+parameters = fit(rgb_pixels, settings, group="img.tif", channel_axis=-1)  # (Y, X, 3)
+normalized = parameters.apply(rgb_pixels, channel_axis=-1)
+```
+
+The intensity checks follow in Milestone 4 (see the plan).
 
 ## Installation
 
@@ -98,7 +121,7 @@ python -m pytest
 
 | Document | Content |
 |---|---|
-| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N47 |
+| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N49 |
 | [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | [docs/followup_preprocessing.md](docs/followup_preprocessing.md) | Changes to morphobricks-preprocessing |
 | [docs/followup_cellpatcher.md](docs/followup_cellpatcher.md) | Changes to CellPatcher |

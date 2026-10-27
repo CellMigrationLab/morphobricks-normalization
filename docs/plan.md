@@ -70,7 +70,7 @@ StarDist normalizes its inputs with `csbdeep.utils.normalize`:
 ```python
 mi = np.percentile(x, pmin, axis=axis, keepdims=True)
 ma = np.percentile(x, pmax, axis=axis, keepdims=True)
-x = (x - mi) / (ma - mi + 1e-20)        # float32, no clipping by default
+x = (x - mi) / (ma - mi + 1e-20)  # float32, no clipping by default
 ```
 
 Its examples use `pmin=1`, `pmax=99.8`. For RGB images they normalize "channels jointly" with
@@ -188,7 +188,9 @@ their formula is implemented here.
   *Done; released as `v0.1.0` (22 October 2026).*
 - **Milestone 2 — Settings, scopes and fitting:** `NormalizationSettings`, `fit`, `apply`,
   `to_columns`/`from_columns`; the `biological_repeat` scope with repeat groups and both
-  pooling weights; the `image` and `patch` scopes; per-time-point groups.
+  pooling weights; the `image` and `patch` scopes; per-time-point groups. *Done (26 October
+  2026): modules `settings`, `scopes`, `fitting` and `issues`, and `WeightedHistogram` in
+  `pooling`; fluorescence methods only.*
 - **Milestone 3 — RGB:** the StarDist percentile method, the `rgb` image type and its checks.
 - **Milestone 4 — Intensity checks:** per-image summaries and the warnings of §6.
 - **Release `v0.2.0`**, pinned by the other bricks.

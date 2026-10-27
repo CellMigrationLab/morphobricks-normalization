@@ -8,9 +8,11 @@ in ``experiments/binning_study``.
 
 from __future__ import annotations
 
+import functools
+
 import numpy as np
 
-from morphobricks_normalization import PlaneRecord, compute_plane_histogram
+from morphobricks_normalization import SINGLE, PlaneRecord, compute_plane_histogram
 
 
 def simulate_plane(rng, dtype, shape=(64, 64), brightness=1.0, n_cells=6):
@@ -73,3 +75,57 @@ def direct_stats(pixels, percentiles):
         "maximum": x.max(),
         "percentiles": {q: np.percentile(x, q, method="inverted_cdf") for q in percentiles},
     }
+
+
+def simulate_design(
+    seed=0,
+    design=None,
+    n_tech=2,
+    n_images=2,
+    n_channels=2,
+    n_times=1,
+    shape=(32, 32),
+    dtype=np.uint16,
+):
+    """Return ``[(labels, path, c, t, pixels), ...]`` for multi-channel, multi-time images.
+
+    ``design`` maps each condition to its biological-repeat labels (default:
+    two dated repeats in ``control`` and ``treated``). Brightness differs between
+    conditions, repeats and channels, so pooling the wrong planes changes the
+    parameters.
+    """
+    rng = np.random.default_rng(seed)
+    if design is None:
+        design = {c: ("2024_05_01", "2024_05_02") for c in ("control", "treated")}
+    planes = []
+    for k, (condition, repeats) in enumerate(design.items()):
+        for repeat in repeats:
+            repeat_factor = rng.lognormal(0, 0.3)
+            for tech in range(1, n_tech + 1):
+                for i in range(1, n_images + 1):
+                    labels = (condition, repeat, f"tech_rep{tech}" if n_tech > 1 else SINGLE)
+                    path = "/".join(labels) + f"/img_{i:02d}.tif"
+                    for c in range(n_channels):
+                        for t in range(n_times):
+                            brightness = (1 + 0.6 * k) * repeat_factor * (1 + c) * (1 + 0.2 * t)
+                            pixels = simulate_plane(rng, dtype, shape, brightness)
+                            planes.append((labels, path, c, t, pixels))
+    return planes
+
+
+def make_design_records(planes, bin_count=None):
+    return [
+        PlaneRecord(path, *labels, histogram=compute_plane_histogram(pixels, bin_count), c=c, t=t)
+        for labels, path, c, t, pixels in planes
+    ]
+
+
+@functools.cache
+def cached_design(seed=0, bin_count=None, **kwargs):
+    """``(planes, records)`` of :func:`simulate_design`, computed once per argument set.
+
+    Exact 16-bit histograms are slow to build, so parametrized tests share them.
+    Callers must not modify the returned arrays.
+    """
+    planes = simulate_design(seed=seed, **kwargs)
+    return planes, make_design_records(planes, bin_count)

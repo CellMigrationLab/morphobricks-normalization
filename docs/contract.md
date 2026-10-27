@@ -6,7 +6,7 @@
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
 the validation severities. It implements the decisions of the [plan](plan.md) (§12) as
-simplified on 26 October 2026 (N29–N40) and with channels in columns (N41–N44); it does not change any of them. The earlier contract
+simplified on 26 October 2026 (N29–N40) and with channels in columns (N41–N45); it does not change any of them. The earlier contract
 with modality profiles, purpose rules, colour statistics and references is withdrawn.
 
 - Changing a file format (§6) requires a new `schema_version` of that file.

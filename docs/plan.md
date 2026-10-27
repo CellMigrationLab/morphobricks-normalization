@@ -3,7 +3,7 @@
 > See also: [Preprocessing follow-up](followup_preprocessing.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
 **Status:** design brief, simplified on 26 October 2026 (decisions N29–N40, §12), with
-channels moved into columns on 27 October 2026 (N41–N44). The earlier
+channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
 (N4–N28) is withdrawn where §12 says so. What is still to be measured is listed in §13.
 **Scope:** one importable library with the normalization methods for fluorescence and RGB
@@ -170,8 +170,8 @@ Every MorphoBricks table that holds values per channel puts the channels side by
 columns, never in separate rows (N41):
 
 - One row per plane (or image, or patch), not per channel; such tables have no `c` column.
-  Open: CellPatcher's `split_channels`, which makes one single-channel patch per channel and
-  records its channel in `c` (CellPatcher follow-up).
+  One exception: CellPatcher's single-channel patches for deep-learning training, one row
+  per patch with its channel in `c`, for the channels the user selects (N45).
 - Per-channel columns follow CellProfiler's naming, `<Category>_<Feature>_C<index>` with an
   optional `_<parameter>` after the channel, e.g. `Intensity_MinIntensity_C0`,
   `Histogram_Count_C1_00042`, `Normalization_Offset_C2`. The channel token is the zero-based
@@ -332,6 +332,11 @@ Added with the project owner on 27 October 2026:
     count is an error (it was a warning).
 38. **N44** The MorphoBricks shared columns keep their names and format; only per-channel
     columns follow the CellProfiler pattern.
+39. **N45** CellPatcher keeps single-channel patches for deep-learning training, where rows
+    are patches rather than channel measurements, and lets the user choose the channels: one,
+    several or all (all is the earlier `split_channels=True`). Each selected channel gives
+    its own single-channel patch and row, with the channel in `c`. Feature extraction keeps
+    multichannel patches with the channels in columns.
 
 ## 13. Still to measure
 

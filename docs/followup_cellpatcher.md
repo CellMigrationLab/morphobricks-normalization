@@ -3,7 +3,8 @@
 > See also: [Normalization brick plan](plan.md) · [Preprocessing follow-up](followup_preprocessing.md)
 
 **Status:** plan, revised 27 October 2026; starts after the normalization brick's
-Milestones 2b–4 and preprocessing P3b–P4 (N6), pinned by commit until their releases; C5 does not depend on them. Decision numbers N refer to §12 of the
+Milestones 2b–4 (released as `v0.2.0`) and preprocessing P3b–P4 (N6); C5 does not depend
+on them. Decision numbers N refer to §12 of the
 [normalization plan](plan.md); D-numbers refer to CellPatcher's own `docs/plan.md`, and this
 plan revises some of them (see the last section).
 **Repository:** [CellMigrationLab/CellPatcher](https://github.com/CellMigrationLab/CellPatcher)

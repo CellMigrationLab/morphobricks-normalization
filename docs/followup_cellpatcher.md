@@ -2,9 +2,14 @@
 
 > See also: [Normalization brick plan](plan.md) · [Preprocessing follow-up](followup_preprocessing.md)
 
-**Status:** plan, revised 27 October 2026; starts after the normalization brick's
-Milestones 2b–4 (released as `v0.2.0`) and preprocessing P3b–P4 (N6); C5 does not depend
-on them. Decision numbers N refer to §12 of the
+**Status:** done (29 October 2026). C1–C5 were merged into CellPatcher's `main` (pull requests
+[29](https://github.com/CellMigrationLab/CellPatcher/pull/29),
+[32](https://github.com/CellMigrationLab/CellPatcher/pull/32),
+[36](https://github.com/CellMigrationLab/CellPatcher/pull/36),
+[37](https://github.com/CellMigrationLab/CellPatcher/pull/37) and
+[38](https://github.com/CellMigrationLab/CellPatcher/pull/38)), with the `preprocessing` extra
+pinned to preprocessing `v0.3.0`, which brings this brick's `v0.3.1`
+([34](https://github.com/CellMigrationLab/CellPatcher/pull/34)). Decision numbers N refer to §12 of the
 [normalization plan](plan.md); D-numbers refer to CellPatcher's own `docs/plan.md`, and this
 plan revises some of them (see the last section).
 **Repository:** [CellMigrationLab/CellPatcher](https://github.com/CellMigrationLab/CellPatcher)
@@ -150,6 +155,6 @@ extraction keeps multichannel patches, with per-channel values in columns (N41).
 | D14 and contract §10: `normalization_offset`/`normalization_scale` as `;`-separated lists | One `Normalization_Offset_C<i>`/`Normalization_Scale_C<i>` pair per channel (C1, N41) |
 | Contract §7: scope table | Rewritten for the three scopes and repeat groups (C2) |
 
-These revisions are owner-approved through decisions N29–N45 and must be recorded in
+These revisions are owner-approved through decisions N29–N45 and are recorded in
 CellPatcher's `docs/plan.md`, `docs/normalization_contract.md`, `docs/configuration_reference.md`
-and `AGENTS.md` §5 when C1–C4 are implemented.
+and `AGENTS.md` §5.

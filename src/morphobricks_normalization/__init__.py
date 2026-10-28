@@ -12,7 +12,13 @@ from .checks import IntensityCheckSettings, intensity_checks
 from .csv_io import OUTPUT_FILENAME, read_plane_histograms, write_plane_histograms
 from .dtypes import UnsupportedDtypeError, default_bin_count
 from .fitting import Parameters, fit
-from .histogram import PlaneHistogram, compute_block_histogram, compute_plane_histogram
+from .histogram import (
+    HistogramTail,
+    PlaneHistogram,
+    compute_block_histogram,
+    compute_plane_histogram,
+    histogram_with_range_check,
+)
 from .issues import Issue
 from .normalization import (
     NormalizationParameters,
@@ -28,6 +34,7 @@ from .pooling import (
     WeightedHistogram,
     pooled_statistics,
 )
+from .ranges import HistogramSettings, RangeCheck, range_check_issues
 from .records import SINGLE, PlaneRecord, group_records, make_plane_id
 from .rgb import apply_rgb, rgb_percentile
 from .scopes import group_key, group_name, scope_groups
@@ -37,6 +44,8 @@ from .summaries import ImageSummary, image_summaries, summary_columns
 __all__ = [
     "OUTPUT_FILENAME",
     "SINGLE",
+    "HistogramSettings",
+    "HistogramTail",
     "ImageSummary",
     "IntensityCheckSettings",
     "Issue",
@@ -49,6 +58,7 @@ __all__ = [
     "PlaneRecord",
     "PooledHistogram",
     "PooledStatistics",
+    "RangeCheck",
     "UnsupportedDtypeError",
     "WeightedHistogram",
     "__version__",
@@ -61,12 +71,14 @@ __all__ = [
     "group_key",
     "group_name",
     "group_records",
+    "histogram_with_range_check",
     "image_summaries",
     "intensity_checks",
     "make_plane_id",
     "min_max",
     "percentile_range",
     "pooled_statistics",
+    "range_check_issues",
     "read_plane_histograms",
     "rgb_percentile",
     "robust_z_score",

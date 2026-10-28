@@ -1,5 +1,11 @@
 """Schema version 3 holds exactly what version 2 held (contract §1.3, plan §11).
 
+Since Milestone 5 the writer writes schema version 4: version 3 with empty
+underflow and overflow columns for the default min-max range (contract §1.4).
+The tables written here are therefore version 4, and the parameters below also
+show that a version-3-equivalent table (no pixel outside the bins) gives the
+parameters it gave before.
+
 The fixture in ``tests/data`` was written by the Milestone 2 code (commit
 ``02a0620``, ``make_v2_fixture.py``): simulated pixels, the version-2
 ``plane_histograms.csv`` tables computed from them (one row per plane and
@@ -34,6 +40,7 @@ from morphobricks_normalization import (
     scope_groups,
     write_plane_histograms,
 )
+from morphobricks_normalization.csv_io import SCHEMA_VERSION
 from morphobricks_normalization.dtypes import check_supported, is_integer
 
 DATA = Path(__file__).parent / "data"
@@ -148,7 +155,7 @@ def test_version_3_holds_the_histograms_of_version_2_channel_by_channel(name, fo
     bin_count = int(next(iter(old.values()))["bin_count"])
     seen = set()
     for row in new:
-        assert row["schema_version"] == "3" and row["channel_count"] == "2"
+        assert row["schema_version"] == SCHEMA_VERSION and row["channel_count"] == "2"
         for c in range(2):
             key = (row["source_relative_path"], str(c), row["t"])
             before = old[key]
@@ -158,6 +165,10 @@ def test_version_3_holds_the_histograms_of_version_2_channel_by_channel(name, fo
                 assert row[column] == before[column], column
             for v2, v3 in CHANNEL_COLUMNS.items():
                 assert row[v3.format(c=c)] == before[v2], v3
+            for tail in ("Underflow", "Overflow"):  # min-max range: no tails (schema 4)
+                assert row[f"Histogram_{tail}Count_C{c}"] == "0"
+                assert row[f"Histogram_{tail}Sum_C{c}"] == "0.0"
+                assert row[f"Histogram_{tail}SumOfSquares_C{c}"] == "0.0"
             counts = [row[f"Histogram_Count_C{c}_{i:05d}"] for i in range(bin_count)]
             assert counts == [before[f"histogram_bin_{i:05d}"] for i in range(bin_count)]
     assert seen == set(old)

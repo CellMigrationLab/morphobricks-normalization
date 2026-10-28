@@ -6,7 +6,7 @@
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
 the validation severities. It implements the decisions of the [plan](plan.md) (§12) as
-simplified on 26 October 2026 (N29–N40), with channels in columns (N41–N47) and with the RGB details of Milestone 3 (N48–N49) and the intensity-check interface of Milestone 4 (N50–N53); it does not change any of them. The earlier contract
+simplified on 26 October 2026 (N29–N40), with channels in columns (N41–N47) and with the RGB details of Milestone 3 (N48–N49), the intensity-check interface of Milestone 4 (N50–N53) and the robust histogram range of Milestone 5 (N54–N60); it does not change any of them. The earlier contract
 with modality profiles, purpose rules, colour statistics and references is withdrawn.
 
 - Changing a file format (§6) requires a new `schema_version` of that file.
@@ -21,6 +21,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 3.3 RGB method; 5. Image types | Milestone 3 (done) |
 | 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b (done; the columns of 7.1 in Milestone 4, done) |
 | 7. Intensity checks | Milestone 4 (done) |
+| 1.4 Robust histogram range and range check; `plane_histograms.csv` schema version 4 (6.2) | Milestone 5 |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered
@@ -71,7 +72,8 @@ of one row per plane and channel. Accordingly, in Milestone 2b:
   no channel coordinate.
 - `write_plane_histograms` and `read_plane_histograms` write and read schema version 3
   only; a table of version 1 or 2 is refused with `CsvFormatError` naming its version
-  (the preprocessing brick recomputes it on its next run).
+  (the preprocessing brick recomputes it on its next run). Since Milestone 5 they write and
+  read schema version 4 only (§1.4, N56).
 - `group_records`, pooling and fitting take a channel index wherever they used the row's
   `c`; pooled statistics, parameters and the histograms themselves are unchanged, bit for
   bit.
@@ -110,7 +112,8 @@ Notation in this section: `n` = `bin_count`, `lo` = `binning_min`, `hi` = `binni
 
 ##### Integer planes
 
-`lo` and `hi` are the plane's exact minimum and maximum. `W = hi − lo + 1` values.
+`lo` and `hi` are the plane's exact minimum and maximum, or its robust limits (§1.4).
+`W = hi − lo + 1` values.
 
 - If `W ≤ n`: bin `i` holds exactly the value `lo + i` for `i < W`; bins `W .. n−1` are
   empty. The histogram is exact.
@@ -122,12 +125,14 @@ Notation in this section: `n` = `bin_count`, `lo` = `binning_min`, `hi` = `binni
 
 ##### Float planes
 
-`lo` and `hi` are the plane's finite minimum and maximum; NaN and ±infinity are ignored.
+`lo` and `hi` are the plane's finite minimum and maximum, or its robust limits (§1.4); NaN
+and ±infinity are ignored.
 
 - Bin width `(hi − lo) / n`. Bin `i` is `[lo + i·width, lo + (i+1)·width)`; the last bin
   also includes `hi`. A pixel `x` goes to bin `floor((x − lo) / width)`, clipped to
   `n − 1` (edge assignment is subject to floating-point rounding).
-- Constant plane (`lo == hi`): all pixels in bin 0; representative `lo`.
+- Constant plane (`lo == hi`): all pixels in bin 0; representative `lo`. The same for
+  robust limits that coincide: every pixel between them has that value.
 - No finite pixels: `lo`, `hi` blank; all counts 0.
 - Representative value: the bin midpoint `lo + (i + 0.5)·width`.
 - Bound: every pixel is within `width / 2` of its representative.
@@ -136,17 +141,20 @@ Notation in this section: `n` = `bin_count`, `lo` = `binning_min`, `hi` = `binni
 
 A plane too large for the memory limit is read in blocks (rectangles of its stored strips,
 tiles or chunks). Its extrema, pixel counts and bin counts are exactly those of the whole
-plane, so a row never depends on whether, or in which blocks, its plane was read.
+plane, so a row never depends on whether, or in which blocks, its plane was read. With the
+robust range (§1.4) this holds for the limits, the counts and the tail counts too; only the
+tails' float sums may differ in the last bits, because they are added block by block.
 
 #### 1.2.3 Group statistics
 
 Groups pool their planes' (representative value, count) pairs; per-plane statistics are
-never averaged.
+never averaged. Pixels outside a robust range (§1.4) add one pair per non-empty tail: the
+tail's mean and its count.
 
 | Statistic | Definition | Accuracy |
 |---|---|---|
 | min, max | Smallest `pixel_min`, largest `pixel_max` | Exact |
-| mean, std | Count-weighted mean and population std (÷N) of representatives | Exact for exact histograms; otherwise very close (errors cancel) |
+| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares | Exact for exact histograms; otherwise very close (errors cancel) |
 | percentile q | Smallest representative with cumulative count ≥ ceil(q/100 · N) (numpy `inverted_cdf`) | Within the group's largest per-plane bound |
 | median | 50th percentile | As percentiles |
 | MAD | Median of \|representative − median\| | Within twice the bound |
@@ -168,7 +176,101 @@ Every method is an offset and a scale; applying it computes `(pixels − offset)
 A zero or non-finite scale is an error with a plain-language message.
 
 `normalization_exact` (§8) is `true` for histogram-based parameters exactly when every
-pooled histogram has `max_representative_error == 0`.
+pooled histogram has `max_representative_error == 0`, so never when a histogram has tails
+(§1.4).
+
+### 1.4 Robust histogram range (Milestone 5)
+
+Decisions N54–N60, for issue #12: one hot pixel in a float plane stretches the equal-width
+bins of §1.2.2 over its value and squeezes every other pixel into a few bins, so percentile
+parameters become coarse, or cannot be computed.
+
+**Settings.** `HistogramSettings(histogram_range="minmax", robust_quantiles=(0.01, 99.99),
+min_central_bins=100)`, a per-run setting of the brick that computes the statistics, stored
+once per run with `to_dict()` (keys `library_version`, `histogram_range`,
+`robust_quantiles`, `min_central_bins`) and read back with `from_dict()`. It is passed as
+`settings=` to `compute_plane_histogram`, `compute_block_histogram`,
+`histogram_with_range_check` and `estimate_histogram_memory`; None is the default.
+
+- `histogram_range="minmax"` (default, N54): bins span the plane's exact minimum to maximum,
+  as before. Histograms, tables and parameters do not change.
+- `histogram_range="robust"` (N55) changes only channel planes whose min-max histogram would
+  not be exact: float planes that are not constant, and integer planes with more values than
+  bins (`W > n`). Exact histograms (8- and 16-bit planes with the default one bin per value,
+  integer planes with `W ≤ n`) and constant planes never change.
+
+**Robust limits.** `lo` and `hi` are the inverse-CDF quantiles of the plane's finite pixels
+at `robust_quantiles = (q_low, q_high)` in percent: the value of rank
+`max(1, ceil(q/100 · N))` among the `N` sorted finite pixels (NumPy
+`method="inverted_cdf"`, the percentile rule of §1.2.3), so both are pixel values. The bins
+span `[lo, hi]` with the rules of §1.2.2. Pixels `x < lo` form the **underflow** and pixels
+`x > hi` the **overflow**; each tail keeps its count, the sum of its values and the sum of
+their squares, in float64 (`HistogramTail`). `Histogram_BinningMin/Max_C<i>` hold `lo` and
+`hi`; `Intensity_Min/MaxIntensity_C<i>` stay the exact extrema. A limit equals its extremum
+exactly when its tail is empty. With the default quantiles, a plane of at most 10,000 finite
+pixels keeps its extrema as limits; a 512 × 512 plane has 26 pixels in each tail.
+
+**Statistics with tails** (§1.2.3):
+
+- `Histogram_ValidPixelCount_C<i>` = the bins' counts + underflow count + overflow count.
+- Percentiles, median and MAD: each non-empty tail stands as one value, its mean, with its
+  count.
+- Mean and standard deviation use the tails' sums: as exact as without tails.
+- Min-max parameters use the exact extrema (`pixel_min`, `pixel_max`).
+- `max_representative_error` is the larger of the bins' bound and, for each non-empty tail,
+  the larger distance from the tail's mean to its two ends (`max(mean − pixel_min,
+  lo − mean)` for the underflow, `max(mean − hi, pixel_max − mean)` for the overflow). It is
+  positive whenever a tail is not empty, so `normalization_exact` is false and `fit` gives
+  `approximate_parameters`.
+- Without tails, every statistic is computed as before, bit for bit (a version-3 table and
+  its version-4 equivalent give the same parameters).
+
+**Quantiles and passes (N58).** The quantiles are exact order statistics, found by radix
+selection over the pixels' ordered bit patterns, 16 bits per pass; whole planes and planes
+read in blocks use the same code and get identical limits. 8- and 16-bit planes need no
+extra pass (their per-value counts give every quantile). Reads of the plane:
+
+| Pixel type | min-max | min-max with range check | robust (with or without check) |
+|---|---|---|---|
+| 8 and 16 bits | 1 | 1 | 1 |
+| float32, 32-bit integers | 2 | 2 | 3 |
+| float64, 64-bit integers | 2 | 4 | 5 |
+
+`estimate_histogram_memory(..., settings=, range_check=)` includes the arrays of the
+quantile search.
+
+**Range check (N57, N59, N60).** `histogram_with_range_check(blocks, dtype, bin_count=None,
+*, settings=None)` returns the histogram of `compute_block_histogram` and a `RangeCheck`,
+or None for an exact or constant histogram and a plane without finite pixels; it shares the
+histogram's passes (table above). A `RangeCheck` holds:
+
+| Field | Meaning |
+|---|---|
+| `histogram_range` | The range the histogram used |
+| `central_percentiles` | `(1.0, 99.8)`: the central range |
+| `central_bins` | Bins the central range covers in the histogram: bin of the 99.8th percentile − bin of the 1st percentile + 1, the percentiles exact inverse-CDF values and the bins those the pixels fall in |
+| `robust_quantiles`, `robust_limits` | The robust quantiles and the plane's values at them |
+| `outside_robust_count` | Pixels below or above the robust limits |
+| `robust_central_bins` | `central_bins` with bins over the robust limits |
+| `min_central_bins` | The setting; `narrow` is `central_bins < min_central_bins` |
+
+`range_check_issues(checks)` takes `(plane_id, channel, check)` triples and returns one
+`narrow_histogram_range` warning (§9.2) per channel with a narrow plane, listing the planes
+in `items`, with `channel` set and the fewest central bins, the pixels outside the robust
+limits and the robust central bins in the message. Only the preprocessing brick reports it,
+in its step 3; `fit` adds no warning and its zero-spread error is unchanged (N57).
+
+Parameters fitted from pixels (§4.5) use min-max histograms; the setting applies to
+`plane_histograms.csv`.
+
+The names that change in Milestone 5:
+
+| Module | Milestone 5 |
+|---|---|
+| `histogram.py` | `PlaneHistogram` gains `pixel_min` and `pixel_max` as stored fields (default `binning_min`, `binning_max`), `underflow` and `overflow` (`HistogramTail(count, sum, sum_of_squares)`, empty by default) and `has_tails`; `is_exact` and `max_representative_error` include the tails. `compute_plane_histogram`, `compute_block_histogram` and `estimate_histogram_memory` take `settings`; new `histogram_with_range_check`. |
+| `ranges.py` (new) | `HistogramSettings`, `RangeCheck`, `range_check_issues`. |
+| `csv_io.py` | `SCHEMA_VERSION = "4"`; `CHANNEL_FEATURES` gains the six tail features (§6.2). |
+| `pooling.py` | `PooledHistogram.values`/`counts` include one pair per tail; `bin_values`, `bin_counts` and `tails` give the bins alone and the tails' sums; `WeightedHistogram` the same, weighted. |
 
 ---
 
@@ -200,6 +302,8 @@ settings.to_dict(); NormalizationSettings.from_dict(...)
 summaries = image_summaries(records, percentile=(1.0, 99.8))  # §7.1
 row = summaries[0].to_row()                              # dict of the §7.1 columns
 issues = intensity_checks(summaries, settings=None)      # §7.2, IntensityCheckSettings
+histogram, check = histogram_with_range_check(blocks, dtype, settings=HistogramSettings())
+issues = range_check_issues([(plane_id, channel, check), ...])  # §1.4
 ```
 
 | Function | Rule |
@@ -385,11 +489,13 @@ Common format: UTF-8, comma-separated, one header row, rows in a deterministic o
 written at full precision (Python `repr`), blanks for missing values, written to a temporary
 file and replaced only once writing succeeded.
 
-### 6.2 `plane_histograms.csv` (schema version 3)
+### 6.2 `plane_histograms.csv` (schema version 4)
 
 One row per XYC plane: every channel of one image at one Z and T position (an RGB plane is one
 row with channels C0, C1, C2), with each channel's histogram of §1.2.2. The histograms are
-those of schema version 2; only the layout changes (§1.3).
+those of schema version 2 in the layout of version 3 (§1.3), with the underflow and overflow
+columns of the robust range (§1.4, N56) added in version 4; with the default min-max range
+they are zero.
 
 **Plane columns**
 
@@ -406,19 +512,25 @@ those of schema version 2; only the layout changes (§1.3).
 | `channel_count` | integer | Number of channels; the same in every row. |
 | `total_pixel_count` | integer | Pixels in one channel of the plane (height × width). |
 | `bin_count` | integer | Number of histogram bins per channel; the same in every row. |
-| `schema_version` | text | `3`. Versions 1 and 2 had one row per plane and channel with a `c` column; a table of another version is recomputed on the next run. |
+| `schema_version` | text | `4`. Versions 1 and 2 had one row per plane and channel with a `c` column; version 3 had no underflow and overflow columns; a table of another version is recomputed on the next run. |
 
 **Per-channel columns**, for each channel `i` from 0 to `channel_count − 1`, in this order:
 
 | Column | Type | Meaning |
 |---|---|---|
 | `Intensity_MinIntensity_C<i>`, `Intensity_MaxIntensity_C<i>` | number or blank | Exact finite extrema of the channel. Floats written at full precision. |
-| `Histogram_ValidPixelCount_C<i>` | integer | Finite pixels; equals the sum of the channel's count columns. |
-| `Histogram_BinningMin_C<i>`, `Histogram_BinningMax_C<i>` | number or blank | Range the channel's bins cover (equal to its extrema). |
+| `Histogram_ValidPixelCount_C<i>` | integer | Finite pixels; equals the sum of the channel's count columns plus its underflow and overflow counts. |
+| `Histogram_BinningMin_C<i>`, `Histogram_BinningMax_C<i>` | number or blank | Range the channel's bins cover: its extrema, or its robust limits (§1.4). |
+| `Histogram_UnderflowCount_C<i>`, `Histogram_UnderflowSum_C<i>`, `Histogram_UnderflowSumOfSquares_C<i>` | integer, number, number | Pixels below `Histogram_BinningMin_C<i>`: their count, the sum of their values and of their squares (float64). Always written; `0`, `0.0`, `0.0` with the min-max range and for exact histograms. |
+| `Histogram_OverflowCount_C<i>`, `Histogram_OverflowSum_C<i>`, `Histogram_OverflowSumOfSquares_C<i>` | integer, number, number | The same for the pixels above `Histogram_BinningMax_C<i>`. |
 | `Histogram_Count_C<i>_00000` … `Histogram_Count_C<i>_<bin_count − 1>` | integer | Pixel count per bin, the bin number written with five digits. |
 
 A 16-bit image with exact histograms has 65,536 count columns per channel, so the table is
 very wide; read it with `read_plane_histograms`, not a spreadsheet program.
+
+The reader checks every channel: the counts add up to `Histogram_ValidPixelCount_C<i>`, an
+empty tail has zero sums, the extrema enclose the binning limits, and a binning limit differs
+from its extremum exactly when its tail is not empty.
 
 The biological-repeat pairing, its confirmation and the controls are not part of this file;
 they are in the preprocessing brick's `experiment_design.csv` (follow-up P3).
@@ -548,7 +660,9 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Zero or non-finite scale (fluorescence only; `rgb` adds `1e-20`, §3.3) | `ValueError` | Existing message |
 | Percentiles outside `0 ≤ low < high ≤ 100`; unknown `pooling` or `image_type` | `ValueError` | Existing message for percentiles; the allowed values otherwise |
 | Statistics file with unexpected columns, schema version or inconsistent counts | `CsvFormatError` | Existing messages |
-| Statistics file of schema version 1 or 2 (one row per channel) | `CsvFormatError` | "This plane_histograms.csv was written with schema version {version}, one row per channel. Run the preprocessing brick again on this experiment: it rewrites the table with the channels in columns (schema version 3)." |
+| Statistics file of schema version 1 or 2 (one row per channel) | `CsvFormatError` | "This plane_histograms.csv was written with schema version {version}, one row per channel. Run the preprocessing brick again on this experiment: it rewrites the table with the channels in columns (schema version 4)." |
+| Statistics file of schema version 3 (N56) | `CsvFormatError` | "This plane_histograms.csv was written with schema version 3, without the underflow and overflow columns. Run the preprocessing brick again on this experiment: it rewrites the table with these columns (schema version 4)." |
+| `HistogramSettings` with an unknown range, invalid quantiles or `min_central_bins` below 1 | `ValueError` | Names the value and the allowed ones |
 | Rows or images with different numbers of channels (N43) | `CsvFormatError` (table), `ValueError` (pixels) | Names the images and their channel counts, and says that every image of an experiment must have the same channels |
 | `from_columns` with a missing or unreadable column, or a channel without both its offset and scale | `ValueError` | Names the column |
 
@@ -564,6 +678,7 @@ Returned as `Issue` objects; processing continues and the calling brick reports 
 | `planes_without_finite_pixels` | Planes without finite pixels excluded from a group that still has others |
 | `patches_discarded` | Patches without spread or finite pixels, listed in one warning with a suggested scope |
 | The four codes of §7.2 | Intensity checks |
+| `narrow_histogram_range` | A channel's central range covers fewer than `min_central_bins` bins in some planes (§1.4); reported by the preprocessing brick only |
 
 ---
 

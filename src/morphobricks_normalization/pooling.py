@@ -16,6 +16,13 @@ Definitions
     mad        Median absolute deviation from the median, unscaled.
     min, max    Exact: taken from the planes' stored extrema.
 
+Tails (contract §1.4)
+    Pixels outside a robust histogram range are kept as underflow and overflow
+    counts and sums. For percentiles, the median and the MAD each tail stands
+    as one (mean, count) pair among the bins; the mean and standard deviation
+    use the tails' exact sums instead. Histograms without tails give the
+    numbers they gave before, bit for bit.
+
 Accuracy
     Every pixel is within ``max_representative_error`` of the value standing in
     for it, so no percentile (including the median) can be off by more than that
@@ -88,6 +95,9 @@ class PooledHistogram:
         self, histograms: Iterable[PlaneHistogram | PlaneRecord], channel: int | None = None
     ):
         values, weights = [], []
+        bin_values, bin_weights = [], []
+        # (count, sum, sum of squares) of every non-empty tail.
+        self.tails: list[tuple[float, float, float]] = []
         self.n_planes = 0
         self.n_excluded_planes = 0
         self.minimum = np.inf
@@ -102,6 +112,13 @@ class PooledHistogram:
             occupied = hist.counts > 0
             values.append(hist.representatives[occupied])
             weights.append(hist.counts[occupied])
+            bin_values.append(values[-1])
+            bin_weights.append(weights[-1])
+            for tail in (hist.underflow, hist.overflow):
+                if not tail.is_empty:
+                    values.append(np.array([tail.mean]))
+                    weights.append(np.array([tail.count], dtype=np.int64))
+                    self.tails.append((tail.count, tail.sum, tail.sum_of_squares))
             self.minimum = min(self.minimum, float(hist.pixel_min))
             self.maximum = max(self.maximum, float(hist.pixel_max))
             self.max_representative_error = max(
@@ -119,15 +136,30 @@ class PooledHistogram:
         self.counts = np.bincount(inverse, weights=np.concatenate(weights)).astype(np.int64)
         self.pixel_count = int(self.counts.sum())
         self._cumulative = np.cumsum(self.counts)
+        if self.tails:
+            # The bins alone, for the mean and standard deviation (the tails use their sums).
+            merged, inverse = np.unique(np.concatenate(bin_values), return_inverse=True)
+            self.bin_values = merged
+            self.bin_counts = np.bincount(
+                inverse, weights=np.concatenate(bin_weights), minlength=merged.size
+            ).astype(np.int64)
+        else:
+            self.bin_values, self.bin_counts = self.values, self.counts
 
     @property
     def mean(self) -> float:
-        """Count-weighted mean."""
+        """Count-weighted mean; pixels outside the bins count with their exact values."""
+        if self.tails:
+            return _mean_with_tails(self.bin_values, self.bin_counts, self.tails, self.pixel_count)
         return float(np.dot(self.counts, self.values) / self.pixel_count)
 
     @property
     def std(self) -> float:
-        """Count-weighted population standard deviation."""
+        """Count-weighted population standard deviation; tails count with their exact sums."""
+        if self.tails:
+            return _std_with_tails(
+                self.bin_values, self.bin_counts, self.tails, self.pixel_count, self.mean
+            )
         deviations = self.values - self.mean
         return float(np.sqrt(np.dot(self.counts, deviations * deviations) / self.pixel_count))
 
@@ -218,15 +250,40 @@ class WeightedHistogram:
         self.weights = np.bincount(inverse, weights=scaled)
         self._cumulative = np.cumsum(self.weights)
         self.total_weight = float(self._cumulative[-1])
+        # Tails scaled by their part's weight, for the mean and standard deviation.
+        self.tails = [
+            (count * float(w), total * float(w), squares * float(w))
+            for part, w in zip(parts, weights, strict=True)
+            for count, total, squares in part.tails
+        ]
+        if self.tails:
+            merged, inverse = np.unique(
+                np.concatenate([part.bin_values for part in parts]), return_inverse=True
+            )
+            scaled = np.concatenate(
+                [part.bin_counts * float(w) for part, w in zip(parts, weights, strict=True)]
+            )
+            self.bin_values = merged
+            self.bin_weights = np.bincount(inverse, weights=scaled, minlength=merged.size)
+        else:
+            self.bin_values, self.bin_weights = self.values, self.weights
 
     @property
     def mean(self) -> float:
-        """Weighted mean."""
+        """Weighted mean; pixels outside the bins count with their exact values."""
+        if self.tails:
+            return _mean_with_tails(
+                self.bin_values, self.bin_weights, self.tails, self.total_weight
+            )
         return float(np.dot(self.weights, self.values) / self.total_weight)
 
     @property
     def std(self) -> float:
-        """Weighted population standard deviation."""
+        """Weighted population standard deviation; tails count with their exact sums."""
+        if self.tails:
+            return _std_with_tails(
+                self.bin_values, self.bin_weights, self.tails, self.total_weight, self.mean
+            )
         deviations = self.values - self.mean
         return float(np.sqrt(np.dot(self.weights, deviations * deviations) / self.total_weight))
 
@@ -275,6 +332,29 @@ def pooled_statistics(
     ``channel`` selects the channel of records, as for :class:`PooledHistogram`.
     """
     return PooledHistogram(histograms, channel).summary(percentiles)
+
+
+def _mean_with_tails(
+    values: np.ndarray, weights: np.ndarray, tails: list[tuple[float, float, float]], total: float
+) -> float:
+    return float((np.dot(weights, values) + math.fsum(s for _, s, _ in tails)) / total)
+
+
+def _std_with_tails(
+    values: np.ndarray,
+    weights: np.ndarray,
+    tails: list[tuple[float, float, float]],
+    total: float,
+    mean: float,
+) -> float:
+    deviations = values - mean
+    squares = float(np.dot(weights, deviations * deviations))
+    for count, s, s2 in tails:
+        # Each tail adds its spread around its own mean and its mean's distance
+        # from the overall mean; the spread never goes negative through rounding.
+        tail_mean = s / count
+        squares += max(s2 - s * tail_mean, 0.0) + count * (tail_mean - mean) ** 2
+    return float(np.sqrt(squares / total))
 
 
 def _channel_histogram(record: PlaneRecord, channel: int | None) -> PlaneHistogram:

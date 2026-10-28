@@ -23,6 +23,9 @@ REPEAT_INTENSITY_SHIFT = "repeat_intensity_shift"
 SATURATED_IMAGE = "saturated_image"
 NO_INTENSITY_SPREAD = "no_intensity_spread"
 
+# Histogram range check of contract §1.4, Milestone 5; reported by the preprocessing brick.
+NARROW_HISTOGRAM_RANGE = "narrow_histogram_range"
+
 
 @dataclass(frozen=True)
 class Issue:

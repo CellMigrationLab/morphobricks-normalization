@@ -7,8 +7,10 @@ columns (see ``docs/contract.md``), then ``dtype``, ``bit_depth``,
 Then, for each channel ``i`` in turn, its columns named as in CellProfiler
 (N42): ``Intensity_MinIntensity_C<i>``, ``Intensity_MaxIntensity_C<i>``,
 ``Histogram_ValidPixelCount_C<i>``, ``Histogram_BinningMin_C<i>``,
-``Histogram_BinningMax_C<i>`` and one column per bin
-(``Histogram_Count_C<i>_00000`` ...).
+``Histogram_BinningMax_C<i>``, the underflow and overflow columns of schema
+version 4 (``Histogram_UnderflowCount_C<i>``, ``Histogram_UnderflowSum_C<i>``,
+``Histogram_UnderflowSumOfSquares_C<i>`` and the same three for ``Overflow``,
+contract §1.4) and one column per bin (``Histogram_Count_C<i>_00000`` ...).
 
 Labels are always read back as text, so folder names such as ``NA``, ``001``
 or ``TRUE`` keep their exact spelling. Float values are written at full
@@ -26,12 +28,13 @@ from pathlib import Path
 import numpy as np
 
 from .dtypes import bit_depth, check_supported, is_integer
-from .histogram import PlaneHistogram
+from .histogram import EMPTY_TAIL, HistogramTail, PlaneHistogram
 from .records import PlaneRecord, different_channel_counts
 
-# Version 3: one row per XYC plane, the channels in columns (N41). Versions 1
-# and 2 had one row per plane and channel, with a ``c`` column.
-SCHEMA_VERSION = "3"
+# Version 4: the underflow and overflow columns of the robust histogram range
+# (N56). Version 3 put one row per XYC plane, the channels in columns (N41);
+# versions 1 and 2 had one row per plane and channel, with a ``c`` column.
+SCHEMA_VERSION = "4"
 OUTPUT_FILENAME = "plane_histograms.csv"
 
 METADATA_COLUMNS = (
@@ -59,8 +62,16 @@ CHANNEL_FEATURES = (
     "Histogram_ValidPixelCount",
     "Histogram_BinningMin",
     "Histogram_BinningMax",
+    "Histogram_UnderflowCount",
+    "Histogram_UnderflowSum",
+    "Histogram_UnderflowSumOfSquares",
+    "Histogram_OverflowCount",
+    "Histogram_OverflowSum",
+    "Histogram_OverflowSumOfSquares",
 )
 BIN_COLUMN_PREFIX = "Histogram_Count"
+# The per-channel features of schema version 3, before the tails, to recognise its tables.
+_VERSION_3_FEATURES = CHANNEL_FEATURES[:5]
 
 # Rows of an earlier version are recognised by these columns of their header.
 _EARLIER_LAYOUT = ("c", "schema_version")
@@ -150,8 +161,9 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
     ------
     CsvFormatError
         If the header, schema version or a row does not match the format; if the
-        table was written with schema version 1 or 2 (one row per channel); or if
-        its rows have different numbers of channels.
+        table was written with an earlier schema version (1 and 2 had one row per
+        channel, 3 no underflow and overflow columns); or if its rows have
+        different numbers of channels.
     """
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.reader(fh)
@@ -168,7 +180,12 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
                     version = first[header.index("schema_version")] or version
                 raise CsvFormatError(_earlier_version_message(path, version))
             raise CsvFormatError(f"{path} does not have the plane-histogram columns.")
-        n_channels, n_bins = _channel_layout(header[n_meta:], path)
+        if _channel_layout(header[n_meta:], _VERSION_3_FEATURES) is not None:
+            raise CsvFormatError(_earlier_version_message(path, "3"))
+        layout = _channel_layout(header[n_meta:], CHANNEL_FEATURES)
+        if layout is None:
+            raise CsvFormatError(f"{path} has unexpected per-channel column names.")
+        n_channels, n_bins = layout
         records, other_counts = [], []
         for line, row in enumerate(reader, 2):
             record = _record(row, n_channels, n_bins, path, line)
@@ -182,16 +199,23 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
         return records
 
 
-def _channel_layout(columns: list[str], path) -> tuple[int, int]:
+def _channel_layout(columns: list[str], features: tuple[str, ...]) -> tuple[int, int] | None:
     # The bins of channel 0 give the bin count; the header must then hold the
-    # same columns for a whole number of channels, in order.
+    # same columns for a whole number of channels, in order. None otherwise.
     prefix = f"{BIN_COLUMN_PREFIX}_C0_"
     n_bins = sum(name.startswith(prefix) for name in columns)
-    width = len(CHANNEL_FEATURES) + n_bins
+    width = len(features) + n_bins
     n_channels = len(columns) // width
-    expected = [name for c in range(n_channels) for name in channel_columns(c, n_bins)]
+    expected = [
+        name
+        for c in range(n_channels)
+        for name in (
+            *(channel_column(feature, c) for feature in features),
+            *(bin_column(c, i) for i in range(n_bins)),
+        )
+    ]
     if n_bins == 0 or n_channels == 0 or columns != expected:
-        raise CsvFormatError(f"{path} has unexpected per-channel column names.")
+        return None
     return n_channels, n_bins
 
 
@@ -222,6 +246,8 @@ def _row(record: PlaneRecord) -> list[str]:
                 str(hist.valid_pixel_count),
                 _text(hist.binning_min),
                 _text(hist.binning_max),
+                *_tail_text(hist.underflow),
+                *_tail_text(hist.overflow),
                 *map(str, hist.counts.tolist()),
             )
         )
@@ -238,7 +264,7 @@ def _record(
         raise CsvFormatError(f"{path}, line {line}: expected {n_meta + n_channels * width} values.")
     meta = dict(zip(METADATA_COLUMNS, row[:n_meta], strict=True))
     if meta["schema_version"] != SCHEMA_VERSION:
-        if meta["schema_version"] in ("1", "2"):
+        if meta["schema_version"] in ("1", "2", "3"):
             raise CsvFormatError(_earlier_version_message(path, meta["schema_version"]))
         raise CsvFormatError(
             f"{path}, line {line}: schema version {meta['schema_version']!r} is not supported "
@@ -253,7 +279,8 @@ def _record(
         histograms = []
         for channel in range(n_channels):
             values = row[n_meta + channel * width : n_meta + (channel + 1) * width]
-            pixel_min, pixel_max, valid, lo, hi = values[: len(CHANNEL_FEATURES)]
+            pixel_min, pixel_max, valid, lo, hi = values[:5]
+            underflow, overflow = _tail(values[5:8]), _tail(values[8:11])
             histogram = PlaneHistogram(
                 dtype=dtype,
                 bin_count=int(meta["bin_count"]),
@@ -262,12 +289,16 @@ def _record(
                 counts=np.array(values[len(CHANNEL_FEATURES) :], dtype=np.int64),
                 total_pixel_count=int(meta["total_pixel_count"]),
                 valid_pixel_count=int(valid),
+                pixel_min=_value(pixel_min, number),
+                pixel_max=_value(pixel_max, number),
+                underflow=underflow,
+                overflow=overflow,
             )
-            extrema = (_value(pixel_min, number), _value(pixel_max, number))
+            in_bins = int(histogram.counts.sum())
             if (
                 histogram.bin_count != n_bins
-                or int(histogram.counts.sum()) != histogram.valid_pixel_count
-                or extrema != (histogram.pixel_min, histogram.pixel_max)
+                or in_bins + underflow.count + overflow.count != histogram.valid_pixel_count
+                or not _consistent_range(histogram)
             ):
                 raise CsvFormatError(
                     f"{path}, line {line}: the bin counts of channel {channel} are inconsistent."
@@ -289,8 +320,48 @@ def _record(
         raise CsvFormatError(f"{path}, line {line}: {error}") from error
 
 
+def _tail_text(tail: HistogramTail) -> tuple[str, str, str]:
+    return str(tail.count), repr(float(tail.sum)), repr(float(tail.sum_of_squares))
+
+
+def _tail(texts: list[str]) -> HistogramTail:
+    count, total, squares = int(texts[0]), float(texts[1]), float(texts[2])
+    if count < 0:
+        raise ValueError(f"a pixel count cannot be negative; got {count}.")
+    if count == 0:
+        if total != 0 or squares != 0:
+            raise ValueError("an empty underflow or overflow must have zero sums.")
+        return EMPTY_TAIL
+    return HistogramTail(count, total, squares)
+
+
+def _consistent_range(histogram: PlaneHistogram) -> bool:
+    """Check that a binning limit differs from the extremum only where a tail lies beyond it."""
+    if histogram.binning_min is None or histogram.pixel_min is None:
+        return (
+            histogram.binning_min is None
+            and histogram.binning_max is None
+            and histogram.pixel_min is None
+            and histogram.pixel_max is None
+            and not histogram.has_tails
+        )
+    low = (histogram.pixel_min == histogram.binning_min) == histogram.underflow.is_empty
+    high = (histogram.pixel_max == histogram.binning_max) == histogram.overflow.is_empty
+    ordered = (
+        histogram.pixel_min <= histogram.binning_min <= histogram.binning_max <= histogram.pixel_max
+    )
+    return low and high and ordered
+
+
 def _earlier_version_message(path, version: str) -> str:
-    # The message of contract §9.1, after the file's path.
+    # The messages of contract §9.1, after the file's path.
+    if version == "3":
+        return (
+            f"{path}: This plane_histograms.csv was written with schema version 3, without the "
+            "underflow and overflow columns. Run the preprocessing brick again on this "
+            "experiment: it rewrites the table with these columns (schema version "
+            f"{SCHEMA_VERSION})."
+        )
     return (
         f"{path}: This plane_histograms.csv was written with schema version {version}, one row "
         "per channel. Run the preprocessing brick again on this experiment: it rewrites the "

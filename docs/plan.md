@@ -5,7 +5,8 @@
 **Status:** design brief, simplified on 26 October 2026 (decisions N29–N40, §12), with
 channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
-(N4–N28) is withdrawn where §12 says so. What is still to be measured is listed in §13.
+(N4–N28) is withdrawn where §12 says so. A robust histogram range was added on 28 October
+2026 (N54–N60). What is still to be measured is listed in §13.
 **Scope:** one importable library with the normalization methods for fluorescence and RGB
 microscopy images, the statistics they need, the intensity checks run on those statistics,
 and the file formats that carry statistics between bricks.
@@ -162,12 +163,13 @@ The preprocessing notebook shows the warnings and draws the plots (follow-up P5)
 
 ## 7. Statistics
 
-`plane_histograms.csv`, schema version 3 (N41): one row per XYC plane, that is per image, Z
-and T, with every channel's exact extrema, pixel counts and binned counts side by side in
-per-channel columns named as in CellProfiler (`Histogram_Count_C0_00000`, …, N42). The
-histograms themselves are those of schema version 2; only the layout changes. It serves both
-image types (an RGB plane is one row with channels C0, C1, C2), every scope and the intensity
-checks. No other statistics file is written (N33).
+`plane_histograms.csv`, schema version 4 (N41, N56): one row per XYC plane, that is per
+image, Z and T, with every channel's exact extrema, pixel counts and binned counts side by
+side in per-channel columns named as in CellProfiler (`Histogram_Count_C0_00000`, …, N42).
+The histograms themselves are those of schema version 2; version 3 changed the layout and
+version 4 added underflow and overflow columns. It serves both image types (an RGB plane is
+one row with channels C0, C1, C2), every scope and the intensity checks. No other statistics
+file is written (N33).
 
 ### 7.1 Channels across columns (every MorphoBricks table)
 
@@ -187,6 +189,17 @@ columns, never in separate rows (N41):
 - Every image of an experiment has the same number of channels; a different count is an error
   (N43).
 - The feature-extraction bricks follow the same rule (`Intensity_C0`, `Intensity_C1`, …).
+
+### 7.2 Histogram range
+
+Histograms that are not exact (float planes, and integer planes with more values than bins)
+are binned in equal parts of the plane's minimum-to-maximum range by default (N54). One hot
+pixel can then squeeze every other pixel into a few bins (issue #12). The statistics brick may
+instead use a robust range (N55): the bins span the plane's 0.01 % and 99.99 % quantiles
+(adjustable), and the pixels outside are kept as underflow and overflow counts and sums
+(N56). A range check, computed with the histograms, reports planes whose central range (1st
+to 99.8th percentile) covers fewer than 100 bins (N57); the preprocessing brick shows it in
+its step 3.
 
 ## 8. Parameters as columns
 
@@ -241,6 +254,15 @@ their formula is implemented here.
   with a treatment effect, and matches a direct implementation of contract §7.2.*
 - **Release `v0.2.0`**, pinned by the other bricks. *Released (27 October 2026): Milestones
   2, 2b, 3 and 4.*
+- **Milestone 5 — Robust histogram range (issue #12):** the robust range, the underflow and
+  overflow columns (`plane_histograms.csv` schema version 4) and the range check (N54–N60).
+  *Done (28 October 2026): module `ranges` (`HistogramSettings`, `RangeCheck`,
+  `range_check_issues`); `histogram` takes `settings`, gains `HistogramTail`,
+  `histogram_with_range_check` and exact quantiles by radix selection; schema version 4 in
+  `csv_io` (version 3 refused); tails in `pooling`. Tested on the issue's reproduction, against
+  `np.quantile(method="inverted_cdf")` for every wide pixel type, whole and in blocks.
+  The preprocessing brick adds the setting and the warning (follow-up P6) and pins the merge
+  commit.*
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
   schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag
@@ -267,6 +289,14 @@ Use simulated data generated in the tests; real data only as an optional check.
   (CSBDeep is used only in the tests, as an optional check).
 - Each intensity check fires on simulated shifted, saturated and constant images and stays
   silent on balanced data; a difference between conditions alone never fires.
+- With the default min-max range, histograms, tables and parameters are those of Milestone 4
+  (the version-2 fixture still matches); exact 8- and 16-bit histograms are identical in both
+  ranges. On the issue's reproduction (one 10⁶ hot pixel in a 512 × 512 normal float32
+  plane) the min-max range keeps its result and the range check flags it, and the robust
+  range gives percentile parameters close to the clean plane's. Robust limits equal
+  `np.quantile(..., method="inverted_cdf")`; mean and standard deviation from the tails' sums
+  match NumPy; schema version 4 round-trips and version 3 is refused; planes read in blocks
+  give the histograms and checks of whole planes.
 
 ## 12. Decisions
 
@@ -395,6 +425,49 @@ Added with the project owner on 27 October 2026, for Milestone 4:
     per channel without parsing messages.
 47. **N53** The repeat-shift check also needs at least `min_images` images in the other
     repeats of the condition, like the outlier check.
+
+Added with the project owner on 28 October 2026, for Milestone 5 (issue #12):
+
+48. **N54** Default unchanged: bins span the plane's exact minimum to maximum, as before.
+49. **N55** Optional robust range, a per-run setting: `HistogramSettings(histogram_range=
+    "minmax" | "robust", robust_quantiles=(0.01, 99.99))`, quantiles in percent and
+    adjustable. It applies only to planes whose histograms are not exact (float types, and
+    integer types whose value range exceeds the bin count); exact 8- and 16-bit histograms
+    never change. A channel's bins then span the plane's quantiles at those percents of its
+    finite pixels (`Histogram_BinningMin/Max_C<i>`); `Intensity_Min/MaxIntensity_C<i>` stay
+    the exact extrema. *Chosen in implementation:* the quantiles are inverse-CDF order
+    statistics (NumPy `inverted_cdf`, the percentile rule of contract §1.2.3), so they are
+    pixel values, and pixels equal to a limit are inside the bins.
+50. **N56** Schema version 4: for every channel, always written (zero with the min-max range
+    and for exact histograms), `Histogram_UnderflowCount_C<i>`, `Histogram_UnderflowSum_C<i>`,
+    `Histogram_UnderflowSumOfSquares_C<i>`, `Histogram_OverflowCount_C<i>`,
+    `Histogram_OverflowSum_C<i>` and `Histogram_OverflowSumOfSquares_C<i>`, after
+    `Histogram_BinningMax_C<i>`. `Histogram_ValidPixelCount_C<i>` = bins + underflow +
+    overflow. Pooled mean and standard deviation use the sums; percentiles, median and MAD
+    represent each tail by its mean, and the representative-error bound covers the tails up
+    to the exact extrema, so `normalization_exact` is false whenever a tail is not empty.
+    Min-max parameters keep the exact extrema. The reader reads version 4 only; version 3 is
+    refused with the rerun message, naming version 3. Without tails, parameters are those of
+    the equivalent version-3 table.
+51. **N57** Detection with the min-max range, for planes whose histograms are not exact: per
+    plane and channel, the bins the central range (1st to 99.8th percentile) covers, the
+    pixels outside the robust quantile limits and the bins the central range would cover
+    with the robust range. The warning condition is a central range of fewer than 100 bins
+    (`min_central_bins`, a setting). Only the preprocessing brick reports it (its step 3);
+    `fit` gives no new warning and its zero-spread error is unchanged.
+52. **N58** Planes read in blocks get their robust limits from exact extra passes (radix
+    selection, 16 bits of the ordered pixel bits per pass), the same code as whole planes, so
+    the limits never depend on how a plane was read. Float32 and 32-bit integers need one
+    more read, 64-bit types three more, 8- and 16-bit types none. (Not a seeded sample, which
+    would make rows depend on the reading.)
+53. **N59** The range check is computed with the histogram, sharing its passes:
+    `histogram_with_range_check(blocks, dtype, bin_count, settings)` returns the histogram and
+    a `RangeCheck` (None for exact histograms). With the min-max range a float32 or 32-bit
+    plane is read no more often than for the histogram alone. `compute_block_histogram`
+    keeps its signature, with an added `settings` keyword.
+54. **N60** `range_check_issues` gives one `narrow_histogram_range` `Issue` per channel,
+    listing the affected planes in `items`, with `Issue.channel` set; the `RangeCheck`
+    objects keep the per-plane numbers for tables or plots.
 
 ## 13. Still to measure
 

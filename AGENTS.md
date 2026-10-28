@@ -6,7 +6,7 @@ Read it, and the documents below, before changing anything.
 
 | File | What it fixes |
 |---|---|
-| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N53 (§12) and what is still to be measured (§13) |
+| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N60 (§12) and what is still to be measured (§13) |
 | `docs/contract.md` | Rules other bricks rely on: methods and formulas, interface, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | `docs/followup_preprocessing.md`, `docs/followup_cellpatcher.md` | What the two calling bricks change once this brick is released |
 
@@ -27,12 +27,17 @@ Repository map (one module per job):
 src/morphobricks_normalization/
   dtypes.py         supported pixel types, default and allowed bin counts
   histogram.py      per-plane histogram (PlaneHistogram, compute_plane_histogram,
-                    compute_block_histogram for planes read in blocks), memory estimate
+                    compute_block_histogram for planes read in blocks), memory estimate;
+                    robust range with HistogramTail underflow/overflow and
+                    histogram_with_range_check, quantiles by radix selection (Milestone 5)
+  ranges.py         HistogramSettings, RangeCheck, range_check_issues (Milestone 5)
   records.py        PlaneRecord (one plane_histograms.csv row: an XYC plane, one
                     histogram per channel), plane_id, group_records
-  csv_io.py         write/read plane_histograms.csv schema version 3, channels in
-                    CellProfiler-style columns (atomic write, labels always text)
-  pooling.py        PooledHistogram: pooled counts, never mean-of-means;
+  csv_io.py         write/read plane_histograms.csv schema version 4, channels in
+                    CellProfiler-style columns, underflow/overflow columns (atomic write,
+                    labels always text)
+  pooling.py        PooledHistogram: pooled counts, never mean-of-means, tails by
+                    their means for percentiles and by their sums for mean and std;
                     WeightedHistogram: histograms added with a weight each (Milestone 2);
                     linear_percentile: NumPy's linear interpolation (Milestone 3)
   normalization.py  NormalizationParameters (offset, scale) and the four linear methods
@@ -57,7 +62,9 @@ into columns (contract §1.3). Milestone 2 added `settings`, `scopes`, `fitting`
 and `WeightedHistogram`; Milestone 2b put the channels across columns (`plane_histograms.csv`
 schema version 3, per-channel parameter columns); Milestone 3 added `rgb` and
 `linear_percentile` for RGB images; Milestone 4 added `summaries` and `checks`, the
-intensity checks, and `Issue.channel`.
+intensity checks, and `Issue.channel`; Milestone 5 added `ranges`, the robust
+histogram range with underflow and overflow (`plane_histograms.csv` schema version 4) and the
+range check.
 
 ## 2. Rules of the repository
 
@@ -90,7 +97,7 @@ intensity checks, and `Issue.channel`.
 ## 3. How we work
 
 1. **Read first:** the plan, the contract and the modules you touch.
-2. **Ask before deciding.** Decisions N1–N53 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
+2. **Ask before deciding.** Decisions N1–N60 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
 3. **Milestone 1 moves code unchanged.** The histogram, bin-count, record, CSV, pooling

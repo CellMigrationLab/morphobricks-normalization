@@ -33,8 +33,10 @@ today (N29).
 - Raise the pins to normalization `v0.2.0` and the preprocessing release with P3–P4.
 - Replace CellPatcher's own parameter code with the brick's `fit`, `apply`, `to_columns` and
   `from_columns` for the `image` and `patch` scopes and the four fluorescence methods.
-- Read `plane_histograms.csv` schema version 3 (channels in columns, N41); a table of version
-  2 is refused with the brick's message asking to rerun the preprocessing brick.
+- Read `plane_histograms.csv` schema version 4 (channels in columns, N41; underflow and
+  overflow columns, N56) with the brick's reader; a table of version 2 or 3 is refused with
+  the brick's message asking to rerun the preprocessing brick. Pooling and fitting take the
+  underflow and overflow into account by themselves.
 - **Parameter columns (N41, N42).** `patches.csv` replaces the `;`-separated
   `normalization_offset` and `normalization_scale` with `Normalization_Offset_C<i>` and
   `Normalization_Scale_C<i>`, one pair per channel of the image, grouped by channel. A

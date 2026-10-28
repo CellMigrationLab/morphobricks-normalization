@@ -2,7 +2,8 @@
 
 > See also: [Normalization brick plan](plan.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
-**Status:** P1–P3 done; P3b, P4 and P5 planned (revised 27 October 2026). Decision numbers
+**Status:** P1–P3 done; P3b, P4 and P5 planned (revised 27 October 2026); P6 added on
+28 October 2026. Decision numbers
 refer to §12 of the [normalization plan](plan.md).
 **Repository:** [CellMigrationLab/morphobricks-preprocessing](https://github.com/CellMigrationLab/morphobricks-preprocessing)
 
@@ -16,7 +17,9 @@ confirm axes, optional OME-Zarr conversion, write `plane_histograms.csv`) and ga
   (P3);
 - `plane_histograms.csv` with the channels in columns, schema version 3 (P3b);
 - the image type, `fluorescence` or `rgb` (P4);
-- intensity checks and plots after the histograms (P5).
+- intensity checks and plots after the histograms (P5);
+- the histogram range setting and the narrow-range warning, `plane_histograms.csv` schema
+  version 4 (P6).
 
 Statistics, normalization and intensity-check code comes from `morphobricks_normalization`
 (N1, N2). P2 and P3 did not depend on the normalization brick; P3b needs its Milestone 2b,
@@ -155,6 +158,28 @@ normalization brick's `image_summaries` and `intensity_checks` (N38):
   - overlaid intensity distributions per biological repeat within each condition.
 - The command line prints the warnings and draws no plots.
 
+## P6 — Histogram range and narrow-range warning (step 3)
+
+Follows the normalization brick's Milestone 5 (N54–N60, its contract §1.4 and §6.2); pin
+its merge commit.
+
+- **Setting.** Step 3 offers the histogram range for histograms that are not exact:
+  **Minimum to maximum** (default) or **Robust** (bins between the 0.01 % and 99.99 %
+  quantiles, adjustable; the pixels outside counted as underflow and overflow). It is stored
+  with `HistogramSettings.to_dict()` in the manifest (a new optional key; manifest version
+  1). Exact 8- and 16-bit histograms are the same either way.
+- **Statistics.** Planes are binned with `histogram_with_range_check(blocks, dtype,
+  bin_count, settings=...)`, which returns the histogram and its `RangeCheck`; the memory
+  estimate passes `settings` and `range_check=True`. Step 3 writes schema version 4 with the
+  brick's writer.
+- **Warning.** After the histograms, `range_check_issues([(plane_id, c, check), ...])` gives
+  one `narrow_histogram_range` warning per channel whose central range (1st to 99.8th
+  percentile) covers fewer than 100 bins in some planes, naming the planes and saying how
+  many bins the robust range would give. Step 3 shows it with its suggestion to rerun with
+  the robust range; only this brick reports it (N57).
+- **Reruns.** A table of schema version 3, or one written with another histogram range, is
+  recomputed on the next run.
+
 ## Tests and acceptance
 
 - P1: done.
@@ -171,6 +196,10 @@ normalization brick's `image_summaries` and `intensity_checks` (N38):
   for images that are not three-channel integer images.
 - P5: the warnings match the normalization brick's checks on the same table; plots are drawn
   from the table without reading images; nothing is written.
+- P6: a float image with one hot pixel gives the narrow-range warning with the default
+  range, and none with the robust range; the robust range changes no 8- or 16-bit table;
+  planes read in blocks give the same table as planes read whole; the setting is recorded
+  and a change recomputes the table.
 
 ## Contract changes
 

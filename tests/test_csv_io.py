@@ -120,6 +120,12 @@ def test_header_follows_the_contract(tmp_path):
             f"Histogram_ValidPixelCount_C{c}",
             f"Histogram_BinningMin_C{c}",
             f"Histogram_BinningMax_C{c}",
+            f"Histogram_UnderflowCount_C{c}",
+            f"Histogram_UnderflowSum_C{c}",
+            f"Histogram_UnderflowSumOfSquares_C{c}",
+            f"Histogram_OverflowCount_C{c}",
+            f"Histogram_OverflowSum_C{c}",
+            f"Histogram_OverflowSumOfSquares_C{c}",
         ]
         expected += [f"Histogram_Count_C{c}_{i:05d}" for i in range(3)]
     assert per_channel == expected
@@ -133,10 +139,16 @@ def test_rows_hold_every_channel_side_by_side(tmp_path):
         (row,) = csv.DictReader(fh)
     assert row["plane_id"] == "control/bio_rep1/tech_rep1/img.tif::z=2,t=0"
     assert (row["dtype"], row["bit_depth"], row["channel_count"]) == ("uint16", "16", "2")
-    assert (row["total_pixel_count"], row["bin_count"], row["schema_version"]) == ("4", "8", "3")
+    assert (row["total_pixel_count"], row["bin_count"], row["schema_version"]) == ("4", "8", "4")
     assert (row["Intensity_MinIntensity_C0"], row["Intensity_MaxIntensity_C0"]) == ("3", "9")
     assert (row["Histogram_BinningMin_C1"], row["Histogram_BinningMax_C1"]) == ("0", "2")
     assert row["Histogram_ValidPixelCount_C1"] == "4"
+    # The min-max range leaves no pixel outside the bins (contract §1.4).
+    assert [
+        row[f"Histogram_{tail}{what}_C0"]
+        for tail in ("Underflow", "Overflow")
+        for what in ("Count", "Sum", "SumOfSquares")
+    ] == ["0", "0.0", "0.0"] * 2
     assert [row[bin_column(0, i)] for i in range(8)] == ["1", "0", "2", "0", "0", "0", "1", "0"]
     assert [row[bin_column(1, i)] for i in range(3)] == ["2", "1", "1"]
 
@@ -278,5 +290,5 @@ def test_tables_with_one_row_per_channel_are_refused(tmp_path, version):
     assert str(error.value) == (
         f"{path}: This plane_histograms.csv was written with schema version {version}, one row "
         "per channel. Run the preprocessing brick again on this experiment: it rewrites the "
-        "table with the channels in columns (schema version 3)."
+        "table with the channels in columns (schema version 4)."
     )

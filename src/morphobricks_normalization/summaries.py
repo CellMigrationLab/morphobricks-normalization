@@ -8,8 +8,9 @@ and high percentiles are inverse-CDF percentiles of the pooled histogram
 
 The saturated fraction counts the pixels equal to the pixel type's maximum. It
 is known exactly only for integer planes, and only when the maximum value has a
-bin of its own; a plane whose maximum stays below the type's maximum has no
-saturated pixel whatever its binning. Otherwise the fraction is blank (None).
+bin of its own (not the overflow of a robust range, contract §1.4); a plane
+whose maximum stays below the type's maximum has no saturated pixel whatever its
+binning. Otherwise the fraction is blank (None).
 
 :meth:`ImageSummary.to_row` gives the columns of contract §7.1, channels in
 CellProfiler-style columns (N41, N42), for the calling brick to show or write;
@@ -218,6 +219,9 @@ def _saturated_fraction(histograms, valid_pixels: int) -> float | None:
     for hist in histograms:
         if hist.is_empty or hist.pixel_max < top:
             continue
+        if not hist.overflow.is_empty:
+            # The maximum lies above a robust range, among other overflow values.
+            return None
         # The maximum lies in the last occupied bin; its count is the number of
         # saturated pixels only if the bin holds no other value.
         index = int(np.flatnonzero(hist.counts)[-1])

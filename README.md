@@ -129,6 +129,32 @@ for issue in intensity_checks(summaries, IntensityCheckSettings(outlier_limit=3.
 
 Milestones 2–4 are released as `v0.2.0` (27 October 2026); the other bricks pin that tag.
 
+Milestone 5 added a robust histogram range for histograms that are not exact (float planes,
+and integer planes with more values than bins), for issue #12 (decisions N54–N60):
+
+- By default nothing changes: bins span each plane's minimum to maximum.
+- `HistogramSettings(histogram_range="robust")` bins between the plane's 0.01 % and 99.99 %
+  quantiles (adjustable) and keeps the pixels outside as underflow and overflow counts and
+  sums, so one hot pixel no longer squeezes the other pixels into a few bins. Exact 8- and
+  16-bit histograms never change.
+- `plane_histograms.csv` schema version 4 adds `Histogram_UnderflowCount_C<i>`,
+  `Histogram_UnderflowSum_C<i>`, `Histogram_UnderflowSumOfSquares_C<i>` and the same for
+  `Overflow`; tables of version 3 are refused with a message asking to run the
+  preprocessing brick again.
+- `histogram_with_range_check` computes a plane's histogram together with a `RangeCheck`: how
+  many bins its central range (1st to 99.8th percentile) covers, and how many it would cover
+  with the robust range. `range_check_issues` turns the checks into one warning per channel
+  for planes below 100 bins, for the preprocessing brick to show.
+
+```python
+from morphobricks_normalization import HistogramSettings, histogram_with_range_check
+from morphobricks_normalization import range_check_issues
+
+settings = HistogramSettings(histogram_range="minmax")  # or "robust"
+histogram, check = histogram_with_range_check(lambda: (plane,), plane.dtype, settings=settings)
+warnings = range_check_issues([("img.tif::z=0,t=0", 0, check)])
+```
+
 ## Installation
 
 ```bash
@@ -146,7 +172,7 @@ python -m pytest
 
 | Document | Content |
 |---|---|
-| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N53 |
+| [docs/plan.md](docs/plan.md) | Goals, milestones and the owner's decisions N1–N60 |
 | [docs/contract.md](docs/contract.md) | Rules other bricks rely on: methods, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | [docs/followup_preprocessing.md](docs/followup_preprocessing.md) | Changes to morphobricks-preprocessing |
 | [docs/followup_cellpatcher.md](docs/followup_cellpatcher.md) | Changes to CellPatcher |

@@ -36,7 +36,12 @@ today (N29).
 - Read `plane_histograms.csv` schema version 4 (channels in columns, N41; underflow and
   overflow columns, N56) with the brick's reader; a table of version 2 or 3 is refused with
   the brick's message asking to rerun the preprocessing brick. Pooling and fitting take the
-  underflow and overflow into account by themselves.
+  underflow and overflow into account by themselves. Version 4 is read once a preprocessing
+  release writes it (step P6); until then CellPatcher reads version 3, the version of its
+  pinned preprocessing `v0.2.0`.
+- **Clipping.** CellPatcher's `normalization.clip` (its owner decision D68) stays in
+  CellPatcher: it is applied after the brick's `Parameters.apply` and before masking and
+  resizing, because the brick never clips (N19).
 - **Parameter columns (N41, N42).** `patches.csv` replaces the `;`-separated
   `normalization_offset` and `normalization_scale` with `Normalization_Offset_C<i>` and
   `Normalization_Scale_C<i>`, one pair per channel of the image, grouped by channel. A

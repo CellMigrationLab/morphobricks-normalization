@@ -127,7 +127,9 @@ for issue in intensity_checks(summaries, IntensityCheckSettings(outlier_limit=3.
     print(issue.code, issue.items, issue.channel, issue.message)
 ```
 
-Milestones 2–4 are released as `v0.2.0` (27 October 2026); the other bricks pin that tag.
+Milestones 2–4 are released as `v0.2.0` (27 October 2026) and Milestone 5 as `v0.3.1`
+(28 October 2026); the other bricks pin the latest tag. The tag `v0.3.0` holds the same
+code but reports version 0.2.0, as its `pyproject.toml` was not updated; use `v0.3.1`.
 
 Milestone 5 added a robust histogram range for histograms that are not exact (float planes,
 and integer planes with more values than bins), for issue #12 (decisions N54–N60):

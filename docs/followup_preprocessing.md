@@ -23,8 +23,8 @@ confirm axes, optional OME-Zarr conversion, write `plane_histograms.csv`) and ga
 
 Statistics, normalization and intensity-check code comes from `morphobricks_normalization`
 (N1, N2). P2 and P3 did not depend on the normalization brick; P3b needs its Milestone 2b,
-P4 its Milestone 3 and P5 its Milestone 4. This brick pins the brick's `v0.2.0` release
-(P3b pinned the Milestone 2b commit before it).
+P4 its Milestone 3, P5 its Milestone 4 and P6 its Milestone 5. This brick pins the brick's
+`v0.2.0` release (P3b pinned the Milestone 2b commit before it), and from P6 on its `v0.3.1`.
 
 ## P1 — Depend on the normalization brick (no behaviour change)
 
@@ -161,7 +161,7 @@ normalization brick's `image_summaries` and `intensity_checks` (N38):
 ## P6 — Histogram range and narrow-range warning (step 3)
 
 Follows the normalization brick's Milestone 5 (N54–N60, its contract §1.4 and §6.2); pin
-its merge commit.
+its release `v0.3.1`.
 
 - **Setting.** Step 3 offers the histogram range for histograms that are not exact:
   **Minimum to maximum** (default) or **Robust** (bins between the 0.01 % and 99.99 %

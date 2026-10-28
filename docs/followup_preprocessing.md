@@ -2,9 +2,9 @@
 
 > See also: [Normalization brick plan](plan.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
-**Status:** P1–P3 done; P3b, P4 and P5 planned (revised 27 October 2026); P6 added on
-28 October 2026. Decision numbers
-refer to §12 of the [normalization plan](plan.md).
+**Status:** done (28 October 2026). P1–P5 were released in preprocessing `v0.2.0` and P6
+in `v0.3.0` (pinning this brick's `v0.3.1`). The CellPatcher follow-up comes next. Decision
+numbers refer to §12 of the [normalization plan](plan.md).
 **Repository:** [CellMigrationLab/morphobricks-preprocessing](https://github.com/CellMigrationLab/morphobricks-preprocessing)
 
 ## Goal

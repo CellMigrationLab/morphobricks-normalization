@@ -261,8 +261,11 @@ their formula is implemented here.
   `histogram_with_range_check` and exact quantiles by radix selection; schema version 4 in
   `csv_io` (version 3 refused); tails in `pooling`. Tested on the issue's reproduction, against
   `np.quantile(method="inverted_cdf")` for every wide pixel type, whole and in blocks.
-  The preprocessing brick adds the setting and the warning (follow-up P6) and pins the merge
-  commit.*
+  The preprocessing brick adds the setting and the warning (follow-up P6).*
+- **Release `v0.3.1`**, pinned by the other bricks. *Released (28 October 2026): Milestone 5.
+  The tag `v0.3.0` points at the same code but its package reports version 0.2.0, because
+  `pyproject.toml` was not updated before tagging; `v0.3.1` corrects the version and nothing
+  else.*
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
   schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag

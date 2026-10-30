@@ -266,6 +266,9 @@ their formula is implemented here.
   The tag `v0.3.0` points at the same code but its package reports version 0.2.0, because
   `pyproject.toml` was not updated before tagging; `v0.3.1` corrects the version and nothing
   else.*
+- **Release `v0.3.2`** (30 October 2026): the statistics reader checks the stored `plane_id`,
+  `image_file` and `bit_depth` of each row against its other columns (#18, from the data-flow
+  audit, preprocessing #39). Pinned by preprocessing from its `v0.3.2`.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
   schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag

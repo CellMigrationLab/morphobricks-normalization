@@ -160,10 +160,11 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
     Raises
     ------
     CsvFormatError
-        If the header, schema version or a row does not match the format; if the
-        table was written with an earlier schema version (1 and 2 had one row per
-        channel, 3 no underflow and overflow columns); or if its rows have
-        different numbers of channels.
+        If the header, schema version or a row does not match the format, including
+        a row whose ``plane_id``, ``image_file`` or ``bit_depth`` differs from what its
+        path, coordinates and pixel type give; if the table was written with an
+        earlier schema version (1 and 2 had one row per channel, 3 no underflow and
+        overflow columns); or if its rows have different numbers of channels.
     """
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.reader(fh)
@@ -304,7 +305,7 @@ def _record(
                     f"{path}, line {line}: the bin counts of channel {channel} are inconsistent."
                 )
             histograms.append(histogram)
-        return PlaneRecord(
+        record = PlaneRecord(
             source_relative_path=meta["source_relative_path"],
             condition=meta["condition"],
             biological_repeat=meta["biological_repeat"],
@@ -314,6 +315,20 @@ def _record(
             t=int(meta["t"]),
             position_id=meta["position_id"] or None,
         )
+        # These columns are written from the others, never read into the record, so a
+        # row whose stored values disagree would otherwise pass with another identity.
+        for column, implied in (
+            ("plane_id", record.plane_id),
+            ("image_file", record.image_file),
+            ("bit_depth", str(bit_depth(dtype))),
+        ):
+            if meta[column] != implied:
+                raise CsvFormatError(
+                    f"{path}, line {line}: its {column} is {meta[column]!r}, but its other "
+                    f"columns give {implied!r}. The table was changed after it was written; "
+                    "run the preprocessing brick again on this experiment to rewrite it."
+                )
+        return record
     except CsvFormatError:
         raise
     except ValueError as error:

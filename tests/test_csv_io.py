@@ -292,3 +292,25 @@ def test_tables_with_one_row_per_channel_are_refused(tmp_path, version):
         "per channel. Run the preprocessing brick again on this experiment: it rewrites the "
         "table with the channels in columns (schema version 4)."
     )
+
+
+@pytest.mark.parametrize(
+    "column, value, implied",
+    [
+        (
+            "plane_id",
+            "control/bio_rep1/tech_rep1/other.tif::z=0,t=0",
+            "control/bio_rep1/tech_rep1/img.tif::z=0,t=0",
+        ),
+        ("plane_id", "control/bio_rep1/tech_rep1/img.tif::z=1,t=0", None),
+        ("image_file", "other.tif", "img.tif"),
+        ("bit_depth", "8", "16"),
+    ],
+)
+def test_derived_plane_columns_must_match_the_row(tmp_path, column, value, implied):
+    # plane_id, image_file and bit_depth follow from source_relative_path, z, t and dtype;
+    # a row that disagrees is refused, not silently recomputed (preprocessing#39).
+    with pytest.raises(CsvFormatError, match=f"line 2: its {column} is {value!r}") as error:
+        read_plane_histograms(table_with(tmp_path, column, value))
+    if implied is not None:
+        assert repr(implied) in str(error.value)

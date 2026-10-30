@@ -660,6 +660,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Zero or non-finite scale (fluorescence only; `rgb` adds `1e-20`, §3.3) | `ValueError` | Existing message |
 | Percentiles outside `0 ≤ low < high ≤ 100`; unknown `pooling` or `image_type` | `ValueError` | Existing message for percentiles; the allowed values otherwise |
 | Statistics file with unexpected columns, schema version or inconsistent counts | `CsvFormatError` | Existing messages |
+| Statistics file row whose `plane_id`, `image_file` or `bit_depth` differs from what its `source_relative_path`, `z`, `t` and `dtype` give | `CsvFormatError` | Names the file, line, column, stored value and implied value, and asks to run the preprocessing brick again |
 | Statistics file of schema version 1 or 2 (one row per channel) | `CsvFormatError` | "This plane_histograms.csv was written with schema version {version}, one row per channel. Run the preprocessing brick again on this experiment: it rewrites the table with the channels in columns (schema version 4)." |
 | Statistics file of schema version 3 (N56) | `CsvFormatError` | "This plane_histograms.csv was written with schema version 3, without the underflow and overflow columns. Run the preprocessing brick again on this experiment: it rewrites the table with these columns (schema version 4)." |
 | `HistogramSettings` with an unknown range, invalid quantiles or `min_central_bins` below 1 | `ValueError` | Names the value and the allowed ones |

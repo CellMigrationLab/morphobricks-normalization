@@ -22,6 +22,8 @@ IMAGE_INTENSITY_OUTLIER = "image_intensity_outlier"
 REPEAT_INTENSITY_SHIFT = "repeat_intensity_shift"
 SATURATED_IMAGE = "saturated_image"
 NO_INTENSITY_SPREAD = "no_intensity_spread"
+# Channels whose intensities could not be checked (issue #57); not among the four of §7.2.
+CHANNEL_WITHOUT_FINITE_PIXELS = "channel_without_finite_pixels"
 
 # Histogram range check of contract §1.4, Milestone 5; reported by the preprocessing brick.
 NARROW_HISTOGRAM_RANGE = "narrow_histogram_range"

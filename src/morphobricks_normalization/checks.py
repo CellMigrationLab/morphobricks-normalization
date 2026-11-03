@@ -34,6 +34,7 @@ import numpy as np
 
 from ._version import __version__
 from .issues import (
+    CHANNEL_WITHOUT_FINITE_PIXELS,
     IMAGE_INTENSITY_OUTLIER,
     NO_INTENSITY_SPREAD,
     REPEAT_INTENSITY_SHIFT,
@@ -62,6 +63,11 @@ _SATURATED_ACTION = (
     "Saturated pixels have lost their true intensity, so intensities in those regions are "
     "underestimated. Check the exposure, gain or laser power, and consider excluding the image "
     "or its saturated regions from intensity measurements."
+)
+_UNASSESSED_ACTION = (
+    "Check the image: this channel is empty or holds only NaN or infinite values, so it was not "
+    "checked and cannot be normalized from its own pixels. Exclude the image, or fix the channel "
+    "in the source data and run the preprocessing brick again."
 )
 _SPREAD_ACTION = (
     "Check whether the channel is empty or the image is blank. Exclude the image, or normalize "
@@ -177,6 +183,43 @@ def intensity_checks(
         *_repeat_shifts(summaries, settings),
         *_saturated_images(summaries, settings),
         *_no_spread(summaries),
+    ]
+
+
+def unchecked_channels(summaries: Iterable[ImageSummary]) -> list[Issue]:
+    """Return a ``channel_without_finite_pixels`` warning per image channel that was not checked.
+
+    A channel without finite pixels (all NaN or infinite) has blank summaries,
+    so :func:`intensity_checks` cannot check it and stays silent about it; this
+    names it instead, so that silence is not read as a healthy channel (issue
+    #57). It is separate from :func:`intensity_checks`, whose four codes the
+    calling bricks list.
+
+    Parameters
+    ----------
+    summaries
+        One summary per image, from
+        :func:`~morphobricks_normalization.summaries.image_summaries`.
+
+    Returns
+    -------
+    list of Issue
+        One per image and channel without finite pixels, sorted by condition,
+        biological repeat, image and channel; ``Issue.channel`` is set.
+    """
+    return [
+        Issue(
+            WARNING,
+            CHANNEL_WITHOUT_FINITE_PIXELS,
+            f"Image {summary.source_relative_path}, channel C{channel}: it has no finite pixels "
+            "(every value is NaN or infinite), so its intensities were not checked.",
+            items=(summary.source_relative_path,),
+            action=_UNASSESSED_ACTION,
+            channel=channel,
+        )
+        for summary in sorted(summaries, key=_order)
+        for channel, median in enumerate(summary.median)
+        if median is None
     ]
 
 

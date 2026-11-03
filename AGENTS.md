@@ -49,7 +49,10 @@ src/morphobricks_normalization/
                     Normalization_Offset_C<i> and Normalization_Scale_C<i>)
   summaries.py      ImageSummary, image_summaries, summary_columns: one row per image,
                     Z and T pooled, from plane_histograms.csv rows (Milestone 4)
-  checks.py         IntensityCheckSettings, intensity_checks: the four intensity warnings
+  checks.py         IntensityCheckSettings, intensity_checks: the four intensity warnings;
+                    unchecked_channels: channels without finite pixels
+  parameter_checks.py  finite offsets, positive scales and whole channel indices that
+                    NormalizationParameters and Parameters check when made
   issues.py         Issue: warnings returned to the calling brick (channel for the checks)
 tests/              pytest with simulated planes (tests/simulation.py); tests/data holds
                     a schema-version-2 fixture written by the Milestone 2 code

@@ -269,6 +269,11 @@ their formula is implemented here.
 - **Release `v0.3.2`** (30 October 2026): the statistics reader checks the stored `plane_id`,
   `image_file` and `bit_depth` of each row against its other columns (#18, from the data-flow
   audit, preprocessing #39). Pinned by preprocessing from its `v0.3.2`.
+- **Release `v0.3.3`** (3 November 2026): the bucket-A integrity fixes (#61, #62, #63):
+  corrupt pixel blocks, histograms, tails, tables, plane coordinates, repeat groups,
+  parameters and parameter scopes are refused; pooled counts are exact above 2**53; a channel
+  without finite pixels is not marked exact and is reported by `unchecked_channels`. Valid
+  inputs give bit-identical outputs. Migration notes in the README.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
   schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag

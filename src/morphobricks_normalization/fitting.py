@@ -38,7 +38,7 @@ from .normalization import (
     z_score,
 )
 from .pooling import NoValidPixelsError, PooledHistogram, WeightedHistogram
-from .records import PlaneRecord, different_channel_counts
+from .records import PlaneRecord, different_channel_counts, duplicate_planes
 from .rgb import RGB_CHANNEL_COUNT, apply_rgb, check_rgb, rgb_percentile
 from .settings import NormalizationSettings, check_settings
 
@@ -351,8 +351,8 @@ def fit(
         If a channel of the group has no finite pixel.
     ValueError
         If a fluorescence channel's scale is zero or not finite, the rows have
-        different numbers of channels (N43), or RGB images do not have exactly
-        three channels of an integer type (contract §5).
+        different numbers of channels (N43) or repeat a ``plane_id``, or RGB images
+        do not have exactly three channels of an integer type (contract §5).
     """
     from_pixels = isinstance(statistics, np.ndarray)
     check_settings(settings, statistics_file=not from_pixels)
@@ -423,6 +423,7 @@ def _records(statistics: Iterable[PlaneRecord], group: str | None) -> list[Plane
             "fit expects the plane_histograms.csv rows of one group (PlaneRecord objects) "
             "or a pixel array."
         )
+    duplicate_planes(records, f"The rows of group '{group}'" if group else "The rows of this group")
     if len({record.channel_count for record in records}) > 1:
         subject = f"The images of group '{group}'" if group else "The images of this group"
         raise ValueError(

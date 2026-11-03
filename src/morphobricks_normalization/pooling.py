@@ -39,6 +39,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .histogram import PlaneHistogram
+from .integrity import INT64_MAX
 from .records import PlaneRecord
 
 DEFAULT_PERCENTILES = (0.1, 1.0, 5.0, 25.0, 50.0, 75.0, 95.0, 99.0, 99.9)
@@ -88,12 +89,18 @@ class PooledHistogram:
         If none of the planes has a finite pixel.
     ValueError
         If a record has more than one channel and ``channel`` is not given, or
-        has no channel ``channel``.
+        has no channel ``channel``; or if the planes hold more than ``2**63 - 1``
+        finite pixels together, more than the int64 counts can hold.
+
+    Notes
+    -----
+    The counts are added as integers, so ``pixel_count`` is exactly the sum of
+    the planes' valid pixel counts, however large.
     """
 
     def __init__(
         self, histograms: Iterable[PlaneHistogram | PlaneRecord], channel: int | None = None
-    ):
+    ) -> None:
         values, weights = [], []
         bin_values, bin_weights = [], []
         # (count, sum, sum of squares) of every non-empty tail.
@@ -129,20 +136,19 @@ class PooledHistogram:
                 "None of the selected planes contains finite pixel values, so no statistics "
                 "can be calculated for this group."
             )
+        if sum(int(w.sum()) for w in weights) > INT64_MAX:
+            raise ValueError(
+                "These planes hold more than 2**63 - 1 finite pixels together, more than the "
+                "pixel counts can hold. Pool fewer planes per group."
+            )
         # Planes binned the same way share representative values; merging them
         # keeps the list short (a few thousand entries for typical integer data).
-        merged, inverse = np.unique(np.concatenate(values), return_inverse=True)
-        self.values = merged
-        self.counts = np.bincount(inverse, weights=np.concatenate(weights)).astype(np.int64)
+        self.values, self.counts = _merge(values, weights)
         self.pixel_count = int(self.counts.sum())
         self._cumulative = np.cumsum(self.counts)
         if self.tails:
             # The bins alone, for the mean and standard deviation (the tails use their sums).
-            merged, inverse = np.unique(np.concatenate(bin_values), return_inverse=True)
-            self.bin_values = merged
-            self.bin_counts = np.bincount(
-                inverse, weights=np.concatenate(bin_weights), minlength=merged.size
-            ).astype(np.int64)
+            self.bin_values, self.bin_counts = _merge(bin_values, bin_weights)
         else:
             self.bin_values, self.bin_counts = self.values, self.counts
 
@@ -211,6 +217,15 @@ class PooledHistogram:
         )
 
 
+def _merge(values: list[np.ndarray], counts: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
+    """Merge (value, int64 count) pairs: sorted distinct values and their exact count sums."""
+    merged, inverse = np.unique(np.concatenate(values), return_inverse=True)
+    total = np.zeros(merged.size, dtype=np.int64)
+    # Integer addition, never float64 weights: counts above 2**53 stay exact.
+    np.add.at(total, inverse.ravel(), np.concatenate(counts))
+    return merged, total
+
+
 class WeightedHistogram:
     """Several pooled histograms added with a weight each (contract §4.3).
 
@@ -227,6 +242,12 @@ class WeightedHistogram:
         channel.
     weights
         One positive, finite weight per part.
+
+    Notes
+    -----
+    The weighted counts are float64, as the weights are fractions in general,
+    so they carry float64 rounding (exact for whole counts below ``2**53``);
+    ``pixel_count`` adds the parts' exact integer counts.
     """
 
     def __init__(self, parts: Sequence[PooledHistogram], weights: Sequence[float]):

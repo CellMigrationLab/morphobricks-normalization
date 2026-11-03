@@ -86,6 +86,27 @@ def test_every_pair_must_be_in_the_pairing():
         group_key(records[1], REPEAT, {("control", "r1"): "A"})
 
 
+def test_two_repeats_of_one_condition_in_one_repeat_group_are_refused():
+    # Issue #42: a repeat group holds one biological repeat per condition.
+    records = [record("control", "r1"), record("control", "r2"), record("treated", "r3")]
+    pairing = {("control", "r1"): "A", ("control", "r2"): "A", ("treated", "r3"): "A"}
+    with pytest.raises(ValueError, match=r"same group \(A: control/r1 and r2\)"):
+        scope_groups(records, REPEAT, pairing)
+    # Several rows of one repeat (other images, time points) are fine, so are unused entries.
+    records = [record("control", "r1"), record("control", "r1", image="b.tif", t=1)]
+    records.append(record("treated", "r3"))
+    unused = {("control", "r1"): "A", ("treated", "r3"): "A", ("drug", "r9"): "A"}
+    groups, issues = scope_groups(records, REPEAT, unused)
+    assert list(groups) == [("A",)] and len(groups[("A",)]) == 3 and issues == []
+
+
+@pytest.mark.parametrize("label", ["", None, 1])
+def test_repeat_group_labels_must_be_text(label):
+    records = [record("control", "r1"), record("treated", "r1")]
+    with pytest.raises(ValueError, match="no repeat group name: control/r1"):
+        scope_groups(records, REPEAT, {("control", "r1"): label, ("treated", "r1"): "A"})
+
+
 def test_a_repeat_missing_from_some_conditions_is_used_with_a_warning():
     design = {"control": ("r1", "r2"), "treated": ("r1",), "drug": ("r1",)}
     records = make_design_records(simulate_design(seed=3, design=design, n_channels=1))

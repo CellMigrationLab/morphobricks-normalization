@@ -125,6 +125,8 @@ def version_2_records(name):
             counts=np.array([row[f"histogram_bin_{i:05d}"] for i in range(bin_count)], np.int64),
             total_pixel_count=int(row["total_pixel_count"]),
             valid_pixel_count=int(row["valid_pixel_count"]),
+            pixel_min=number(row["pixel_min"]) if row["pixel_min"] else None,
+            pixel_max=number(row["pixel_max"]) if row["pixel_max"] else None,
         )
         labels = (row["condition"], row["biological_repeat"], row["technical_repeat"])
         key = (row["source_relative_path"], int(row["t"]), int(row["c"]))

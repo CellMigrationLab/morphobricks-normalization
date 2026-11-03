@@ -37,7 +37,7 @@ from .normalization import (
     robust_z_score,
     z_score,
 )
-from .parameter_checks import channel_indices, check_offset_scale
+from .parameter_checks import channel_indices, check_offset_scale, check_scope
 from .pooling import NoValidPixelsError, PooledHistogram, WeightedHistogram
 from .records import PlaneRecord, different_channel_counts, duplicate_planes
 from .rgb import RGB_CHANNEL_COUNT, apply_rgb, check_rgb, rgb_percentile
@@ -247,15 +247,17 @@ class Parameters:
             its own channel).
         settings
             The settings of the run that wrote the row; its method must be the
-            row's ``normalization_method``. The row's ``normalization_scope``
-            must be one of the scopes of contract §4.1.
+            row's ``normalization_method`` and its scope the row's
+            ``normalization_scope`` (one of the scopes of contract §4.1), so that
+            parameters fitted for one sampling population are never read as
+            another's (issue #37).
 
         Raises
         ------
         ValueError
             Naming the column that is missing or cannot be read, whose method
-            differs from the settings, or whose scope is unknown; also for a
-            channel with only one of its two columns.
+            or scope differs from the settings, or whose scope is unknown; also
+            for a channel with only one of its two columns.
         """
         missing = [name for name in COLUMNS if name not in columns]
         if missing:
@@ -308,7 +310,7 @@ class Parameters:
             _check_rgb_columns(channels, offset, scale)
         return cls(
             method=method,
-            scope=_scope(columns),
+            scope=check_scope(_text(columns["normalization_scope"]), settings.scope, SCOPES),
             group=_text(columns["normalization_group"]) or None,
             exact=_flag(columns, "normalization_exact"),
             offset=tuple(offset),
@@ -566,16 +568,6 @@ def _text(value: Any) -> str:
     if value is None or (isinstance(value, float) and math.isnan(value)):
         return ""
     return str(value)
-
-
-def _scope(columns: Mapping[str, Any]) -> str:
-    scope = _text(columns["normalization_scope"])
-    if scope not in SCOPES:
-        raise ValueError(
-            f"Column normalization_scope is {scope!r}, which is not a scope; the scopes are "
-            f"{', '.join(SCOPES)}. Read the parameters from a row written with normalization."
-        )
-    return scope
 
 
 def _number(columns: Mapping[str, Any], name: str) -> float:

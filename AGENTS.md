@@ -54,7 +54,8 @@ src/morphobricks_normalization/
   checks.py         IntensityCheckSettings, intensity_checks: the four intensity warnings;
                     unchecked_channels: channels without finite pixels
   parameter_checks.py  finite offsets, positive scales and whole channel indices that
-                    NormalizationParameters and Parameters check when made
+                    NormalizationParameters and Parameters check when made; the scope
+                    from_columns checks against the settings
   issues.py         Issue: warnings returned to the calling brick (channel for the checks)
 tests/              pytest with simulated planes (tests/simulation.py); tests/data holds
                     a schema-version-2 fixture written by the Milestone 2 code

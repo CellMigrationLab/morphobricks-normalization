@@ -205,7 +205,9 @@ def test_columns_round_trip_exactly(channels):
         pairs = [name for c in channels for name in (offset_column(c), scale_column(c))]
         assert list(columns) == [*COLUMNS, *pairs]  # grouped by channel
         assert all(isinstance(value, str) for value in columns.values())
-        assert Parameters.from_columns(columns, NormalizationSettings()) == parameters
+        # Read with the settings of the run that wrote them: same method and scope (#37).
+        settings = NormalizationSettings(scope="patch")
+        assert Parameters.from_columns(columns, settings) == parameters
     assert columns["normalization_exact"] == "false"
     assert columns[f"Normalization_Offset_C{channels[0]}"] == repr(float(offset[0]))
     assert columns[f"Normalization_Scale_C{channels[-1]}"] == repr(float(scale[-1]))

@@ -134,6 +134,9 @@ Milestones 2–4 are released as `v0.2.0` (27 October 2026) and Milestone 5 as `
 code but reports version 0.2.0, as its `pyproject.toml` was not updated; use `v0.3.1`.
 `v0.3.2` (30 October 2026) refuses a `plane_histograms.csv` row whose `plane_id`, `image_file`
 or `bit_depth` disagrees with its other columns (#18).
+`v0.3.3` (3 November 2026) refuses corrupt or ambiguous statistics and parameters instead
+of using them (issues #25, #26, #31, #36–#38, #42–#48); valid inputs give bit-identical
+results. See [Migrating to v0.3.3](#migrating-to-v033).
 
 Milestone 5 added a robust histogram range for histograms that are not exact (float planes,
 and integer planes with more values than bins), for issue #12 (decisions N54–N60):
@@ -160,6 +163,37 @@ settings = HistogramSettings(histogram_range="minmax")  # or "robust"
 histogram, check = histogram_with_range_check(lambda: (plane,), plane.dtype, settings=settings)
 warnings = range_check_issues([("img.tif::z=0,t=0", 0, check)])
 ```
+
+### Migrating to v0.3.3
+
+No valid statistics change: on the same inputs, histograms, `plane_histograms.csv` bytes,
+pooled statistics, fitted parameters and normalized pixels are bit-identical to `v0.3.2`.
+These inputs are now refused with `ValueError` (`CsvFormatError` when read from the file):
+
+- **Pixel blocks:** a non-empty block of another pixel type than the plane's. A block in the
+  other byte order (big-endian TIFF) is now converted by value; 16-bit ones were misread.
+- **Histograms:** negative or wrapping bin counts, `valid > total`, missing or disordered
+  intensity limits on a plane with valid pixels, NaN or impossible underflow/overflow sums.
+  `PlaneHistogram.counts` must be a one-dimensional int64 array.
+- **Tables:** a `plane_histograms.csv` with the header but no rows; two rows with the same
+  `plane_id` (also refused by `write_plane_histograms`, `scope_groups`, `fit` and
+  `image_summaries`).
+- **Plane coordinates:** `PlaneRecord` `z` and `t` must be whole numbers 0 or above (`None`
+  is still 0); booleans, floats (even `1.0`), text and negative values are refused.
+- **Repeat groups:** `repeat_groups` that put two biological repeats of one condition in one
+  repeat group, or give a present pair an empty or non-text label.
+- **Pooling:** a group of more than 2**63 − 1 finite pixels. Counts above 2**53 are now
+  exact.
+- **Parameters:** a non-finite offset or a scale that is not finite and above 0
+  (`Parameters`, `NormalizationParameters`); a channel index that is not a whole number 0 or
+  above (booleans, `1.0`, `"1"` are no longer truncated).
+- **`Parameters.from_columns`:** a `normalization_scope` that is not a scope, or that differs
+  from `settings.scope` (#37). Pass the settings of the run that wrote the row, scope included,
+  e.g. `NormalizationSettings(method=..., percentile=..., scope=run_scope)`.
+- **Summaries:** `ImageSummary.exact` (`Histogram_Exact_C<i>`) is `None`, not `True`, for a
+  channel without finite pixels. The new `unchecked_channels(summaries)` returns a
+  `channel_without_finite_pixels` warning for each such channel; `intensity_checks` still
+  returns its four codes only, so calling bricks add the new code themselves (#57).
 
 ## Installation
 

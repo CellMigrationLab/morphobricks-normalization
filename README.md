@@ -117,6 +117,8 @@ Milestone 4 added the intensity checks, computed from `plane_histograms.csv` row
   (`Issue.channel`).
 - The limits are an `IntensityCheckSettings` (default 3 robust deviations, 1 % saturated
   pixels, at least 5 images per comparison, provisional).
+- `unchecked_channels(summaries)` names each image channel without finite pixels
+  (`channel_without_finite_pixels`): its summaries are blank, so the checks cannot see it.
 
 ```python
 from morphobricks_normalization import IntensityCheckSettings, image_summaries, intensity_checks

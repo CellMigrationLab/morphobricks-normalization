@@ -342,7 +342,8 @@ issues = range_check_issues([(plane_id, channel, check), ...])  # §1.4
 | `fit` | One entry point for every method; dispatches on `settings.image_type` and `settings.method`. Statistics are pooled histograms per channel, or pixels; with `pooling="conditions"` the histograms carry their condition (§4.3). Never reads files and never walks folders. |
 | `apply` | Returns a new float32 array; the input is never modified. `channel_axis` gives the channel axis of `pixels`; it may be left out for one channel. No clipping (N19). Non-finite pixels stay non-finite. Computed in float64 for fluorescence (§3.2) and with CSBDeep's float32 arithmetic for `rgb` (§3.3). |
 | `select` | The parameters of some of the image's channels, e.g. of a single-channel patch; `channels` keeps their indices (N46). |
-| `to_columns` / `from_columns` | The columns of §8.1 as text in the format of §8.2; `from_columns(to_columns(p)) == p` exactly. `to_columns` writes the pairs of `channels` only; `from_columns` reads every channel whose pair is filled and skips channels whose pair is blank (N46). |
+| `to_columns` / `from_columns` | The columns of §8.1 as text in the format of §8.2; `from_columns(to_columns(p)) == p` exactly. `to_columns` writes the pairs of `channels` only; `from_columns` reads every channel whose pair is filled and skips channels whose pair is blank (N46). `from_columns` refuses a `normalization_scope` that is not one of §4.1's scopes; it does not compare the row's scope with the settings' (a calling brick may read rows of any scope with the run's method settings). |
+| Validity | `Parameters` and `NormalizationParameters` refuse, when made, an offset that is not finite and a scale that is not finite and above 0, naming the channel or method; `Parameters.channels` and `select` take whole numbers 0 or above only (Python or NumPy integers; booleans, fractions, whole floats and text are refused, never truncated). Non-finite pixels stay non-finite in `apply`. |
 | `to_dict` / `from_dict` | JSON-compatible dictionaries (§8.3) that round-trip exactly. |
 | `image_summaries`, `intensity_checks` | §7. |
 
@@ -590,11 +591,14 @@ library writes no file (N50). The columns are the shared columns `source_relativ
 | `Intensity_MedianIntensity_C<i>` | Median |
 | `Intensity_LowPercentile_C<i>`, `Intensity_HighPercentile_C<i>` | Default the 1st and 99.8th percentiles |
 | `Intensity_SaturatedFraction_C<i>` | Pixels equal to the type's maximum over valid pixels, for integer types whose histogram holds the maximum value in a bin of its own; blank otherwise (float images, or inexact top bins) |
-| `Histogram_Exact_C<i>` | Whether every pooled histogram of the channel was exact |
+| `Histogram_Exact_C<i>` | Whether every pooled histogram of the channel was exact; blank (`None`) for a channel without finite pixels, which has no statistics to be exact |
 
 The checks below call these values `median`, `p_low`, `p_high` and `saturated_fraction`, the
 attributes of `ImageSummary` that hold one value per channel. A channel without finite pixels
-has blank values and is not checked.
+has blank values and is not checked; `unchecked_channels(summaries)` returns one
+`channel_without_finite_pixels` warning per such image and channel (`Issue.channel` set), so
+that a calling brick can show that the channel was not checked rather than healthy. It is
+separate from `intensity_checks`, whose four codes are unchanged.
 
 ### 7.2 Checks
 
@@ -703,7 +707,8 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Statistics file of schema version 3 (N56) | `CsvFormatError` | "This plane_histograms.csv was written with schema version 3, without the underflow and overflow columns. Run the preprocessing brick again on this experiment: it rewrites the table with these columns (schema version 4)." |
 | `HistogramSettings` with an unknown range, invalid quantiles or `min_central_bins` below 1 | `ValueError` | Names the value and the allowed ones |
 | Rows or images with different numbers of channels (N43) | `CsvFormatError` (table), `ValueError` (pixels) | Names the images and their channel counts, and says that every image of an experiment must have the same channels |
-| `from_columns` with a missing or unreadable column, or a channel without both its offset and scale | `ValueError` | Names the column |
+| `from_columns` with a missing or unreadable column, an unknown `normalization_scope`, or a channel without both its offset and scale | `ValueError` | Names the column |
+| `Parameters` or `NormalizationParameters` with a non-finite offset, or a scale that is not finite and above 0; a channel index that is not a whole number 0 or above | `ValueError` | Names the channel (or method) and the value |
 
 ### 9.2 Warnings
 
@@ -717,6 +722,7 @@ Returned as `Issue` objects; processing continues and the calling brick reports 
 | `planes_without_finite_pixels` | Planes without finite pixels excluded from a group that still has others |
 | `patches_discarded` | Patches without spread or finite pixels, listed in one warning with a suggested scope |
 | The four codes of §7.2 | Intensity checks |
+| `channel_without_finite_pixels` | An image channel without finite pixels, which the intensity checks cannot check (§7.1, `unchecked_channels`) |
 | `narrow_histogram_range` | A channel's central range covers fewer than `min_central_bins` bins in some planes (§1.4); reported by the preprocessing brick only |
 
 ---

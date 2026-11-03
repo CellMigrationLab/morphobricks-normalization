@@ -70,7 +70,8 @@ class ImageSummary:
         other values, and for a channel without finite pixels.
     exact
         Per channel, whether every pooled histogram was exact
-        (``max_representative_error == 0``).
+        (``max_representative_error == 0``); None for a channel without finite
+        pixels, which has no statistics to be exact (issue #57).
     """
 
     source_relative_path: str
@@ -83,7 +84,7 @@ class ImageSummary:
     p_low: tuple[float | None, ...]
     p_high: tuple[float | None, ...]
     saturated_fraction: tuple[float | None, ...]
-    exact: tuple[bool, ...]
+    exact: tuple[bool | None, ...]
 
     @property
     def image_file(self) -> str:
@@ -100,8 +101,9 @@ class ImageSummary:
 
         The shared columns as text, then for each channel the median, low and
         high percentiles and saturated fraction as floats (None for a blank) and
-        ``Histogram_Exact_C<i>`` as a bool. A list of rows can be passed to
-        ``pandas.DataFrame`` or ``csv.DictWriter`` (with :func:`summary_columns`).
+        ``Histogram_Exact_C<i>`` as a bool (None for a channel without finite
+        pixels). A list of rows can be passed to ``pandas.DataFrame`` or
+        ``csv.DictWriter`` (with :func:`summary_columns`).
         """
         row: dict[str, Any] = {
             "source_relative_path": self.source_relative_path,
@@ -185,12 +187,10 @@ def _summary(planes: list[PlaneRecord], percentile: tuple[float, float]) -> Imag
         try:
             pooled = PooledHistogram(histograms)
         except NoValidPixelsError:
-            # A channel without finite pixels has no statistics; its values stay blank.
-            median.append(None)
-            p_low.append(None)
-            p_high.append(None)
-            saturated.append(None)
-            exact.append(True)
+            # A channel without finite pixels has no statistics; its values stay blank,
+            # exactness included: nothing was measured that could be exact (issue #57).
+            for values in (median, p_low, p_high, saturated, exact):
+                values.append(None)
             continue
         median.append(pooled.median)
         p_low.append(pooled.percentile(percentile[0]))

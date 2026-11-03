@@ -8,7 +8,7 @@ modifies source images.
 """
 
 from ._version import __version__
-from .checks import IntensityCheckSettings, intensity_checks
+from .checks import IntensityCheckSettings, intensity_checks, unchecked_channels
 from .csv_io import OUTPUT_FILENAME, read_plane_histograms, write_plane_histograms
 from .dtypes import UnsupportedDtypeError, default_bin_count
 from .fitting import Parameters, fit
@@ -84,6 +84,7 @@ __all__ = [
     "robust_z_score",
     "scope_groups",
     "summary_columns",
+    "unchecked_channels",
     "write_plane_histograms",
     "z_score",
 ]

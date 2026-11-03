@@ -24,6 +24,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .parameter_checks import check_offset_scale
 from .pooling import PooledHistogram
 
 # Makes the MAD a consistent estimator of the standard deviation for normal data.
@@ -32,11 +33,18 @@ NORMAL_CONSISTENCY = 1.482602218505602
 
 @dataclass(frozen=True)
 class NormalizationParameters:
-    """How to normalize pixel values: ``(pixels - offset) / scale``."""
+    """How to normalize pixel values: ``(pixels - offset) / scale``.
+
+    The offset must be finite and the scale finite and above zero; other values
+    are refused with ``ValueError``.
+    """
 
     method: str
     offset: float
     scale: float
+
+    def __post_init__(self) -> None:
+        check_offset_scale(float(self.offset), float(self.scale), f"The {self.method} method")
 
     def apply(
         self,

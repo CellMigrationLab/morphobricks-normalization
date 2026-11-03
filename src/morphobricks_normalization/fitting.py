@@ -37,10 +37,11 @@ from .normalization import (
     robust_z_score,
     z_score,
 )
+from .parameter_checks import channel_indices, check_offset_scale
 from .pooling import NoValidPixelsError, PooledHistogram, WeightedHistogram
 from .records import PlaneRecord, different_channel_counts, duplicate_planes
 from .rgb import RGB_CHANNEL_COUNT, apply_rgb, check_rgb, rgb_percentile
-from .settings import NormalizationSettings, check_settings
+from .settings import SCOPES, NormalizationSettings, check_settings
 
 # Columns written once per row; the per-channel pairs follow (offset_column,
 # scale_column).
@@ -81,11 +82,13 @@ class Parameters:
     exact
         Whether every pooled histogram was exact.
     offset, scale
-        One value per channel, in the order of ``channels``.
+        One value per channel, in the order of ``channels``: finite offsets,
+        finite scales above zero.
     channels
         The image's channel indices the parameters belong to, in increasing
         order; by default ``0, 1, ...``. A single-channel patch of channel 2 of
-        an image has ``channels == (2,)`` (contract §8.1).
+        an image has ``channels == (2,)`` (contract §8.1). Whole numbers only:
+        booleans, fractions and text are refused, never truncated.
     issues
         Warnings about these parameters (``approximate_parameters``,
         ``planes_without_finite_pixels``); not stored in the columns and not
@@ -110,7 +113,7 @@ class Parameters:
                 f"offset(s) and {len(self.scale)} scale(s)."
             )
         channels = range(len(self.offset)) if self.channels is None else self.channels
-        channels = tuple(int(c) for c in channels)
+        channels = channel_indices(channels)
         increasing = all(b > a for a, b in zip((-1, *channels), channels, strict=False))
         if len(channels) != len(self.offset) or not increasing:
             raise ValueError(
@@ -118,6 +121,8 @@ class Parameters:
                 f"got channels {channels} for {len(self.offset)} offset(s)."
             )
         object.__setattr__(self, "channels", channels)
+        for channel, offset, scale in zip(channels, self.offset, self.scale, strict=True):
+            check_offset_scale(offset, scale, f"Channel {channel}")
 
     @property
     def channel_count(self) -> int:
@@ -139,9 +144,9 @@ class Parameters:
         Raises
         ------
         ValueError
-            If a channel is not among :attr:`channels`.
+            If a channel is not among :attr:`channels`, or is not a whole number.
         """
-        wanted = sorted({int(c) for c in channels})
+        wanted = sorted(set(channel_indices(channels)))
         missing = [c for c in wanted if c not in self.channels]
         if not wanted:
             raise ValueError("Select at least one channel of these parameters.")
@@ -242,14 +247,15 @@ class Parameters:
             its own channel).
         settings
             The settings of the run that wrote the row; its method must be the
-            row's ``normalization_method``.
+            row's ``normalization_method``. The row's ``normalization_scope``
+            must be one of the scopes of contract §4.1.
 
         Raises
         ------
         ValueError
-            Naming the column that is missing or cannot be read, or whose
-            method differs from the settings; also for a channel with only one
-            of its two columns.
+            Naming the column that is missing or cannot be read, whose method
+            differs from the settings, or whose scope is unknown; also for a
+            channel with only one of its two columns.
         """
         missing = [name for name in COLUMNS if name not in columns]
         if missing:
@@ -302,7 +308,7 @@ class Parameters:
             _check_rgb_columns(channels, offset, scale)
         return cls(
             method=method,
-            scope=_text(columns["normalization_scope"]),
+            scope=_scope(columns),
             group=_text(columns["normalization_group"]) or None,
             exact=_flag(columns, "normalization_exact"),
             offset=tuple(offset),
@@ -560,6 +566,16 @@ def _text(value: Any) -> str:
     if value is None or (isinstance(value, float) and math.isnan(value)):
         return ""
     return str(value)
+
+
+def _scope(columns: Mapping[str, Any]) -> str:
+    scope = _text(columns["normalization_scope"])
+    if scope not in SCOPES:
+        raise ValueError(
+            f"Column normalization_scope is {scope!r}, which is not a scope; the scopes are "
+            f"{', '.join(SCOPES)}. Read the parameters from a row written with normalization."
+        )
+    return scope
 
 
 def _number(columns: Mapping[str, Any], name: str) -> float:

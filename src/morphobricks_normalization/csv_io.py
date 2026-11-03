@@ -29,7 +29,7 @@ import numpy as np
 
 from .dtypes import bit_depth, check_supported, is_integer
 from .histogram import EMPTY_TAIL, HistogramTail, PlaneHistogram
-from .records import PlaneRecord, different_channel_counts
+from .records import PlaneRecord, different_channel_counts, duplicate_planes
 
 # Version 4: the underflow and overflow columns of the robust histogram range
 # (N56). Version 3 put one row per XYC plane, the channels in columns (N41);
@@ -118,7 +118,8 @@ def write_plane_histograms(records: Iterable[PlaneRecord], path: str | Path) -> 
     Raises
     ------
     ValueError
-        If there are no records, or their channel counts or bin counts differ.
+        If there are no records, two records have the same ``plane_id``, or their
+        channel counts or bin counts differ.
     """
     records = list(records)
     if not records:
@@ -135,6 +136,7 @@ def write_plane_histograms(records: Iterable[PlaneRecord], path: str | Path) -> 
         raise ValueError(
             f"All planes in one table must use the same bin count; found {sorted(bin_counts)}."
         )
+    duplicate_planes(records, "The planes to write")
     path = Path(path)
     n_channels, n_bins = channel_counts.pop(), bin_counts.pop()
     header = [*METADATA_COLUMNS]
@@ -162,9 +164,11 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
     CsvFormatError
         If the header, schema version or a row does not match the format, including
         a row whose ``plane_id``, ``image_file`` or ``bit_depth`` differs from what its
-        path, coordinates and pixel type give; if the table was written with an
-        earlier schema version (1 and 2 had one row per channel, 3 no underflow and
-        overflow columns); or if its rows have different numbers of channels.
+        path, coordinates and pixel type give, or whose statistics break the rules
+        of :mod:`~morphobricks_normalization.integrity`; if the table was written with
+        an earlier schema version (1 and 2 had one row per channel, 3 no underflow and
+        overflow columns); if it has no rows, or two rows with the same ``plane_id``;
+        or if its rows have different numbers of channels.
     """
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.reader(fh)
@@ -187,16 +191,24 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
         if layout is None:
             raise CsvFormatError(f"{path} has unexpected per-channel column names.")
         n_channels, n_bins = layout
-        records, other_counts = [], []
+        records, other_counts, lines = [], [], {}
         for line, row in enumerate(reader, 2):
             record = _record(row, n_channels, n_bins, path, line)
-            if isinstance(record, PlaneRecord):
-                records.append(record)
-            else:
+            if not isinstance(record, PlaneRecord):
                 other_counts.append(record)
+                continue
+            if record.plane_id in lines:
+                raise CsvFormatError(_duplicate_message(path, record.plane_id, lines, line))
+            lines[record.plane_id] = line
+            records.append(record)
         if other_counts:
             listed = [(r.source_relative_path, r.channel_count) for r in records] + other_counts
             raise CsvFormatError(f"{path}: " + different_channel_counts(listed, "Its images"))
+        if not records:
+            raise CsvFormatError(
+                f"{path} has the plane-histogram columns but no rows, so it holds no planes. The "
+                "table is incomplete; run the preprocessing brick again on this experiment."
+            )
         return records
 
 
@@ -256,7 +268,7 @@ def _row(record: PlaneRecord) -> list[str]:
 
 
 def _record(
-    row: list[str], n_channels: int, n_bins: int, path, line: int
+    row: list[str], n_channels: int, n_bins: int, path: str | Path, line: int
 ) -> PlaneRecord | tuple[str, int]:
     """Read one row; a row with another channel count is returned as ``(path, count)``."""
     n_meta = len(METADATA_COLUMNS)
@@ -276,35 +288,19 @@ def _record(
         if channel_count != n_channels:
             return meta["source_relative_path"], channel_count
         dtype = check_supported(meta["dtype"])
-        number = int if is_integer(dtype) else float
+        if int(meta["bin_count"]) != n_bins:
+            raise ValueError(f"its bin_count is {meta['bin_count']}, but it has {n_bins} bins.")
         histograms = []
         for channel in range(n_channels):
             values = row[n_meta + channel * width : n_meta + (channel + 1) * width]
-            pixel_min, pixel_max, valid, lo, hi = values[:5]
-            underflow, overflow = _tail(values[5:8]), _tail(values[8:11])
-            histogram = PlaneHistogram(
-                dtype=dtype,
-                bin_count=int(meta["bin_count"]),
-                binning_min=_value(lo, number),
-                binning_max=_value(hi, number),
-                counts=np.array(values[len(CHANNEL_FEATURES) :], dtype=np.int64),
-                total_pixel_count=int(meta["total_pixel_count"]),
-                valid_pixel_count=int(valid),
-                pixel_min=_value(pixel_min, number),
-                pixel_max=_value(pixel_max, number),
-                underflow=underflow,
-                overflow=overflow,
-            )
-            in_bins = int(histogram.counts.sum())
-            if (
-                histogram.bin_count != n_bins
-                or in_bins + underflow.count + overflow.count != histogram.valid_pixel_count
-                or not _consistent_range(histogram)
-            ):
+            try:
+                histograms.append(_histogram(values, dtype, n_bins, meta["total_pixel_count"]))
+            except ValueError as error:
                 raise CsvFormatError(
-                    f"{path}, line {line}: the bin counts of channel {channel} are inconsistent."
-                )
-            histograms.append(histogram)
+                    f"{path}, line {line}: the bin counts of channel {channel} are inconsistent: "
+                    f"{error} The table was changed after it was written; run the preprocessing "
+                    "brick again on this experiment to rewrite it."
+                ) from error
         record = PlaneRecord(
             source_relative_path=meta["source_relative_path"],
             condition=meta["condition"],
@@ -335,37 +331,44 @@ def _record(
         raise CsvFormatError(f"{path}, line {line}: {error}") from error
 
 
+def _histogram(values: list[str], dtype: np.dtype, n_bins: int, total: str) -> PlaneHistogram:
+    """Read one channel's columns; the histogram checks its own invariants."""
+    number = int if is_integer(dtype) else float
+    pixel_min, pixel_max, valid, lo, hi = values[:5]
+    try:
+        counts = np.array(values[len(CHANNEL_FEATURES) :], dtype=np.int64)
+    except OverflowError:
+        raise ValueError("a bin count is larger than 2**63 - 1.") from None
+    return PlaneHistogram(
+        dtype=dtype,
+        bin_count=n_bins,
+        binning_min=_value(lo, number),
+        binning_max=_value(hi, number),
+        counts=counts,
+        total_pixel_count=int(total),
+        valid_pixel_count=int(valid),
+        pixel_min=_value(pixel_min, number),
+        pixel_max=_value(pixel_max, number),
+        underflow=_tail(values[5:8]),
+        overflow=_tail(values[8:11]),
+    )
+
+
+def _duplicate_message(path: str | Path, plane_id: str, lines: dict[str, int], line: int) -> str:
+    return (
+        f"{path}, line {line}: plane {plane_id} is already in line {lines[plane_id]}. Every "
+        "plane (an image at one Z and T position) has one row; a repeated row would count its "
+        "pixels twice. Run the preprocessing brick again on this experiment to rewrite the table."
+    )
+
+
 def _tail_text(tail: HistogramTail) -> tuple[str, str, str]:
     return str(tail.count), repr(float(tail.sum)), repr(float(tail.sum_of_squares))
 
 
 def _tail(texts: list[str]) -> HistogramTail:
-    count, total, squares = int(texts[0]), float(texts[1]), float(texts[2])
-    if count < 0:
-        raise ValueError(f"a pixel count cannot be negative; got {count}.")
-    if count == 0:
-        if total != 0 or squares != 0:
-            raise ValueError("an empty underflow or overflow must have zero sums.")
-        return EMPTY_TAIL
-    return HistogramTail(count, total, squares)
-
-
-def _consistent_range(histogram: PlaneHistogram) -> bool:
-    """Check that a binning limit differs from the extremum only where a tail lies beyond it."""
-    if histogram.binning_min is None or histogram.pixel_min is None:
-        return (
-            histogram.binning_min is None
-            and histogram.binning_max is None
-            and histogram.pixel_min is None
-            and histogram.pixel_max is None
-            and not histogram.has_tails
-        )
-    low = (histogram.pixel_min == histogram.binning_min) == histogram.underflow.is_empty
-    high = (histogram.pixel_max == histogram.binning_max) == histogram.overflow.is_empty
-    ordered = (
-        histogram.pixel_min <= histogram.binning_min <= histogram.binning_max <= histogram.pixel_max
-    )
-    return low and high and ordered
+    tail = HistogramTail(int(texts[0]), float(texts[1]), float(texts[2]))
+    return EMPTY_TAIL if tail.is_empty else tail
 
 
 def _earlier_version_message(path, version: str) -> str:

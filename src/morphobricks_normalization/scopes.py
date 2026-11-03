@@ -24,7 +24,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 
 from .issues import REPEAT_MISSING_CONDITIONS, WARNING, Issue
-from .records import PlaneRecord
+from .records import PlaneRecord, duplicate_planes
 from .settings import NormalizationSettings
 
 RepeatGroups = Mapping[tuple[str, str], str]
@@ -110,13 +110,19 @@ def scope_groups(
     ------
     ValueError
         As :func:`group_key`; all missing ``(condition, biological_repeat)``
-        pairs are named in one message.
+        pairs are named in one message. Also when two rows share a
+        ``plane_id``, or ``repeat_groups`` gives a present pair a label that is
+        not text or is empty, or puts two biological repeats of one condition in
+        the same repeat group (contract §4.1: one repeat per condition and group).
     """
     records = list(records)
+    duplicate_planes(records, "The rows of plane_histograms.csv")
     if settings.scope == "biological_repeat" and repeat_groups is not None:
-        missing = {(r.condition, r.biological_repeat) for r in records} - set(repeat_groups)
+        pairs = {(r.condition, r.biological_repeat) for r in records}
+        missing = pairs - set(repeat_groups)
         if missing:
             raise _missing_pairs_error(missing)
+        _check_pairing(pairs, repeat_groups)
     groups: dict[tuple, list[PlaneRecord]] = {}
     for record in records:
         groups.setdefault(group_key(record, settings, repeat_groups), []).append(record)
@@ -133,6 +139,35 @@ def _repeat_group(record: PlaneRecord, repeat_groups: RepeatGroups | None) -> st
     if pair not in repeat_groups:
         raise _missing_pairs_error({pair})
     return repeat_groups[pair]
+
+
+def _check_pairing(pairs: set[tuple[str, str]], repeat_groups: RepeatGroups) -> None:
+    """Refuse labels that are not text, and two repeats of one condition in one repeat group."""
+    unlabelled = sorted(
+        p for p in pairs if not isinstance(repeat_groups[p], str) or not repeat_groups[p]
+    )
+    if unlabelled:
+        names = ", ".join(f"{c}/{r} ({repeat_groups[(c, r)]!r})" for c, r in unlabelled)
+        raise ValueError(
+            f"The experiment design gives these biological repeats no repeat group name: {names}. "
+            "Name the repeat group of every biological repeat in the preprocessing brick's "
+            "experiment design, then run again."
+        )
+    members: dict[tuple[str, str], set[str]] = {}
+    for condition, repeat in pairs:
+        members.setdefault((repeat_groups[(condition, repeat)], condition), set()).add(repeat)
+    conflicts = [
+        f"{label}: {condition}/{' and '.join(sorted(repeats))}"
+        for (label, condition), repeats in sorted(members.items())
+        if len(repeats) > 1
+    ]
+    if conflicts:
+        raise ValueError(
+            "A repeat group holds one biological repeat of each condition, but the experiment "
+            "design puts several repeats of one condition in the same group "
+            f"({'; '.join(conflicts)}). Pair each biological repeat with one repeat of every "
+            "other condition in the preprocessing brick's experiment design, then run again."
+        )
 
 
 def _missing_pairs_error(pairs: set[tuple[str, str]]) -> ValueError:

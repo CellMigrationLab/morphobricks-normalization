@@ -28,7 +28,7 @@ import numpy as np
 from .csv_io import channel_column
 from .dtypes import is_integer
 from .pooling import NoValidPixelsError, PooledHistogram
-from .records import PlaneRecord, different_channel_counts
+from .records import PlaneRecord, different_channel_counts, duplicate_planes
 from .settings import DEFAULT_PERCENTILE
 
 SHARED_COLUMNS = (
@@ -157,12 +157,14 @@ def image_summaries(
     Raises
     ------
     ValueError
-        For invalid percentiles, or images with different numbers of channels (N43).
+        For invalid percentiles, rows that repeat a ``plane_id``, or images with
+        different numbers of channels (N43).
     """
     low, high = (float(q) for q in percentile)
     if not 0 <= low < high <= 100:
         raise ValueError(f"Expected 0 <= low < high <= 100; got low={low}, high={high}.")
     records = list(records)
+    duplicate_planes(records, "These rows")
     if len({r.channel_count for r in records}) > 1:
         raise ValueError(
             different_channel_counts(

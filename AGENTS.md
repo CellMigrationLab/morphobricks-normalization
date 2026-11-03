@@ -31,6 +31,8 @@ src/morphobricks_normalization/
                     robust range with HistogramTail underflow/overflow and
                     histogram_with_range_check, quantiles by radix selection (Milestone 5)
   ranges.py         HistogramSettings, RangeCheck, range_check_issues (Milestone 5)
+  integrity.py      invariants every PlaneHistogram and HistogramTail checks when made
+                    (counts, limits, tail sums) and the pixel type of every block
   records.py        PlaneRecord (one plane_histograms.csv row: an XYC plane, one
                     histogram per channel), plane_id, group_records
   csv_io.py         write/read plane_histograms.csv schema version 4, channels in

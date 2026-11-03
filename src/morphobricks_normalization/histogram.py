@@ -51,6 +51,7 @@ from typing import NamedTuple
 import numpy as np
 
 from .dtypes import check_supported, default_bin_count, is_integer, validate_bin_count
+from .integrity import check_histogram, check_tail, checked_blocks
 from .ranges import CENTRAL_PERCENTILES, HistogramSettings, RangeCheck
 
 # Above this many distinct values, integer planes are binned with a search over
@@ -75,12 +76,18 @@ class HistogramTail:
     count
         Number of pixels.
     sum, sum_of_squares
-        Sum of their values and of their squared values, in float64.
+        Sum of their values and of their squared values, in float64; checked
+        by :func:`~morphobricks_normalization.integrity.check_tail`.
     """
 
     count: int = 0
     sum: float = 0.0
     sum_of_squares: float = 0.0
+
+    def __post_init__(self) -> None:
+        checked = check_tail(self.count, self.sum, self.sum_of_squares)
+        for name, value in zip(("count", "sum", "sum_of_squares"), checked, strict=True):
+            object.__setattr__(self, name, value)
 
     @property
     def is_empty(self) -> bool:
@@ -120,7 +127,8 @@ class PlaneHistogram:
         pixels). Default to ``binning_min`` and ``binning_max``.
     underflow, overflow
         The pixels below ``binning_min`` and above ``binning_max``; empty unless
-        the robust range was used.
+        the robust range was used. All are checked by
+        :func:`~morphobricks_normalization.integrity.check_histogram`.
     """
 
     dtype: np.dtype
@@ -140,6 +148,7 @@ class PlaneHistogram:
             object.__setattr__(self, "pixel_min", self.binning_min)
         if self.pixel_max is None:
             object.__setattr__(self, "pixel_max", self.binning_max)
+        check_histogram(self)
 
     @property
     def is_empty(self) -> bool:
@@ -444,8 +453,7 @@ def _small_integer_histogram(
     bits = dtype.itemsize * 8
     table = np.zeros(2**bits, dtype=np.int64)
     total = 0
-    for block in blocks:
-        values = np.asarray(block).ravel()
+    for values in checked_blocks(blocks, dtype):
         if values.size == 0:
             continue
         total += int(values.size)
@@ -459,14 +467,15 @@ def _small_integer_histogram(
     present = np.flatnonzero(table)
     first, last = int(present[0]), int(present[-1])
     smallest = int(np.iinfo(dtype).min)
-    exact = last + 1 - first <= n
-    if exact or not (settings.robust or check):
-        starts = _integer_bin_starts(last + 1 - first, n)
-        counts = _counts_from_per_value(table[first : last + 1], starts, n)
-        histogram = PlaneHistogram(
-            dtype, n, smallest + first, smallest + last, counts, total, total
+
+    def min_max() -> PlaneHistogram:
+        counts = _counts_from_per_value(
+            table[first : last + 1], _integer_bin_starts(last + 1 - first, n), n
         )
-        return histogram, None
+        return PlaneHistogram(dtype, n, smallest + first, smallest + last, counts, total, total)
+
+    if last + 1 - first <= n or not (settings.robust or check):
+        return min_max(), None
     # The per-value counts give every order statistic exactly, without another pass.
     cumulative = np.cumsum(table)
 
@@ -495,11 +504,7 @@ def _small_integer_histogram(
             overflow=_table_tail(table[high + 1 : last + 1], smallest + high + 1),
         )
     else:
-        starts = _integer_bin_starts(last + 1 - first, n)
-        counts = _counts_from_per_value(table[first : last + 1], starts, n)
-        histogram = PlaneHistogram(
-            dtype, n, smallest + first, smallest + last, counts, total, total
-        )
+        histogram = min_max()
     return histogram, _range_check(histogram, orders, settings) if check else None
 
 
@@ -521,8 +526,7 @@ def _wide_histogram(
     selection = _RadixSelection(dtype.itemsize * 8) if settings.robust or check else None
     total = valid = 0
     lo = hi = None
-    for block in blocks():
-        values = np.asarray(block).ravel()
+    for values in checked_blocks(blocks(), dtype):
         total += int(values.size)
         finite = values if integer else values[np.isfinite(values)]
         if finite.size == 0:
@@ -544,8 +548,7 @@ def _wide_histogram(
     # last round of the selection shares the binning pass.
     shared_round = 0 if settings.robust else 1
     while selection.rounds_left > shared_round:
-        for block in blocks():
-            values = np.asarray(block).ravel()
+        for values in checked_blocks(blocks(), dtype):
             finite = values if integer else values[np.isfinite(values)]
             if finite.size:
                 selection.feed(_ordered_keys(finite, dtype))
@@ -619,8 +622,7 @@ def _integer_bins(
     per_value = np.zeros(width, dtype=np.int64) if width <= _PER_VALUE_COUNT_LIMIT else None
     bin_starts = np.array(starts[:-1], dtype=np.uint64)
     counts = np.zeros(n, dtype=np.int64)
-    for block in blocks():
-        values = np.asarray(block).ravel()
+    for values in checked_blocks(blocks(), dtype):
         if values.size == 0:
             continue
         if selection is not None:
@@ -660,8 +662,7 @@ def _float_bins(
         return counts
     # Halving keeps hi - lo finite even for ranges near the float64 limits.
     half_range = hi * 0.5 - lo * 0.5
-    for block in blocks():
-        values = np.asarray(block).ravel()
+    for values in checked_blocks(blocks(), dtype):
         finite = values[np.isfinite(values)]
         if finite.size == 0:
             continue

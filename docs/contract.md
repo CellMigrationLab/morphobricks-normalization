@@ -145,6 +145,35 @@ plane, so a row never depends on whether, or in which blocks, its plane was read
 robust range (§1.4) this holds for the limits, the counts and the tail counts too; only the
 tails' float sums may differ in the last bits, because they are added block by block.
 
+Every non-empty block must hold the plane's pixel type: a block of another type (another
+kind, width or signedness) is refused with `ValueError` naming the block and both types,
+because reading its bytes as the plane's type would change its values and its number of
+pixels. A block stored in the other byte order (for example a big-endian TIFF read on a
+little-endian computer) holds the same type and is converted by value.
+
+##### Invariants of a histogram
+
+`PlaneHistogram` and `HistogramTail` check these rules when they are made, whether
+computed, built by a calling brick or read from the statistics file (module
+`integrity.py`); a histogram that breaks one is refused with `ValueError`, never clipped or
+filled in:
+
+- `counts` is a one-dimensional int64 array of `bin_count` non-negative values;
+  `total_pixel_count` and `valid_pixel_count` are whole numbers from 0 to 2**63 − 1, with
+  `valid ≤ total`; the bins and the two tails hold exactly the valid pixels (an exact
+  integer sum, never one that wraps).
+- Without valid pixels, the four limits are blank and the tails empty. With valid pixels,
+  the four limits are finite and ordered `pixel_min ≤ binning_min ≤ binning_max ≤
+  pixel_max`, and a binning limit differs from its extremum exactly when a tail lies
+  beyond it.
+- An empty tail has zero sums. A populated tail has a sum that is a number and a sum of
+  squares of 0 or more, with `count · sum_of_squares ≥ sum²`, a mean within its range and
+  a sum of squares possible for values in it (relative rounding slack 1e-9). A sum of
+  squares (or sum) that overflows float64 to infinity is accepted only when the tail's
+  range makes the overflow possible (values beyond about 1e154).
+- Pooling adds the counts as integers, so a group's pixel count is exact; a group of more
+  than 2**63 − 1 finite pixels is refused.
+
 #### 1.2.3 Group statistics
 
 Groups pool their planes' (representative value, count) pairs; per-plane statistics are
@@ -407,7 +436,9 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
 - **Pairing:** `repeat_groups` maps `(condition, biological_repeat)` to a label chosen in the
   preprocessing brick (`experiment_design.csv`, follow-up P3). Every `(condition,
   biological_repeat)` of the statistics must be in the mapping when one is given; a missing
-  one is an error (§9.1).
+  one is an error (§9.1). Its labels are non-empty text, and a repeat group holds at most
+  one biological repeat of each condition: two repeats of one condition mapped to the same
+  label are an error (§9.1), never merged. Entries for pairs without rows are ignored.
 - **`single`:** a condition without biological-repeat folders has the label `single`, which
   forms a group with the other conditions' `single` rows, or with the repeat it is paired
   with.
@@ -503,10 +534,10 @@ they are zero.
 |---|---|---|
 | `position_id` | text or blank | The XY position within its technical repeat (MorphoBricks decision D02): from reliable metadata, or the image file name without extension when one file holds exactly one position, as morphobricks-preprocessing writes it. Blank only in tables written before it was filled. |
 | `image_file` | text | File name. |
-| `z`, `t` | integer | Zero-based plane coordinates, always written; 0 for an axis the image does not have (preprocessing contract §2). |
+| `z`, `t` | integer | Zero-based plane coordinates, always written; 0 for an axis the image does not have (preprocessing contract §2). Whole numbers 0 or above; `PlaneRecord` refuses booleans, fractions, text and negative numbers. |
 | `condition`, `biological_repeat`, `technical_repeat` | text | Folder labels; `single` when absent. Always read as text. |
 | `source_relative_path` | text | Path relative to the experiment root, `/`-separated. |
-| `plane_id` | text | `source_relative_path::z=…,t=…`, always with both coordinates (`control/img.tif::z=0,t=0` for a 2D image). Row key. |
+| `plane_id` | text | `source_relative_path::z=…,t=…`, always with both coordinates (`control/img.tif::z=0,t=0` for a 2D image). Row key: unique in a table, and in the rows given to `scope_groups`, `fit` and `image_summaries`. |
 | `dtype` | text | NumPy dtype name, e.g. `uint16`; the same for every channel. |
 | `bit_depth` | integer | Storage bits (8, 16, 32, 64). |
 | `channel_count` | integer | Number of channels; the same in every row. |
@@ -661,6 +692,13 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Percentiles outside `0 ≤ low < high ≤ 100`; unknown `pooling` or `image_type` | `ValueError` | Existing message for percentiles; the allowed values otherwise |
 | Statistics file with unexpected columns, schema version or inconsistent counts | `CsvFormatError` | Existing messages |
 | Statistics file row whose `plane_id`, `image_file` or `bit_depth` differs from what its `source_relative_path`, `z`, `t` and `dtype` give | `CsvFormatError` | Names the file, line, column, stored value and implied value, and asks to run the preprocessing brick again |
+| Statistics file with the columns but no rows | `CsvFormatError` | Names the file and asks to run the preprocessing brick again |
+| Two rows with the same `plane_id`: in the statistics file, or given to `write_plane_histograms`, `scope_groups`, `fit` or `image_summaries` | `CsvFormatError` (file), `ValueError` | Names the plane and both lines (file) or every repeated plane, and asks to remove the repeats or run the preprocessing brick again |
+| A histogram or tail that breaks the invariants of §1.2.2 (negative or wrapping counts, valid above total, missing or disordered limits, impossible tail sums) | `ValueError`; `CsvFormatError` in the file | Names the rule and the values; in the file also the line and channel |
+| A plane coordinate `z` or `t` that is not a whole number 0 or above | `ValueError`; `CsvFormatError` in the file | Names the image, coordinate and value |
+| A block of another pixel type than the plane's | `ValueError` | Names the block and both pixel types |
+| `repeat_groups` with an empty or non-text label, or two biological repeats of one condition in one repeat group | `ValueError` | Names the pairs and the label, and asks to correct the experiment design in the preprocessing brick |
+| A group of more than 2**63 − 1 finite pixels | `ValueError` | Asks to pool fewer planes |
 | Statistics file of schema version 1 or 2 (one row per channel) | `CsvFormatError` | "This plane_histograms.csv was written with schema version {version}, one row per channel. Run the preprocessing brick again on this experiment: it rewrites the table with the channels in columns (schema version 4)." |
 | Statistics file of schema version 3 (N56) | `CsvFormatError` | "This plane_histograms.csv was written with schema version 3, without the underflow and overflow columns. Run the preprocessing brick again on this experiment: it rewrites the table with these columns (schema version 4)." |
 | `HistogramSettings` with an unknown range, invalid quantiles or `min_central_bins` below 1 | `ValueError` | Names the value and the allowed ones |

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+import numbers
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+
+import numpy as np
 
 from .histogram import PlaneHistogram
 
@@ -40,7 +43,8 @@ class PlaneRecord:
         count and size. A single histogram is accepted for a one-channel plane.
     z, t
         Zero-based plane coordinates. An axis the image does not have, or has
-        with length 1, has coordinate 0; None is stored as 0.
+        with length 1, has coordinate 0; None is stored as 0. Booleans,
+        fractions, text and negative numbers are refused with ``ValueError``.
     position_id
         The XY position within its technical repeat (MorphoBricks decision D02):
         from reliable metadata, or the file stem when one file is one position; None
@@ -60,8 +64,7 @@ class PlaneRecord:
         # Every plane has both coordinates (contract §6.2), so a plane is
         # identified the same way whether or not its file has the axis.
         for name in ("z", "t"):
-            if getattr(self, name) is None:
-                object.__setattr__(self, name, 0)
+            object.__setattr__(self, name, _coordinate(getattr(self, name), name, self))
         histograms = self.histograms
         if isinstance(histograms, PlaneHistogram):
             histograms = (histograms,)
@@ -131,6 +134,47 @@ class PlaneRecord:
                         f"Plane {self.plane_id}: channel {channel} has {what} {b}, but channel "
                         f"0 has {a}. All channels of a plane have the same {what}."
                     )
+
+
+def _coordinate(value: object, name: str, record: PlaneRecord) -> int:
+    """Return a plane coordinate as an int: None is 0, other values must be whole and >= 0."""
+    if value is None:
+        return 0
+    if isinstance(value, bool | np.bool_) or not isinstance(value, numbers.Integral) or value < 0:
+        raise ValueError(
+            f"Plane of {record.source_relative_path}: its {name} coordinate must be a whole number "
+            f"0 or above (coordinates count from 0); got {value!r}."
+        )
+    return int(value)
+
+
+def duplicate_planes(records: Iterable[PlaneRecord], subject: str) -> None:
+    """Refuse records that share a ``plane_id``: each plane's pixels must count once.
+
+    Parameters
+    ----------
+    records
+        The records of one table or group.
+    subject
+        Starts the message, e.g. ``"The planes to write"``.
+
+    Raises
+    ------
+    ValueError
+        Naming every repeated ``plane_id`` and how often it appears.
+    """
+    seen: dict[str, int] = {}
+    for record in records:
+        seen[record.plane_id] = seen.get(record.plane_id, 0) + 1
+    repeated = [f"{plane_id} ({n} times)" for plane_id, n in seen.items() if n > 1]
+    if repeated:
+        shown = ", ".join(repeated[:_MAX_LISTED])
+        more = f" and {len(repeated) - _MAX_LISTED} more" if len(repeated) > _MAX_LISTED else ""
+        raise ValueError(
+            f"{subject} hold some planes more than once: {shown}{more}. Every plane (an image "
+            "at one Z and T position) must appear once, or its pixels count twice; remove the "
+            "repeated rows, or run the preprocessing brick again on this experiment."
+        )
 
 
 def make_plane_id(source_relative_path: str, *, z: int | None = 0, t: int | None = 0) -> str:

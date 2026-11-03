@@ -207,7 +207,8 @@ def test_failed_write_leaves_previous_file_untouched(tmp_path, monkeypatch):
     original_row = csv_io._row
     monkeypatch.setattr(csv_io, "_row", failing_row)
     with pytest.raises(RuntimeError):
-        write_plane_histograms([record(), record()], path)
+        # Two different planes: one plane twice is refused before writing (issue #43).
+        write_plane_histograms([record("a/1.tif"), record("a/2.tif")], path)
     assert path.read_bytes() == before
     assert [p.name for p in tmp_path.iterdir()] == ["t.csv"]  # no temporary files left
 

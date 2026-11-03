@@ -21,8 +21,8 @@ from morphobricks_normalization import (
 BAD_NUMBERS = [math.nan, math.inf, -math.inf]
 
 
-def parameters(offset=(0.0,), scale=(1.0,), channels=None, scope="image"):
-    return Parameters("z-score", scope, None, True, offset, scale, channels=channels)
+def parameters(offset=(0.0,), scale=(1.0,), channels=None, scope="image", group=None):
+    return Parameters("z-score", scope, group, True, offset, scale, channels=channels)
 
 
 # --- Offsets and scales (#36) ------------------------------------------------------------------
@@ -84,8 +84,33 @@ def test_from_columns_refuses_an_unknown_scope(scope):
 @pytest.mark.parametrize("scope", ["image", "patch", "biological_repeat"])
 def test_from_columns_keeps_a_known_scope(scope):
     columns = parameters(scope=scope).to_columns()
-    read = Parameters.from_columns(columns, NormalizationSettings(method="zscore"))
+    read = Parameters.from_columns(columns, NormalizationSettings(method="zscore", scope=scope))
     assert read.scope == scope
+
+
+@pytest.mark.parametrize("row", ["image", "patch", "biological_repeat"])
+@pytest.mark.parametrize("wanted", ["image", "patch", "biological_repeat"])
+def test_from_columns_refuses_a_row_of_another_scope(row, wanted):
+    columns = parameters(scope=row).to_columns()
+    settings = NormalizationSettings(method="zscore", scope=wanted)
+    if row == wanted:
+        assert Parameters.from_columns(columns, settings).scope == row
+        return
+    with pytest.raises(
+        ValueError, match=f"normalization_scope is {row!r}, but the settings use scope {wanted!r}"
+    ):
+        Parameters.from_columns(columns, settings)
+
+
+def test_the_scope_check_keeps_group_and_time_point_as_written():
+    # The group (an image, a repeat group, a time point) is the row's own; only the scope
+    # is compared, so per-time-point groups of one scope read back unchanged.
+    for group in ("A", "A::t=3", "control/r1/img.tif::t=0", None):
+        written = parameters(scope="biological_repeat", group=group)
+        settings = NormalizationSettings(
+            method="zscore", scope="biological_repeat", per_time_point=True
+        )
+        assert Parameters.from_columns(written.to_columns(), settings) == written
 
 
 # --- Channel indices (#38) ---------------------------------------------------------------------

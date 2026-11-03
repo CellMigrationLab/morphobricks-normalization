@@ -294,7 +294,8 @@ def _record(
         for channel in range(n_channels):
             values = row[n_meta + channel * width : n_meta + (channel + 1) * width]
             try:
-                histograms.append(_histogram(values, dtype, n_bins, meta["total_pixel_count"]))
+                total = meta["total_pixel_count"]
+                histograms.append(_histogram(values, dtype, n_bins, total, channel))
             except ValueError as error:
                 raise CsvFormatError(
                     f"{path}, line {line}: the bin counts of channel {channel} are inconsistent: "
@@ -331,10 +332,27 @@ def _record(
         raise CsvFormatError(f"{path}, line {line}: {error}") from error
 
 
-def _histogram(values: list[str], dtype: np.dtype, n_bins: int, total: str) -> PlaneHistogram:
-    """Read one channel's columns; the histogram checks its own invariants."""
+def _histogram(
+    values: list[str], dtype: np.dtype, n_bins: int, total: str, channel: int
+) -> PlaneHistogram:
+    """Read one channel's columns; the histogram checks its own invariants.
+
+    A blank intensity limit of a channel with valid pixels is refused here, so
+    that the message names its column (#47).
+    """
     number = int if is_integer(dtype) else float
     pixel_min, pixel_max, valid, lo, hi = values[:5]
+    blank = [
+        channel_column(feature, channel)
+        for feature, value in zip(CHANNEL_FEATURES[:5], values[:5], strict=True)
+        if value == "" and feature != "Histogram_ValidPixelCount"
+    ]
+    if blank and int(valid) > 0:
+        raise ValueError(
+            f"{', '.join(blank)} {'is' if len(blank) == 1 else 'are'} blank, but the channel has "
+            f"{int(valid)} valid pixel(s): a plane with valid pixels needs its four finite "
+            "intensity limits, and none is filled in from another."
+        )
     try:
         counts = np.array(values[len(CHANNEL_FEATURES) :], dtype=np.int64)
     except OverflowError:

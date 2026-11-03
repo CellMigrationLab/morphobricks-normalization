@@ -164,6 +164,15 @@ histogram, check = histogram_with_range_check(lambda: (plane,), plane.dtype, set
 warnings = range_check_issues([("img.tif::z=0,t=0", 0, check)])
 ```
 
+### Unreleased (next tag)
+
+- **`PlaneHistogram`** no longer fills a missing `pixel_min` or `pixel_max` from
+  `binning_min` or `binning_max` (#47). A caller that builds a histogram of a plane with
+  valid pixels passes both extrema explicitly, e.g. `pixel_min=lo, pixel_max=hi` for a
+  min-max histogram. A `plane_histograms.csv` row with one blank intensity limit and valid
+  pixels is refused with a `CsvFormatError` naming the column. Valid inputs give
+  bit-identical outputs (`python tools/dump_outputs.py` prints the digest to compare).
+
 ### Migrating to v0.3.3
 
 No valid statistics change: on the same inputs, histograms, `plane_histograms.csv` bytes,

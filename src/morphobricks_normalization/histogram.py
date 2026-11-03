@@ -123,8 +123,10 @@ class PlaneHistogram:
     valid_pixel_count
         Finite pixels: those counted in ``counts`` and in the two tails.
     pixel_min, pixel_max
-        Exact finite minimum and maximum of the plane (None if it has no finite
-        pixels). Default to ``binning_min`` and ``binning_max``.
+        Exact finite minimum and maximum of the plane; None only if it has no
+        finite pixels. They are never taken from ``binning_min`` and
+        ``binning_max``: a plane with finite pixels must give both, even when
+        they equal the binning limits (min-max range).
     underflow, overflow
         The pixels below ``binning_min`` and above ``binning_max``; empty unless
         the robust range was used. All are checked by
@@ -144,10 +146,7 @@ class PlaneHistogram:
     overflow: HistogramTail = EMPTY_TAIL
 
     def __post_init__(self) -> None:
-        if self.pixel_min is None:
-            object.__setattr__(self, "pixel_min", self.binning_min)
-        if self.pixel_max is None:
-            object.__setattr__(self, "pixel_max", self.binning_max)
+        # No limit is filled in from another: a missing extremum is refused (#47).
         check_histogram(self)
 
     @property
@@ -472,7 +471,8 @@ def _small_integer_histogram(
         counts = _counts_from_per_value(
             table[first : last + 1], _integer_bin_starts(last + 1 - first, n), n
         )
-        return PlaneHistogram(dtype, n, smallest + first, smallest + last, counts, total, total)
+        lo, hi = smallest + first, smallest + last
+        return PlaneHistogram(dtype, n, lo, hi, counts, total, total, pixel_min=lo, pixel_max=hi)
 
     if last + 1 - first <= n or not (settings.robust or check):
         return min_max(), None
@@ -589,7 +589,7 @@ def _bin_pass(
     else:
         counts = _float_bins(blocks, dtype, n, lo, hi, valid, extrema, selection, under, over)
     if extrema is None:
-        return PlaneHistogram(dtype, n, lo, hi, counts, total, valid)
+        return PlaneHistogram(dtype, n, lo, hi, counts, total, valid, pixel_min=lo, pixel_max=hi)
     return PlaneHistogram(
         dtype,
         n,

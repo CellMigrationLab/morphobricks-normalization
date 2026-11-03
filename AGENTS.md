@@ -59,6 +59,8 @@ src/morphobricks_normalization/
   issues.py         Issue: warnings returned to the calling brick (channel for the checks)
 tests/              pytest with simulated planes (tests/simulation.py); tests/data holds
                     a schema-version-2 fixture written by the Milestone 2 code
+tools/dump_outputs.py  bit-exact dump of the outputs for valid inputs and its SHA-256, to
+                    show a change leaves them unchanged (run on base and change, compare)
 ```
 
 The six modules `dtypes` to `normalization` were moved from morphobricks-preprocessing

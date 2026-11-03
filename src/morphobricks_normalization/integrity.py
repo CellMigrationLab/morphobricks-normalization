@@ -34,6 +34,8 @@ MOMENT_TOLERANCE = 1e-9
 # Below this float64 estimate, the int64 sum of non-negative counts cannot have
 # wrapped (its rounding is far smaller than the 2**62 left before 2**63).
 _SAFE_FLOAT_TOTAL = 2.0**62
+# The four intensity limits of a histogram, in the order they must be in.
+LIMIT_NAMES = ("pixel_min", "binning_min", "binning_max", "pixel_max")
 
 
 def checked_blocks(blocks: Iterable[np.ndarray], dtype: np.dtype) -> Iterator[np.ndarray]:
@@ -138,8 +140,9 @@ def check_histogram(histogram: PlaneHistogram) -> None:
     total``; the bins and tails hold exactly the valid pixels. A histogram
     without valid pixels has no limits, empty bins and empty tails; one with
     valid pixels has four finite limits ``pixel_min <= binning_min <=
-    binning_max <= pixel_max``, a limit inside its extremum exactly where a tail
-    lies beyond it, and tails whose sums fit their range.
+    binning_max <= pixel_max``, each given (none is filled in from another), a
+    limit inside its extremum exactly where a tail lies beyond it, and tails
+    whose sums fit their range.
 
     Raises
     ------
@@ -183,12 +186,16 @@ def _check_range(
     limits: tuple[int | float | None, ...], under: HistogramTail, over: HistogramTail
 ) -> None:
     """Check the four limits of a histogram with valid pixels, and its tails against them."""
-    if any(limit is None for limit in limits) or not all(
-        math.isfinite(float(limit)) for limit in limits
-    ):
+    bad = [
+        name
+        for name, limit in zip(LIMIT_NAMES, limits, strict=True)
+        if limit is None or not math.isfinite(float(limit))
+    ]
+    if bad:
         raise ValueError(
             "A plane with valid pixels needs its four finite intensity limits (minimum, binning "
-            f"minimum, binning maximum, maximum); got {list(limits)}."
+            f"minimum, binning maximum, maximum); {', '.join(bad)} "
+            f"{'is' if len(bad) == 1 else 'are'} missing or not finite, got {list(limits)}."
         )
     pixel_min, binning_min, binning_max, pixel_max = limits
     if not pixel_min <= binning_min <= binning_max <= pixel_max:

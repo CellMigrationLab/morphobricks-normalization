@@ -22,6 +22,7 @@ from morphobricks_normalization import (
     write_plane_histograms,
 )
 from morphobricks_normalization.csv_io import CsvFormatError
+from morphobricks_normalization.integrity import LIMIT_NAMES
 
 ROBUST = HistogramSettings(histogram_range="robust")
 rng = np.random.default_rng(44)
@@ -112,7 +113,9 @@ def test_empty_blocks_of_any_type_are_skipped():
 
 def singleton(count, value=0):
     counts = np.array([count], dtype=np.int64)
-    return PlaneHistogram(np.dtype(np.uint8), 1, value, value, counts, count, count)
+    return PlaneHistogram(
+        np.dtype(np.uint8), 1, value, value, counts, count, count, pixel_min=value, pixel_max=value
+    )
 
 
 def test_pooled_counts_stay_exact_above_2_to_the_53():
@@ -142,6 +145,8 @@ def histogram(**changes):
         counts=np.array([1, 1], np.int64),
         total_pixel_count=2,
         valid_pixel_count=2,
+        pixel_min=0,
+        pixel_max=1,
     )
     return PlaneHistogram(**{**fields, **changes})
 
@@ -170,6 +175,28 @@ def test_impossible_histograms_are_refused(changes, message):
         histogram(**changes)
 
 
+@pytest.mark.parametrize("field", LIMIT_NAMES)
+def test_a_single_missing_limit_is_refused_not_filled_in(field):
+    # Before #47 was fixed, a missing pixel_min or pixel_max was taken from the binning limit.
+    with pytest.raises(ValueError, match=f"four finite intensity limits .*; {field} is missing"):
+        histogram(**{field: None})
+
+
+@pytest.mark.parametrize("field", ["pixel_min", "pixel_max"])
+def test_a_missing_extremum_of_a_robust_histogram_is_refused(field):
+    good = robust_plane_histogram()
+    fields = {name: getattr(good, name) for name in good.__dataclass_fields__}
+    with pytest.raises(ValueError, match=f"{field} is missing"):
+        PlaneHistogram(**{**fields, field: None})
+
+
+def test_computed_min_max_histograms_give_their_extrema():
+    for plane in (np.array([3, 9, 4], np.uint8), np.array([1.5, -2.0, np.nan], np.float32)):
+        hist = compute_plane_histogram(plane, 4)
+        assert (hist.pixel_min, hist.pixel_max) == (hist.binning_min, hist.binning_max)
+        assert (hist.pixel_min, hist.pixel_max) == (np.nanmin(plane), np.nanmax(plane))
+
+
 def test_wrapping_int64_sum_is_refused():
     # The int64 sum of these counts wraps to 3 (issue #45).
     counts = np.array([2**62] * 4 + [3], np.int64)
@@ -182,7 +209,8 @@ def test_wrapping_int64_sum_is_refused():
 
 def test_a_plane_without_valid_pixels_has_no_limits():
     empty = dict(counts=np.zeros(2, np.int64), valid_pixel_count=0)
-    assert histogram(**empty, binning_min=None, binning_max=None).is_empty
+    no_limits = dict.fromkeys(LIMIT_NAMES)
+    assert histogram(**empty, **no_limits).is_empty
     with pytest.raises(ValueError, match="without valid pixels can have no intensity range"):
         histogram(**empty)
 
@@ -297,6 +325,24 @@ def test_impossible_counts_and_limits_in_the_file_are_refused(tmp_path, changes,
     path = edited(tmp_path, [record()], changes)
     with pytest.raises(CsvFormatError, match=f"line 2: the bin counts of channel 0 .*{message}"):
         read_plane_histograms(path)
+
+
+@pytest.mark.parametrize("column", LIMITS)
+def test_a_single_blank_limit_in_the_file_is_refused(tmp_path, column):
+    # The default record's limits are min-max, so a blank extremum equals its binning limit
+    # and was silently filled in from it before #47 was fixed.
+    path = edited(tmp_path, [record()], {column: ""})
+    message = f"line 2: the bin counts of channel 0 .*{column} is blank, but the channel has 4"
+    with pytest.raises(CsvFormatError, match=message):
+        read_plane_histograms(path)
+
+
+def test_blank_limits_of_a_channel_without_valid_pixels_are_read(tmp_path):
+    empty = compute_plane_histogram(np.full((2, 2), np.nan, np.float32), 2)
+    path = write_plane_histograms([record(histograms=[empty])], tmp_path / "plane_histograms.csv")
+    (back,) = read_plane_histograms(path)
+    assert back.histograms[0].is_empty
+    assert [getattr(back.histograms[0], name) for name in LIMIT_NAMES] == [None] * 4
 
 
 def test_wrapping_counts_in_the_file_are_refused(tmp_path):

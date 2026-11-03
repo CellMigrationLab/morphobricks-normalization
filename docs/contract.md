@@ -165,7 +165,9 @@ filled in:
 - Without valid pixels, the four limits are blank and the tails empty. With valid pixels,
   the four limits are finite and ordered `pixel_min ≤ binning_min ≤ binning_max ≤
   pixel_max`, and a binning limit differs from its extremum exactly when a tail lies
-  beyond it.
+  beyond it. Each of the four is given: a missing `pixel_min` or `pixel_max` is refused,
+  never taken from `binning_min` or `binning_max`, even where a min-max histogram would
+  have them equal (#47). In the statistics file the message names the blank column.
 - An empty tail has zero sums. A populated tail has a sum that is a number and a sum of
   squares of 0 or more, with `count · sum_of_squares ≥ sum²`, a mean within its range and
   a sum of squares possible for values in it (relative rounding slack 1e-9). A sum of
@@ -296,7 +298,7 @@ The names that change in Milestone 5:
 
 | Module | Milestone 5 |
 |---|---|
-| `histogram.py` | `PlaneHistogram` gains `pixel_min` and `pixel_max` as stored fields (default `binning_min`, `binning_max`), `underflow` and `overflow` (`HistogramTail(count, sum, sum_of_squares)`, empty by default) and `has_tails`; `is_exact` and `max_representative_error` include the tails. `compute_plane_histogram`, `compute_block_histogram` and `estimate_histogram_memory` take `settings`; new `histogram_with_range_check`. |
+| `histogram.py` | `PlaneHistogram` gains `pixel_min` and `pixel_max` as stored fields (defaulting to `binning_min`, `binning_max` up to `v0.3.3`; from #47 they must be given whenever the plane has valid pixels), `underflow` and `overflow` (`HistogramTail(count, sum, sum_of_squares)`, empty by default) and `has_tails`; `is_exact` and `max_representative_error` include the tails. `compute_plane_histogram`, `compute_block_histogram` and `estimate_histogram_memory` take `settings`; new `histogram_with_range_check`. |
 | `ranges.py` (new) | `HistogramSettings`, `RangeCheck`, `range_check_issues`. |
 | `csv_io.py` | `SCHEMA_VERSION = "4"`; `CHANNEL_FEATURES` gains the six tail features (§6.2). |
 | `pooling.py` | `PooledHistogram.values`/`counts` include one pair per tail; `bin_values`, `bin_counts` and `tails` give the bins alone and the tails' sums; `WeightedHistogram` the same, weighted. |

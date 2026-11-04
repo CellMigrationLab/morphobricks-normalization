@@ -59,6 +59,10 @@ src/morphobricks_normalization/
   issues.py         Issue: warnings returned to the calling brick (channel for the checks)
 tests/              pytest with simulated planes (tests/simulation.py); tests/data holds
                     a schema-version-2 fixture written by the Milestone 2 code
+tools/check.py      the release gate: ruff format, pytest and the code standards (design v0.4 §9);
+                    `--rules` runs only the standards (CI); tools/code_rules.py is the shared
+                    copy (SHA-256 pinned in tests/test_code_rules.py), tools/code_rules_baseline.json
+                    the shrink-only baseline taken at v0.3.3 (never add or raise an entry)
 tools/dump_outputs.py  bit-exact dump of the outputs for valid inputs and its SHA-256, to
                     show a change leaves them unchanged (run on base and change, compare)
 ```
@@ -117,7 +121,7 @@ range check.
    check. Each formula is tested against a direct implementation (plan §11).
 5. **Style** as in morphobricks-preprocessing: Python 3.11+ (MorphoBricks decision D01), `ruff` (line length 100,
    NumPy docstrings), small modules with one job each, comments that explain why.
-6. **Done means** `ruff check .`, `ruff format --check .` and `pytest` pass and the docs
-   are updated. Report honestly what was verified and what was not.
+6. **Done means** `python tools/check.py` passes (Ruff's findings go through the shrink-only
+   baseline, so plain `ruff check .` still lists the v0.3.3 debt) and the docs are updated. Report honestly what was verified and what was not.
 7. **One milestone per branch and PR** against `main`. Do the task asked; list unrelated
    problems as follow-ups.

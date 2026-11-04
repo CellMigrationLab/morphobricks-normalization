@@ -14,8 +14,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install ruff
-      - run: ruff check .
       - run: ruff format --check .
+      # The code standards (design v0.4 §9) and Ruff's findings, against their shrink-only
+      # baseline (Ruff's own findings of v0.3.3 are in it, so plain `ruff check .` is not run).
+      - run: python tools/check.py --rules
 
   test:
     runs-on: ${{ matrix.os }}

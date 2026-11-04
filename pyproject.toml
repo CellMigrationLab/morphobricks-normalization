@@ -37,12 +37,13 @@ packages = ["src/morphobricks_normalization"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tools"]
 addopts = "-ra"
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["src", "tests"]
+src = ["src", "tests", "tools"]
 
 [tool.ruff.lint]
 select = [
@@ -54,6 +55,11 @@ select = [
     "UP",  # modern syntax for the target Python
     "NPY", # numpy-specific checks
     "D",   # docstrings
+    "C90", # complexity (design v0.4 §9: at most 15)
+    "PLR0913", # at most 8 parameters
+    "PLR0915", # at most 50 statements
+    "ANN", # complete annotations
+    "PGH004", # a noqa names its rules, so the noqa ratchet sees every one
 ]
 ignore = [
     "D105", # magic methods need no docstring
@@ -63,5 +69,47 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pylint]
+max-args = 8
+max-statements = 50
+
+[tool.ruff.lint.isort]
+known-first-party = ["morphobricks_normalization", "code_rules", "check"]
+# Design v0.4 §9: annotations come with postponed evaluation (I002 enforces it).
+required-imports = ["from __future__ import annotations"]
+
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D"]
+# Tests are exempt from the annotation and docstring rules (owner decision, 1 November 2026).
+"tests/**" = ["D", "ANN", "I002"]
+
+[tool.morphobricks.code-rules]
+# The shared tools/code_rules.py (design v0.4 §9), configured for this repository. Findings that
+# existed when it was adopted (v0.3.3) are in the baseline, which may only shrink; new code complies.
+owner = "normalization"
+package = "src/morphobricks_normalization"
+baseline = "tools/code_rules_baseline.json"
+
+[tool.morphobricks.code-rules.layers]
+# pure: no I/O, no UI; io: reads or writes files; ui: no computing; orchestration: ties the
+# others together. normalization is a pure library except the reader and writer of the file.
+"morphobricks_normalization" = "orchestration"
+"morphobricks_normalization._version" = "pure"
+"morphobricks_normalization.checks" = "pure"
+"morphobricks_normalization.csv_io" = "io"
+"morphobricks_normalization.dtypes" = "pure"
+"morphobricks_normalization.fitting" = "pure"
+"morphobricks_normalization.histogram" = "pure"
+"morphobricks_normalization.integrity" = "pure"
+"morphobricks_normalization.issues" = "pure"
+"morphobricks_normalization.normalization" = "pure"
+"morphobricks_normalization.parameter_checks" = "pure"
+"morphobricks_normalization.pooling" = "pure"
+"morphobricks_normalization.ranges" = "pure"
+"morphobricks_normalization.records" = "pure"
+"morphobricks_normalization.rgb" = "pure"
+"morphobricks_normalization.scopes" = "pure"
+"morphobricks_normalization.settings" = "pure"
+"morphobricks_normalization.summaries" = "pure"

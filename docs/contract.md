@@ -185,7 +185,7 @@ tail's mean and its count.
 | Statistic | Definition | Accuracy |
 |---|---|---|
 | min, max | Smallest `pixel_min`, largest `pixel_max` | Exact |
-| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares | Exact for exact histograms; otherwise very close (errors cancel) |
+| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares. The weighted sums are correctly rounded sums of the products (`math.fsum`), so they never depend on the CPU thread count or BLAS library (#67) | Exact for exact histograms; otherwise very close (errors cancel) |
 | percentile q | Smallest representative with cumulative count ≥ ceil(q/100 · N) (numpy `inverted_cdf`) | Within the group's largest per-plane bound |
 | median | 50th percentile | As percentiles |
 | MAD | Median of \|representative − median\| | Within twice the bound |

@@ -172,6 +172,14 @@ warnings = range_check_issues([("img.tif::z=0,t=0", 0, check)])
   min-max histogram. A `plane_histograms.csv` row with one blank intensity limit and valid
   pixels is refused with a `CsvFormatError` naming the column. Valid inputs give
   bit-identical outputs (`python tools/dump_outputs.py` prints the digest to compare).
+- **Means and standard deviations no longer depend on CPU threads (#67).** They summed with
+  `np.dot`, which the BLAS library splits across its threads, so a z-score fit changed in its
+  last bits with `OMP_NUM_THREADS` or `OPENBLAS_NUM_THREADS`. They now add the same products
+  with `math.fsum` (the correctly rounded sum): the same bits for any thread count, BLAS or
+  platform, never less accurate than before. **The last bits change:** pooled `mean` and
+  `std` and the `zscore` offset and scale differ from v0.3.3 by at most 3.7e-14 relative
+  (134 numbers on 86 of the 1,788 lines of `tools/dump_outputs.py`; 89 by 1 ulp, the largest
+  317 ulps, for int64 planes near 2**53). Every other output is bitwise unchanged.
 
 ### Migrating to v0.3.3
 

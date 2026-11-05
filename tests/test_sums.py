@@ -111,3 +111,28 @@ def test_fits_are_bitwise_equal_with_one_and_many_threads(tmp_path: Path) -> Non
         results.append(json.loads(done.stdout))
     assert results[0] == results[1]
     assert results[0] == _numbers()
+
+
+def test_non_finite_sums_stay_nan_or_inf_as_with_np_dot() -> None:
+    """``math.fsum`` raises on ``inf - inf`` and overflow; the sums keep np.dot's nan and inf."""
+    big = np.finfo(np.float64).max
+    with np.errstate(over="ignore", invalid="ignore"):
+        assert np.isnan(weighted_sum(np.array([1, 1]), np.array([np.inf, -np.inf])))
+        assert np.isnan(weighted_sum(np.array([4, 4]), np.array([big, -big])))
+        assert weighted_sum(np.array([1, 1]), np.array([big, big * 0.9])) == np.inf
+        assert weighted_sum(np.array([2, 1]), np.array([-np.inf, 1.0])) == -np.inf
+        assert np.isnan(weighted_sum(np.array([1, 1]), np.array([np.nan, 1.0])))
+    assert weighted_sum(np.array([], dtype=np.int64), np.array([])) == 0.0
+
+
+def test_huge_planes_are_refused_by_name_not_by_fsum() -> None:
+    """A float64 plane whose sums overflow gets the z-score refusal, not a bare fsum error."""
+    big = np.finfo(np.float64).max
+    for plane in (np.array([[big, -big], [big, -big]]), np.array([[big, big * 0.9], [1.0, 2.0]])):
+        with np.errstate(over="ignore", invalid="ignore"):
+            try:
+                fit(plane, NormalizationSettings(method="zscore"))
+            except ValueError as error:
+                assert "z-score normalization cannot be used" in str(error)
+            else:
+                raise AssertionError("expected the z-score refusal")

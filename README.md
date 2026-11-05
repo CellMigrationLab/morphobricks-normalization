@@ -179,7 +179,8 @@ warnings = range_check_issues([("img.tif::z=0,t=0", 0, check)])
   platform, never less accurate than before. **The last bits change:** pooled `mean` and
   `std` and the `zscore` offset and scale differ from v0.3.3 by at most 3.7e-14 relative
   (134 numbers on 86 of the 1,788 lines of `tools/dump_outputs.py`; 89 by 1 ulp, the largest
-  317 ulps, for int64 planes near 2**53). Every other output is bitwise unchanged.
+  317 ulps, for int64 planes near 2**53). Every other output is bitwise unchanged. A sum
+  that overflows float64 is still `nan` or `inf`, refused as before.
 
 ### Migrating to v0.3.3
 

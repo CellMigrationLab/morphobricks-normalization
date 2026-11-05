@@ -29,7 +29,15 @@ def weighted_sum(weights: np.ndarray, values: np.ndarray) -> float:
     Returns
     -------
     total : float
-        The correctly rounded sum of the float64 products.
+        The correctly rounded sum of the float64 products. When that sum is not finite (an
+        infinite product of each sign, or finite products whose sum overflows), the IEEE
+        result ``nan`` or ``inf`` that ``np.dot`` gave, never an exception.
     """
     products = np.multiply(weights, values, dtype=np.float64)
-    return math.fsum(products.tolist())
+    try:
+        return math.fsum(products.tolist())
+    except (OverflowError, ValueError):
+        # fsum raises on inf + -inf and on an overflowing sum, where np.dot returned nan or
+        # inf for the callers to refuse by name. NumPy's sum of a contiguous float64 array is
+        # one thread in a fixed order, so the fallback is deterministic too.
+        return float(np.add.reduce(products))

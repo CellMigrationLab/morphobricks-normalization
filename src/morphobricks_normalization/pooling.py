@@ -41,6 +41,7 @@ import numpy as np
 from .histogram import PlaneHistogram
 from .integrity import INT64_MAX
 from .records import PlaneRecord
+from .sums import weighted_sum
 
 DEFAULT_PERCENTILES = (0.1, 1.0, 5.0, 25.0, 50.0, 75.0, 95.0, 99.0, 99.9)
 
@@ -157,7 +158,7 @@ class PooledHistogram:
         """Count-weighted mean; pixels outside the bins count with their exact values."""
         if self.tails:
             return _mean_with_tails(self.bin_values, self.bin_counts, self.tails, self.pixel_count)
-        return float(np.dot(self.counts, self.values) / self.pixel_count)
+        return weighted_sum(self.counts, self.values) / self.pixel_count
 
     @property
     def std(self) -> float:
@@ -167,7 +168,8 @@ class PooledHistogram:
                 self.bin_values, self.bin_counts, self.tails, self.pixel_count, self.mean
             )
         deviations = self.values - self.mean
-        return float(np.sqrt(np.dot(self.counts, deviations * deviations) / self.pixel_count))
+        squares = weighted_sum(self.counts, deviations * deviations)
+        return float(np.sqrt(squares / self.pixel_count))
 
     def percentile(self, q: float) -> float:
         """Inverse-CDF percentile, ``q`` in percent (0-100)."""
@@ -296,7 +298,7 @@ class WeightedHistogram:
             return _mean_with_tails(
                 self.bin_values, self.bin_weights, self.tails, self.total_weight
             )
-        return float(np.dot(self.weights, self.values) / self.total_weight)
+        return weighted_sum(self.weights, self.values) / self.total_weight
 
     @property
     def std(self) -> float:
@@ -306,7 +308,8 @@ class WeightedHistogram:
                 self.bin_values, self.bin_weights, self.tails, self.total_weight, self.mean
             )
         deviations = self.values - self.mean
-        return float(np.sqrt(np.dot(self.weights, deviations * deviations) / self.total_weight))
+        squares = weighted_sum(self.weights, deviations * deviations)
+        return float(np.sqrt(squares / self.total_weight))
 
     def percentile(self, q: float) -> float:
         """Weighted inverse-CDF percentile, ``q`` in percent (0-100)."""
@@ -358,7 +361,7 @@ def pooled_statistics(
 def _mean_with_tails(
     values: np.ndarray, weights: np.ndarray, tails: list[tuple[float, float, float]], total: float
 ) -> float:
-    return float((np.dot(weights, values) + math.fsum(s for _, s, _ in tails)) / total)
+    return (weighted_sum(weights, values) + math.fsum(s for _, s, _ in tails)) / total
 
 
 def _std_with_tails(
@@ -369,7 +372,7 @@ def _std_with_tails(
     mean: float,
 ) -> float:
     deviations = values - mean
-    squares = float(np.dot(weights, deviations * deviations))
+    squares = weighted_sum(weights, deviations * deviations)
     for count, s, s2 in tails:
         # Each tail adds its spread around its own mean and its mean's distance
         # from the overall mean; the spread never goes negative through rounding.

@@ -53,6 +53,7 @@ import numpy as np
 from .dtypes import check_supported, default_bin_count, is_integer, validate_bin_count
 from .integrity import check_histogram, check_tail, checked_blocks
 from .ranges import CENTRAL_PERCENTILES, HistogramSettings, RangeCheck
+from .sums import weighted_sum
 
 # Above this many distinct values, integer planes are binned with a search over
 # bin starts instead of a full per-value count.
@@ -721,9 +722,8 @@ def _table_tail(per_value: np.ndarray, first_value: int) -> HistogramTail:
     if count == 0:
         return EMPTY_TAIL
     values = first_value + np.arange(per_value.size, dtype=np.float64)
-    weights = per_value.astype(np.float64)
     return HistogramTail(
-        count, float(np.dot(values, weights)), float(np.dot(values * values, weights))
+        count, weighted_sum(per_value, values), weighted_sum(per_value, values * values)
     )
 
 

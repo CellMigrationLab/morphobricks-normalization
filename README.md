@@ -137,6 +137,9 @@ or `bit_depth` disagrees with its other columns (#18).
 `v0.3.3` (3 November 2026) refuses corrupt or ambiguous statistics and parameters instead
 of using them (issues #25, #26, #31, #36–#38, #42–#48); valid inputs give bit-identical
 results. See [Migrating to v0.3.3](#migrating-to-v033).
+`v0.3.4` (5 November 2026) refuses a histogram whose missing `pixel_min` or `pixel_max` used
+to be filled in (#47, PR #65) and adds the section 9 code-standards gate (PR #66). See
+[Migrating to v0.3.4](#migrating-to-v034).
 
 Milestone 5 added a robust histogram range for histograms that are not exact (float planes,
 and integer planes with more values than bins), for issue #12 (decisions N54–N60):
@@ -164,14 +167,29 @@ histogram, check = histogram_with_range_check(lambda: (plane,), plane.dtype, set
 warnings = range_check_issues([("img.tif::z=0,t=0", 0, check)])
 ```
 
-### Unreleased (next tag)
+### v0.3.4 (5 November 2026)
 
-- **`PlaneHistogram`** no longer fills a missing `pixel_min` or `pixel_max` from
-  `binning_min` or `binning_max` (#47). A caller that builds a histogram of a plane with
-  valid pixels passes both extrema explicitly, e.g. `pixel_min=lo, pixel_max=hi` for a
-  min-max histogram. A `plane_histograms.csv` row with one blank intensity limit and valid
-  pixels is refused with a `CsvFormatError` naming the column. Valid inputs give
-  bit-identical outputs (`python tools/dump_outputs.py` prints the digest to compare).
+- **`PlaneHistogram` refuses a missing extremum (#65, issue #47)**: it no longer fills a
+  missing `pixel_min` or `pixel_max` from `binning_min` or `binning_max`. A caller that
+  builds a histogram of a plane with valid pixels passes both extrema explicitly, e.g.
+  `pixel_min=lo, pixel_max=hi` for a min-max histogram. A `plane_histograms.csv` row with
+  one blank intensity limit and valid pixels is refused with a `CsvFormatError` naming the
+  column. Valid inputs give bit-identical outputs (`python tools/dump_outputs.py` prints the
+  digest to compare).
+- **Section 9 code-standards gate (#66)**: `python tools/check.py` runs the shared code
+  rules, Ruff and pytest against a shrink-only baseline (`tools/code_rules_baseline.json`,
+  taken at `v0.3.3`); CI runs its `--rules` part. No library behaviour changes.
+
+### Migrating to v0.3.4
+
+Valid inputs give bit-identical results. One input that was accepted before is now refused:
+
+- **Histograms with a missing extremum:** a `PlaneHistogram` of a plane with valid pixels
+  whose `pixel_min` or `pixel_max` is `None` raises `ValueError` (`CsvFormatError` when read
+  from `plane_histograms.csv`, naming the blank column). Earlier versions filled it from
+  `binning_min` or `binning_max`. Pass the plane's actual extrema, e.g.
+  `PlaneHistogram(..., pixel_min=lo, pixel_max=hi)`. A channel without valid pixels may still
+  leave both blank.
 
 ### Migrating to v0.3.3
 
@@ -207,7 +225,7 @@ These inputs are now refused with `ValueError` (`CsvFormatError` when read from 
 ## Installation
 
 ```bash
-pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git"
+pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.3.4"
 ```
 
 For development, from a clone:

@@ -276,8 +276,10 @@ their formula is implemented here.
   inputs give bit-identical outputs. Migration notes in the README.
 - **Release `v0.3.4`** (5 November 2026): `PlaneHistogram` refuses a missing `pixel_min` or
   `pixel_max` for a plane with valid pixels instead of filling it from the binning limits
-  (#47, PR #65), and the section 9 code-standards gate is installed (PR #66). Valid inputs
-  give bit-identical outputs. Migration notes in the README.
+  (#47, PR #65); pooled means, standard deviations and z-score fits are correctly rounded
+  `math.fsum` sums, independent of the CPU thread count, so they change in their last bits
+  (at most 3.7e-14 relative; #67, PR #69); and the section 9 code-standards gate is
+  installed (PR #66). Every other output is bit-identical. Migration notes in the README.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
   schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag

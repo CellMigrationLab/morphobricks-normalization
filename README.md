@@ -137,6 +137,10 @@ or `bit_depth` disagrees with its other columns (#18).
 `v0.3.3` (3 November 2026) refuses corrupt or ambiguous statistics and parameters instead
 of using them (issues #25, #26, #31, #36–#38, #42–#48); valid inputs give bit-identical
 results. See [Migrating to v0.3.3](#migrating-to-v033).
+`v0.3.4` (5 November 2026) refuses a histogram whose missing `pixel_min` or `pixel_max` used
+to be filled in (#47, PR #65), makes means, standard deviations and z-score fits independent
+of the CPU thread count, changing their last bits (#67, PR #69), and adds the section 9
+code-standards gate (PR #66). See [Migrating to v0.3.4](#migrating-to-v034).
 
 Milestone 5 added a robust histogram range for histograms that are not exact (float planes,
 and integer planes with more values than bins), for issue #12 (decisions N54–N60):
@@ -164,23 +168,47 @@ histogram, check = histogram_with_range_check(lambda: (plane,), plane.dtype, set
 warnings = range_check_issues([("img.tif::z=0,t=0", 0, check)])
 ```
 
-### Unreleased (next tag)
+### v0.3.4 (5 November 2026)
 
-- **`PlaneHistogram`** no longer fills a missing `pixel_min` or `pixel_max` from
-  `binning_min` or `binning_max` (#47). A caller that builds a histogram of a plane with
-  valid pixels passes both extrema explicitly, e.g. `pixel_min=lo, pixel_max=hi` for a
-  min-max histogram. A `plane_histograms.csv` row with one blank intensity limit and valid
-  pixels is refused with a `CsvFormatError` naming the column. Valid inputs give
-  bit-identical outputs (`python tools/dump_outputs.py` prints the digest to compare).
-- **Means and standard deviations no longer depend on CPU threads (#67).** They summed with
-  `np.dot`, which the BLAS library splits across its threads, so a z-score fit changed in its
-  last bits with `OMP_NUM_THREADS` or `OPENBLAS_NUM_THREADS`. They now add the same products
-  with `math.fsum` (the correctly rounded sum): the same bits for any thread count, BLAS or
-  platform, never less accurate than before. **The last bits change:** pooled `mean` and
-  `std` and the `zscore` offset and scale differ from v0.3.3 by at most 3.7e-14 relative
-  (134 numbers on 86 of the 1,788 lines of `tools/dump_outputs.py`; 89 by 1 ulp, the largest
-  317 ulps, for int64 planes near 2**53). Every other output is bitwise unchanged. A sum
-  that overflows float64 is still `nan` or `inf`, refused as before.
+- **`PlaneHistogram` refuses a missing extremum (#65, issue #47)**: it no longer fills a
+  missing `pixel_min` or `pixel_max` from `binning_min` or `binning_max`. A caller that
+  builds a histogram of a plane with valid pixels passes both extrema explicitly, e.g.
+  `pixel_min=lo, pixel_max=hi` for a min-max histogram. A `plane_histograms.csv` row with
+  one blank intensity limit and valid pixels is refused with a `CsvFormatError` naming the
+  column. This change alone leaves every output for valid inputs bitwise unchanged.
+- **Means and standard deviations no longer depend on CPU threads (#69, issue #67).** They
+  summed with `np.dot`, which the BLAS library splits across its threads, so a z-score fit
+  changed in its last bits with `OMP_NUM_THREADS` or `OPENBLAS_NUM_THREADS`. They now add the
+  same products with `math.fsum` (the correctly rounded sum): the same bits for any thread
+  count, BLAS or platform, never less accurate than before. A sum that overflows float64 is
+  still `nan` or `inf`, refused as before. The last bits change (see the migration note).
+- **Section 9 code-standards gate (#66)**: `python tools/check.py` runs the shared code
+  rules, Ruff and pytest against a shrink-only baseline (`tools/code_rules_baseline.json`,
+  taken at `v0.3.3`); CI runs its `--rules` part. No library behaviour changes.
+
+### Migrating to v0.3.4
+
+Results are **not** all bit-identical to v0.3.3:
+
+- **Mean, standard deviation and z-score change in their last bits (#67).** The pooled
+  `mean` and `std` (`PooledHistogram`, `WeightedHistogram`, `pooled_statistics`) and the
+  `zscore` offset and scale, at every scope, are now the correctly rounded sums of the same
+  products, so they can differ from v0.3.3 by a few units in the last place: at most
+  3.7e-14 relative on `tools/dump_outputs.py` (134 numbers on 86 of its 1,788 lines; 89 of
+  them by 1 ulp, the largest by 317 ulps, for int64 planes with values near 2**53). Cached
+  z-score parameters or features computed from them with v0.3.3 are not bitwise
+  reproducible with v0.3.4; recompute them rather than mixing the two. Every other output
+  (histograms, `plane_histograms.csv`, minimum, maximum, percentiles, median, MAD, the
+  min-max, percentile, robust z-score and RGB methods) is bitwise unchanged.
+
+One input that was accepted before is now refused:
+
+- **Histograms with a missing extremum:** a `PlaneHistogram` of a plane with valid pixels
+  whose `pixel_min` or `pixel_max` is `None` raises `ValueError` (`CsvFormatError` when read
+  from `plane_histograms.csv`, naming the blank column). Earlier versions filled it from
+  `binning_min` or `binning_max`. Pass the plane's actual extrema, e.g.
+  `PlaneHistogram(..., pixel_min=lo, pixel_max=hi)`. A channel without valid pixels may still
+  leave both blank.
 
 ### Migrating to v0.3.3
 
@@ -216,7 +244,7 @@ These inputs are now refused with `ValueError` (`CsvFormatError` when read from 
 ## Installation
 
 ```bash
-pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git"
+pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.3.4"
 ```
 
 For development, from a clone:

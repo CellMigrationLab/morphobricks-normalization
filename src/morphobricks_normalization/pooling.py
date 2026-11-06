@@ -361,7 +361,29 @@ def pooled_statistics(
 def _mean_with_tails(
     values: np.ndarray, weights: np.ndarray, tails: list[tuple[float, float, float]], total: float
 ) -> float:
-    return (weighted_sum(weights, values) + math.fsum(s for _, s, _ in tails)) / total
+    sums = [s for _, s, _ in tails]
+    if not all(math.isfinite(s) for s in sums):
+        # math.fsum would raise a bare ValueError or OverflowError from the standard library.
+        raise ValueError(_non_finite_tail_message(sums))
+    return (weighted_sum(weights, values) + math.fsum(sums)) / total
+
+
+def _non_finite_tail_message(sums: list[float]) -> str:
+    """Refusal text for tail sums that are infinite or NaN, naming each such tail."""
+    bad = ", ".join(
+        f"tail {number} of {len(sums)} has sum {s!r}"
+        for number, s in enumerate(sums, 1)
+        if not math.isfinite(s)
+    )
+    opposing = any(s == math.inf for s in sums) and any(s == -math.inf for s in sums)
+    reason = (
+        "infinite sums of opposite sign have no mean" if opposing else "a sum that is not finite"
+    )
+    return (
+        f"The mean cannot be pooled: {bad} ({reason}). The pixels outside the robust range "
+        "are too large for float64 sums. Use a method that does not need the mean, or "
+        "another range."
+    )
 
 
 def _std_with_tails(

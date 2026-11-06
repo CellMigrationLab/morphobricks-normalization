@@ -99,7 +99,14 @@ def robust_z_score(
 
 
 def _parameters(method: str, offset: float, scale: float) -> NormalizationParameters:
-    if not np.isfinite(scale) or scale <= 0:
+    """Make the parameters, refusing a scale that is not finite or not positive, by cause."""
+    if not np.isfinite(scale):
+        raise ValueError(
+            f"The {method} normalization cannot be used for this group: its intensity spread "
+            f"is {scale!r}, not a finite number, because the pixel values are too large for "
+            "float64 sums of squares (overflow). Choose another method or a different range."
+        )
+    if scale <= 0:
         raise ValueError(
             f"The {method} normalization cannot be used for this group: its intensity spread "
             "is zero (all pixels have the same value). Choose a larger group or another method."

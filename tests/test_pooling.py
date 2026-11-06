@@ -9,7 +9,10 @@ from morphobricks_normalization import (
     pooled_statistics,
 )
 from morphobricks_normalization.pooling import DEFAULT_PERCENTILES
+from morphobricks_normalization.ranges import HistogramSettings
 from simulation import direct_stats, make_records, simulate_experiment
+
+ROBUST = HistogramSettings(histogram_range="robust", robust_quantiles=(1.0, 99.0))
 
 LEVELS = ("image", "technical_repeat", "biological_repeat", "condition")
 
@@ -83,3 +86,17 @@ def test_percentile_limits():
     assert pooled.percentile(0) == 0 and pooled.percentile(100) == 9
     with pytest.raises(ValueError):
         pooled.percentile(101)
+
+
+def test_opposing_infinite_tail_sums_are_a_named_refusal():
+    # Float64 pixels at both ends overflow the tails' sums to +inf and -inf; the mean then
+    # needs a refusal that says why, not a bare error from math.fsum.
+    plane = np.full((80, 80), 1.0)
+    plane.ravel()[:5] = -1.7e308
+    plane.ravel()[5:10] = 1.7e308
+    plane.ravel()[10:] = np.linspace(0, 10, 6390)
+    histogram = compute_plane_histogram(plane, settings=ROBUST)
+    assert histogram.underflow.sum == -np.inf and histogram.overflow.sum == np.inf
+    with pytest.raises(ValueError, match="opposite sign") as caught:
+        _ = PooledHistogram([histogram]).mean
+    assert "tail 1 of 2" in str(caught.value) and "tail 2 of 2" in str(caught.value)

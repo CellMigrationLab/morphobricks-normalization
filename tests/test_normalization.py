@@ -56,3 +56,11 @@ def test_zero_spread_is_rejected_with_a_clear_message():
     for method in (min_max, z_score, robust_z_score):
         with pytest.raises(ValueError, match="spread is zero"):
             method(constant)
+
+
+def test_non_finite_scale_is_refused_as_overflow_not_zero_spread():
+    plane = np.array([[-1.7e308, 1.7e308], [-1.7e308, 1.7e308]])
+    pooled = PooledHistogram([compute_plane_histogram(plane)])
+    with pytest.raises(ValueError, match="not a finite number") as caught:
+        z_score(pooled)
+    assert "spread is zero" not in str(caught.value)

@@ -369,6 +369,7 @@ def _mean_with_tails(
 
 
 def _non_finite_tail_message(sums: list[float]) -> str:
+    """Refusal text for tail sums that are infinite or NaN, naming each such tail."""
     bad = ", ".join(
         f"tail {number} of {len(sums)} has sum {s!r}"
         for number, s in enumerate(sums, 1)

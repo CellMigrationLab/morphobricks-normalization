@@ -98,5 +98,5 @@ def test_opposing_infinite_tail_sums_are_a_named_refusal():
     histogram = compute_plane_histogram(plane, settings=ROBUST)
     assert histogram.underflow.sum == -np.inf and histogram.overflow.sum == np.inf
     with pytest.raises(ValueError, match="opposite sign") as caught:
-        PooledHistogram([histogram]).mean
+        _ = PooledHistogram([histogram]).mean
     assert "tail 1 of 2" in str(caught.value) and "tail 2 of 2" in str(caught.value)

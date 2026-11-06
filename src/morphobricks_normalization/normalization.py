@@ -99,6 +99,7 @@ def robust_z_score(
 
 
 def _parameters(method: str, offset: float, scale: float) -> NormalizationParameters:
+    """Make the parameters, refusing a scale that is not finite or not positive, by cause."""
     if not np.isfinite(scale):
         raise ValueError(
             f"The {method} normalization cannot be used for this group: its intensity spread "

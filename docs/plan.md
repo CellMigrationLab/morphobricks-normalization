@@ -1,8 +1,8 @@
 # MorphoBricks Normalization Brick — Implementation Plan
 
-> See also: [Preprocessing follow-up](followup_preprocessing.md) · [CellPatcher follow-up](followup_cellpatcher.md)
+> See also: [Preprocessing follow-up](archive/followup_preprocessing.md) (done) · [CellPatcher follow-up](archive/followup_cellpatcher.md) (done)
 
-**Status:** design brief, simplified on 26 October 2026 (decisions N29–N40, §12), with
+**Status:** implemented through v0.3.4 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
 channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
 (N4–N28) is withdrawn where §12 says so. A robust histogram range was added on 28 October

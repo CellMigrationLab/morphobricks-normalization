@@ -8,7 +8,8 @@ Read it, and the documents below, before changing anything.
 |---|---|
 | `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N60 (§12) and what is still to be measured (§13) |
 | `docs/contract.md` | Rules other bricks rely on: methods and formulas, interface, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
-| `docs/followup_preprocessing.md`, `docs/followup_cellpatcher.md` | What the two calling bricks change once this brick is released |
+| `CHANGELOG.md` | Release notes and migration notes |
+| `docs/archive/` | Historical record: the two done follow-ups for the calling bricks |
 
 ## 1. What the brick is
 
@@ -113,16 +114,13 @@ range check.
 2. **Ask before deciding.** Decisions N1–N60 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
-3. **Milestone 1 moves code unchanged.** The histogram, bin-count, record, CSV, pooling
-   and normalization modules come from morphobricks-preprocessing with only the package
-   name changed, with their tests, and give bit-identical outputs (contract §1). New
-   behaviour starts in Milestone 2; Milestone 2b changed only the table layout (contract
-   §1.3), and `tests/test_schema_v2_equivalence.py` keeps the numbers bit-identical.
+3. **Outputs stay bit-identical** unless a change says otherwise. `tests/test_schema_v2_equivalence.py` keeps the
+   numbers of the version-2 table layout bit-identical (contract §1.3).
 4. **Tests** use simulated data generated in the tests; real data only as an optional
    check. Each formula is tested against a direct implementation (plan §11).
 5. **Style** as in morphobricks-preprocessing: Python 3.11+ (MorphoBricks decision D01), `ruff` (line length 100,
    NumPy docstrings), small modules with one job each, comments that explain why.
 6. **Done means** `python tools/check.py` passes (Ruff's findings go through the shrink-only
-   baseline, so plain `ruff check .` still lists the v0.3.3 debt) and the docs are updated. Report honestly what was verified and what was not.
+   baseline, so plain `ruff check .` still lists the baselined debt) and the docs are updated. Report honestly what was verified and what was not.
 7. **One milestone per branch and PR** against `main`. Do the task asked; list unrelated
    problems as follow-ups.

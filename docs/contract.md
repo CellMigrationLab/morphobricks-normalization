@@ -1,7 +1,7 @@
 # Normalization Brick Contract
 
-> See also: [Plan](plan.md) · [Preprocessing follow-up](followup_preprocessing.md) ·
-> [CellPatcher follow-up](followup_cellpatcher.md)
+> See also: [Plan](plan.md) · [Preprocessing follow-up](archive/followup_preprocessing.md) (done) ·
+> [CellPatcher follow-up](archive/followup_cellpatcher.md) (done)
 
 This document fixes the rules other bricks can rely on: the methods, the scopes and repeat
 groups, the image types, the statistics file, the intensity checks, the parameter columns and
@@ -21,7 +21,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 3.3 RGB method; 5. Image types | Milestone 3 (done) |
 | 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b (done; the columns of 7.1 in Milestone 4, done) |
 | 7. Intensity checks | Milestone 4 (done) |
-| 1.4 Robust histogram range and range check; `plane_histograms.csv` schema version 4 (6.2) | Milestone 5 |
+| 1.4 Robust histogram range and range check; `plane_histograms.csv` schema version 4 (6.2) | Milestone 5 (done) |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered

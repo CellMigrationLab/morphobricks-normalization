@@ -372,3 +372,24 @@ def test_rgb_images_with_one_pixel_type_and_several_times_are_pooled(kind):
     images, records = cached_rgb_design(seed=51, n_times=2, **DTYPES[kind])
     parameters = fit(records[:4], rgb(scope="biological_repeat"))
     assert parameters.channels == (0, 1, 2)
+
+
+@pytest.mark.parametrize("subset", [[2], [0, 1], [1, 2], [0, 2]])
+def test_rgb_parameters_refuse_a_channel_subset(subset):
+    """Issue #50: a subset could not be read back by from_columns."""
+    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3)
+    with pytest.raises(ValueError, match="three colour channels together"):
+        p.select(subset)
+
+
+def test_rgb_parameters_select_all_channels_unchanged_and_fluorescence_subsets_work():
+    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3)
+    assert p.select([2, 1, 0]) == p
+    settings = rgb()
+    assert Parameters.from_columns(p.select([0, 1, 2]).to_columns(), settings) == p
+    pixels = np.arange(27, dtype=np.uint8).reshape(3, 3, 3)
+    assert np.array_equal(
+        p.select([0, 1, 2]).apply(pixels, channel_axis=0), p.apply(pixels, channel_axis=0)
+    )
+    fluorescence = Parameters("percentile 1-99.8", "image", "g", True, (1.0, 2.0, 3.0), (4.0,) * 3)
+    assert fluorescence.select([2]).channels == (2,)

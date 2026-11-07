@@ -149,3 +149,17 @@ def check_rgb_records(records: list[PlaneRecord], group: str | None) -> None:
             "are not converted, so it needs one pixel type. Save the images with one pixel "
             "type, or put them in separate groups, then fit again."
         )
+
+
+def check_rgb_selection(wanted: list[int], channels: tuple[int, ...]) -> None:
+    """Refuse a strict subset of R, G and B: RGB parameters keep the channels together (#50).
+
+    A subset would serialize as a single channel that ``from_columns`` reads back as
+    something else, and a lone colour channel is not a valid RGB patch (contract §5).
+    """
+    if wanted != list(channels):
+        raise ValueError(
+            f"RGB parameters belong to the three colour channels together, so channels {wanted} "
+            f"alone cannot be selected. Select all of channels {list(channels)}, or choose "
+            "image type 'fluorescence' to normalize channels separately."
+        )

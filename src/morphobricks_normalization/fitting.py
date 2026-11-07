@@ -45,6 +45,7 @@ from .rgb import (
     apply_rgb,
     check_rgb_pixels,
     check_rgb_records,
+    check_rgb_selection,
     rgb_percentile,
 )
 from .settings import SCOPES, NormalizationSettings, check_settings
@@ -150,7 +151,8 @@ class Parameters:
         Raises
         ------
         ValueError
-            If a channel is not among :attr:`channels`, or is not a whole number.
+            If a channel is not among :attr:`channels`, or is not a whole number; for RGB
+            parameters, if not all of R, G and B are selected (issue #50).
         """
         wanted = sorted(set(channel_indices(channels)))
         missing = [c for c in wanted if c not in self.channels]
@@ -161,6 +163,8 @@ class Parameters:
                 f"These parameters have channel(s) {list(self.channels)}; channel(s) "
                 f"{missing} cannot be selected."
             )
+        if self.image_type == "rgb":
+            check_rgb_selection(wanted, self.channels)
         index = [self.channels.index(c) for c in wanted]
         return replace(
             self,

@@ -49,6 +49,14 @@ SUMMARY_FEATURES = (
 )
 
 
+class IncompatibleSummariesError(ValueError):
+    """Raised for image summaries that cannot be compared or pooled with each other.
+
+    Different numbers of channels, percentile definitions or pixel types make the
+    values measure different things; nothing is converted or guessed.
+    """
+
+
 @dataclass(frozen=True)
 class ImageSummary:
     """Intensity summary of one image, all Z and T planes pooled per channel.
@@ -85,6 +93,21 @@ class ImageSummary:
     p_high: tuple[float | None, ...]
     saturated_fraction: tuple[float | None, ...]
     exact: tuple[bool | None, ...]
+
+    def __post_init__(self) -> None:
+        """Refuse per-channel tuples of different lengths, or none (issue #56)."""
+        lengths = {
+            name: len(getattr(self, name))
+            for name in ("median", "p_low", "p_high", "saturated_fraction", "exact")
+        }
+        if len(set(lengths.values())) > 1 or lengths["median"] == 0:
+            found = ", ".join(f"{name}: {n}" for name, n in lengths.items())
+            raise IncompatibleSummariesError(
+                f"Image {self.source_relative_path}: its per-channel values do not have one "
+                f"entry per channel ({found}), so the channels of the image are not defined. "
+                "Give median, p_low, p_high, saturated_fraction and exact the same, non-zero "
+                "length, or build the summary with image_summaries()."
+            )
 
     @property
     def image_file(self) -> str:
@@ -161,6 +184,8 @@ def image_summaries(
     ValueError
         For invalid percentiles, rows that repeat a ``plane_id``, or images with
         different numbers of channels (N43).
+    IncompatibleSummariesError
+        For an image whose Z or T planes have different pixel types (issue #54).
     """
     low, high = (float(q) for q in percentile)
     if not 0 <= low < high <= 100:
@@ -179,7 +204,24 @@ def image_summaries(
     return [_summary(planes, (low, high)) for _, planes in sorted(images.items())]
 
 
+def _check_one_dtype(planes: list[PlaneRecord]) -> None:
+    """Refuse an image whose Z/T planes have different pixel types (issue #54)."""
+    by_dtype: dict[str, list[str]] = {}
+    for plane in sorted(planes, key=lambda r: (r.t, r.z)):
+        by_dtype.setdefault(str(plane.histograms[0].dtype), []).append(plane.plane_id)
+    if len(by_dtype) > 1:
+        parts = "; ".join(f"{dtype}: {', '.join(ids)}" for dtype, ids in sorted(by_dtype.items()))
+        raise IncompatibleSummariesError(
+            f"Image {planes[0].source_relative_path} has planes of different pixel types "
+            f"({parts}). The saturated fraction and the pooled statistics need one pixel type "
+            "per image, and the pixel types are not converted. Save the planes of the image "
+            "with one pixel type, then run the preprocessing brick again."
+        )
+
+
 def _summary(planes: list[PlaneRecord], percentile: tuple[float, float]) -> ImageSummary:
+    """Pool the planes of one image, channel by channel."""
+    _check_one_dtype(planes)
     first = planes[0]
     median, p_low, p_high, saturated, exact = [], [], [], [], []
     for channel in range(first.channel_count):

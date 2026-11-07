@@ -39,7 +39,12 @@ from .records import SINGLE, PlaneRecord, group_records, make_plane_id
 from .rgb import apply_rgb, rgb_percentile
 from .scopes import group_key, group_name, scope_groups
 from .settings import MethodNotAllowedError, NormalizationSettings, check_settings
-from .summaries import ImageSummary, image_summaries, summary_columns
+from .summaries import (
+    ImageSummary,
+    IncompatibleSummariesError,
+    image_summaries,
+    summary_columns,
+)
 
 __all__ = [
     "OUTPUT_FILENAME",
@@ -47,6 +52,7 @@ __all__ = [
     "HistogramSettings",
     "HistogramTail",
     "ImageSummary",
+    "IncompatibleSummariesError",
     "IntensityCheckSettings",
     "Issue",
     "MethodNotAllowedError",

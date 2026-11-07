@@ -8,6 +8,7 @@ import pytest
 from morphobricks_normalization import (
     SINGLE,
     ImageSummary,
+    IncompatibleSummariesError,
     IntensityCheckSettings,
     Issue,
     PlaneRecord,
@@ -359,3 +360,54 @@ def test_other_warnings_have_no_channel():
     issue = Issue("warning", "repeat_missing_conditions", "message")
     assert issue.channel is None
     assert replace(issue, channel=1) != issue
+
+
+def _direct(path_, channels, percentile=(1.0, 99.8)):
+    """A directly built summary with ``channels`` channels."""
+    values = tuple(float(10 + c) for c in range(channels))
+    return ImageSummary(
+        source_relative_path=path_,
+        condition="c",
+        biological_repeat="r",
+        technical_repeat="",
+        dtype=np.dtype(np.uint8),
+        percentile=percentile,
+        median=values,
+        p_low=values,
+        p_high=tuple(v + 5 for v in values),
+        saturated_fraction=(0.0,) * channels,
+        exact=(True,) * channels,
+    )
+
+
+def test_summary_with_mismatched_channel_tuples_is_refused():
+    """Issue #56: per-channel tuples of different lengths name the image."""
+    good = _direct("a.tif", 2)
+    with pytest.raises(IncompatibleSummariesError, match=r"a\.tif.*p_high: 1"):
+        replace(good, p_high=(1.0,))
+    with pytest.raises(IncompatibleSummariesError, match=r"a\.tif"):
+        replace(good, median=(), p_low=(), p_high=(), saturated_fraction=(), exact=())
+
+
+@pytest.mark.parametrize("order", [(1, 2), (2, 1)])
+def test_summaries_with_different_channel_counts_are_refused(order):
+    """Issue #56: one- and two-channel images in either order, naming both images."""
+    summaries = [_direct(f"img_{i}.tif", n) for i, n in enumerate(order * 3)]
+    with pytest.raises(IncompatibleSummariesError, match=r"1 channel\(s\).*2 channel\(s\)"):
+        intensity_checks(summaries)
+
+
+@pytest.mark.parametrize("odd_first", [True, False])
+@pytest.mark.parametrize("odd", [(1.0, 95.0), (5.0, 99.8)])
+def test_summaries_with_different_percentiles_are_refused(odd, odd_first):
+    """Issue #55: a different high or low percentile is refused, in either order."""
+    same = [_direct(f"img_{i}.tif", 1) for i in range(5)]
+    other = _direct("odd.tif", 1, percentile=odd)
+    summaries = [other, *same] if odd_first else [*same, other]
+    with pytest.raises(IncompatibleSummariesError, match=r"percentile definitions.*odd\.tif"):
+        intensity_checks(summaries)
+
+
+def test_summaries_with_the_same_percentiles_are_accepted():
+    summaries = [_direct(f"img_{i}.tif", 1, percentile=(5.0, 95.0)) for i in range(5)]
+    assert intensity_checks(summaries) == []

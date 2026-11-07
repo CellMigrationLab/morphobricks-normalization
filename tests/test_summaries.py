@@ -7,6 +7,7 @@ import pytest
 
 from morphobricks_normalization import (
     SINGLE,
+    IncompatibleSummariesError,
     PlaneRecord,
     compute_plane_histogram,
     image_summaries,
@@ -217,3 +218,30 @@ def test_summaries_from_the_written_table_equal_those_from_the_records(tmp_path)
 
 def test_no_records_no_summaries():
     assert image_summaries([]) == []
+
+
+@pytest.mark.parametrize("first_is_small", [True, False])
+@pytest.mark.parametrize(
+    ("small", "large"), [(np.uint8, np.uint16), (np.uint16, np.int16), (np.uint8, np.int8)]
+)
+def test_planes_of_one_image_with_different_pixel_types_are_refused(small, large, first_is_small):
+    """Issue #54: no pixel is at either type's maximum, yet the first dtype used to decide."""
+    a = record("a.tif", [np.full((8, 8), 100, dtype=small)], z=0)
+    b = record("a.tif", [np.full((8, 8), 100, dtype=large)], z=1)
+    with pytest.raises(IncompatibleSummariesError, match=r"a\.tif.*different pixel types") as info:
+        image_summaries([a, b] if first_is_small else [b, a])
+    assert str(np.dtype(small)) in str(info.value) and str(np.dtype(large)) in str(info.value)
+
+
+def test_same_pixel_type_with_varying_planes_is_accepted():
+    records = [record("a.tif", [np.full((8, 8), 10 * (z + 1), np.uint16)], z=z) for z in range(3)]
+    (summary,) = image_summaries(records)
+    assert summary.saturated_fraction == (0.0,)
+
+
+def test_different_images_may_differ_in_pixel_type():
+    records = [
+        record("a.tif", [np.full((8, 8), 5, np.uint8)]),
+        record("b.tif", [np.full((8, 8), 5, np.uint16)]),
+    ]
+    assert [s.dtype for s in image_summaries(records)] == [np.uint8, np.uint16]

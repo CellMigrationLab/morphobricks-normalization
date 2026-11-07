@@ -30,6 +30,7 @@ import numpy as np
 
 from ._version import __version__
 from .issues import NARROW_HISTOGRAM_RANGE, WARNING, Issue
+from .parameter_checks import channel_indices
 
 HISTOGRAM_RANGES = ("minmax", "robust")
 DEFAULT_ROBUST_QUANTILES = (0.01, 99.99)
@@ -185,6 +186,43 @@ class RangeCheck:
         return self.central_bins < self.min_central_bins
 
 
+class IncompatibleRangeChecksError(ValueError):
+    """Raised for narrow range checks of one channel made with different settings.
+
+    Planes checked with another histogram range, central percentiles, robust
+    quantiles or ``min_central_bins`` measure different things; one warning
+    cannot describe them, and none of the settings is taken as representative.
+    """
+
+
+def _settings_of(check: RangeCheck) -> tuple:
+    return (
+        check.histogram_range,
+        tuple(check.central_percentiles),
+        tuple(check.robust_quantiles),
+        check.min_central_bins,
+    )
+
+
+def _check_one_setting(channel: int, found: list[tuple[str, RangeCheck]]) -> None:
+    """Refuse narrow checks of one channel that were made with different settings."""
+    by_settings: dict[tuple, list[str]] = {}
+    for plane_id, check in found:
+        by_settings.setdefault(_settings_of(check), []).append(plane_id)
+    if len(by_settings) > 1:
+        parts = "; ".join(
+            f"range={sig[0]}, central percentiles={sig[1]}, robust quantiles={sig[2]}, "
+            f"min_central_bins={sig[3]}: {', '.join(dict.fromkeys(ids))}"
+            for sig, ids in sorted(by_settings.items(), key=lambda kv: repr(kv[0]))
+        )
+        raise IncompatibleRangeChecksError(
+            f"The narrow range checks of channel C{channel} were made with different "
+            f"settings ({parts}). One warning cannot describe them, and no setting is "
+            "taken as representative. Check all planes with the same histogram settings, "
+            "or pass the planes of each setting separately."
+        )
+
+
 def range_check_issues(checks: Iterable[tuple[str, int, RangeCheck | None]]) -> list[Issue]:
     """Warnings for the narrow central ranges among ``checks``, one per channel (N60).
 
@@ -200,15 +238,25 @@ def range_check_issues(checks: Iterable[tuple[str, int, RangeCheck | None]]) -> 
         One ``narrow_histogram_range`` warning per channel with at least one
         narrow plane, in channel order; ``items`` lists the planes and
         ``channel`` holds the channel. Empty when no range is narrow.
+
+    Raises
+    ------
+    ValueError
+        For a channel that is not a whole number 0 or above (nothing is rounded
+        or parsed).
+    IncompatibleRangeChecksError
+        For narrow planes of one channel whose checks used different settings.
     """
     by_channel: dict[int, list[tuple[str, RangeCheck]]] = {}
     for plane_id, channel, check in checks:
+        (channel,) = channel_indices([channel])
         if check is not None and check.narrow:
-            by_channel.setdefault(int(channel), []).append((plane_id, check))
+            by_channel.setdefault(channel, []).append((plane_id, check))
     issues = []
     for channel, found in sorted(by_channel.items()):
         planes = list(dict.fromkeys(plane_id for plane_id, _ in found))
         first = found[0][1]
+        _check_one_setting(channel, found)
         low, high = (_percent(q) for q in first.central_percentiles)
         q_low, q_high = (_percent(q) for q in first.robust_quantiles)
         fewest = min(check.central_bins for _, check in found)

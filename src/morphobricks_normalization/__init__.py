@@ -34,7 +34,12 @@ from .pooling import (
     WeightedHistogram,
     pooled_statistics,
 )
-from .ranges import HistogramSettings, RangeCheck, range_check_issues
+from .ranges import (
+    HistogramSettings,
+    IncompatibleRangeChecksError,
+    RangeCheck,
+    range_check_issues,
+)
 from .records import SINGLE, PlaneRecord, group_records, make_plane_id
 from .rgb import apply_rgb, rgb_percentile
 from .scopes import group_key, group_name, scope_groups
@@ -52,6 +57,7 @@ __all__ = [
     "HistogramSettings",
     "HistogramTail",
     "ImageSummary",
+    "IncompatibleRangeChecksError",
     "IncompatibleSummariesError",
     "IntensityCheckSettings",
     "Issue",

@@ -393,3 +393,45 @@ def test_rgb_parameters_select_all_channels_unchanged_and_fluorescence_subsets_w
     )
     fluorescence = Parameters("percentile 1-99.8", "image", "g", True, (1.0, 2.0, 3.0), (4.0,) * 3)
     assert fluorescence.select([2]).channels == (2,)
+
+
+@pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.float32, np.float64])
+@pytest.mark.parametrize("layout", ["last", "first", "view"])
+def test_apply_rgb_is_bitwise_the_csbdeep_arithmetic_and_never_shares_the_input(dtype, layout):
+    """Issue #53: the in-place steps give the same bits as the direct float32 expression."""
+    rng = np.random.default_rng(53)
+    base = rng.integers(0, 250, (3, 20, 24)).astype(dtype)
+    pixels = {
+        "last": np.ascontiguousarray(np.moveaxis(base, 0, -1)),
+        "first": base,
+        "view": np.moveaxis(base, 0, -1),
+    }[layout]
+    axis = 0 if layout == "first" else -1
+    shape = [1, 1, 1]
+    shape[axis] = 3
+    offset, scale = np.array([3.3, 3.3, 3.3]).reshape(shape), np.full(shape, 90.1)
+    before = pixels.copy()
+    out = apply_rgb(pixels, offset, scale)
+    mi = offset.astype(np.float32)
+    ma = (offset + scale - EPSILON).astype(np.float32)
+    expected = (pixels.astype(np.float32) - mi) / (ma - mi + np.float32(EPSILON))
+    assert out.dtype == np.float32
+    assert out.tobytes() == expected.astype(np.float32).tobytes()
+    assert not np.shares_memory(out, pixels)
+    assert np.array_equal(pixels, before)
+    zero = apply_rgb(np.full((4, 4, 3), 7, dtype), 7.0, EPSILON)  # no spread: zeros, not an error
+    assert not zero.any()
+
+
+def test_apply_rgb_allocates_one_array_beyond_its_input():
+    """Issue #53: the peak is the float32 result, not a copy plus two temporaries."""
+    import tracemalloc
+
+    pixels = np.random.default_rng(53).integers(0, 4096, (512, 512, 3)).astype(np.uint16)
+    tracemalloc.start()
+    try:
+        out = apply_rgb(pixels, 10.0, 1000.0)
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert peak < 1.5 * out.nbytes

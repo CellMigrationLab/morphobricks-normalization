@@ -72,8 +72,11 @@ def apply_rgb(
     upper = offset + np.asarray(scale, dtype=np.float64) - EPSILON
     mi = offset.astype(np.float32)
     ma = upper.astype(np.float32)
-    x = np.asarray(pixels).astype(np.float32)  # always a copy for integer pixels
-    return ((x - mi) / (ma - mi + np.float32(EPSILON))).astype(np.float32, copy=False)
+    x = np.asarray(pixels).astype(np.float32)  # always a new array, never the caller's
+    # The same float32 operations in the same order, written into that one array (issue #53).
+    np.subtract(x, mi, out=x)
+    np.divide(x, ma - mi + np.float32(EPSILON), out=x)
+    return x
 
 
 def check_rgb(channel_count: int, dtypes: Iterable[np.dtype]) -> None:

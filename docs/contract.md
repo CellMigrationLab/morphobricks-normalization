@@ -289,7 +289,10 @@ histogram's passes (table above). A `RangeCheck` holds:
 `narrow_histogram_range` warning (§9.2) per channel with a narrow plane, listing the planes
 in `items`, with `channel` set and the fewest central bins, the pixels outside the robust
 limits and the robust central bins in the message. Only the preprocessing brick reports it,
-in its step 3; `fit` adds no warning and its zero-spread error is unchanged (N57).
+in its step 3. A channel must be a whole number 0 or above (nothing is rounded or parsed),
+and the narrow planes of one channel must share one set of settings (range, central
+percentiles, robust quantiles, `min_central_bins`); otherwise `IncompatibleRangeChecksError`
+(a `ValueError`) names the planes of each setting (issue #59). `fit` adds no warning and its zero-spread error is unchanged (N57).
 
 Parameters fitted from pixels (§4.5) use min-max histograms; the setting applies to
 `plane_histograms.csv`.

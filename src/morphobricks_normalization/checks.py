@@ -180,6 +180,7 @@ def intensity_checks(
     settings = IntensityCheckSettings() if settings is None else settings
     summaries = sorted(summaries, key=_order)
     _check_comparable(summaries)
+    _check_same_percentiles(summaries)
     return [
         *_image_outliers(summaries, settings),
         *_repeat_shifts(summaries, settings),
@@ -392,6 +393,24 @@ def _check_comparable(summaries: list[ImageSummary]) -> None:
             different_channel_counts(
                 [(s.source_relative_path, s.channel_count) for s in summaries], "These images"
             )
+        )
+
+
+def _check_same_percentiles(summaries: list[ImageSummary]) -> None:
+    """Refuse summaries computed with different percentile definitions (issue #55)."""
+    by_definition: dict[tuple[float, float], list[str]] = {}
+    for s in summaries:
+        by_definition.setdefault(tuple(s.percentile), []).append(s.source_relative_path)
+    if len(by_definition) > 1:
+        parts = []
+        for (low, high), names in sorted(by_definition.items()):
+            shown = ", ".join(names[:3]) + (f" and {len(names) - 3} more" if len(names) > 3 else "")
+            parts.append(f"percentiles ({low:g}, {high:g}): {shown}")
+        raise IncompatibleSummariesError(
+            f"These images have summaries with different percentile definitions "
+            f"({'; '.join(parts)}). Values at different percentiles are different measurements and "
+            "cannot be compared. Summarize every "
+            "image with one percentile pair, with image_summaries(records, percentile=...)."
         )
 
 

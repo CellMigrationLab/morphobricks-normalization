@@ -395,3 +395,19 @@ def test_summaries_with_different_channel_counts_are_refused(order):
     summaries = [_direct(f"img_{i}.tif", n) for i, n in enumerate(order * 3)]
     with pytest.raises(IncompatibleSummariesError, match=r"1 channel\(s\).*2 channel\(s\)"):
         intensity_checks(summaries)
+
+
+@pytest.mark.parametrize("odd_first", [True, False])
+@pytest.mark.parametrize("odd", [(1.0, 95.0), (5.0, 99.8)])
+def test_summaries_with_different_percentiles_are_refused(odd, odd_first):
+    """Issue #55: a different high or low percentile is refused, in either order."""
+    same = [_direct(f"img_{i}.tif", 1) for i in range(5)]
+    other = _direct("odd.tif", 1, percentile=odd)
+    summaries = [other, *same] if odd_first else [*same, other]
+    with pytest.raises(IncompatibleSummariesError, match=r"percentile definitions.*odd\.tif"):
+        intensity_checks(summaries)
+
+
+def test_summaries_with_the_same_percentiles_are_accepted():
+    summaries = [_direct(f"img_{i}.tif", 1, percentile=(5.0, 95.0)) for i in range(5)]
+    assert intensity_checks(summaries) == []

@@ -50,7 +50,7 @@ from typing import NamedTuple
 
 import numpy as np
 
-from .bin_centres import float_bin_centres
+from .bin_centres import float_bin_centres, float_bin_position
 from .dtypes import check_supported, default_bin_count, is_integer, validate_bin_count
 from .integrity import check_histogram, check_tail, checked_blocks
 from .ranges import CENTRAL_PERCENTILES, HistogramSettings, RangeCheck
@@ -661,8 +661,6 @@ def _float_bins(
     if lo == hi and extrema is None:
         counts[0] = valid
         return counts
-    # Halving keeps hi - lo finite even for ranges near the float64 limits.
-    half_range = hi * 0.5 - lo * 0.5
     for values in checked_blocks(blocks(), dtype):
         finite = values[np.isfinite(values)]
         if finite.size == 0:
@@ -672,11 +670,11 @@ def _float_bins(
         finite = finite.astype(np.float64, copy=False)
         if extrema is not None:
             finite = _split_tails(finite, lo, hi, under, over)
-            if half_range == 0:
+            if lo == hi:
                 # Robust limits that coincide: every pixel inside them has that value.
                 counts[0] += finite.size
                 continue
-        index = np.floor((finite * 0.5 - lo * 0.5) * (n / half_range)).astype(np.int64)
+        index = np.floor(float_bin_position(finite, lo, hi, n)).astype(np.int64)
         np.clip(index, 0, n - 1, out=index)
         counts += np.bincount(index, minlength=n)
     return counts
@@ -858,7 +856,7 @@ def _bin_index(
     elif lo == hi:
         index = 0
     else:
-        # The arithmetic of _float_bins, in Python floats (IEEE float64 as NumPy's).
-        half_range = hi * 0.5 - lo * 0.5
-        index = math.floor((value * 0.5 - lo * 0.5) * (n / half_range))
+        # The arithmetic of _float_bins; the value is clipped first, as its bin is.
+        clipped = min(max(float(value), float(lo)), float(hi))
+        index = math.floor(float(float_bin_position(clipped, lo, hi, n)))
     return min(max(index, 0), n - 1)

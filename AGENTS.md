@@ -30,6 +30,7 @@ src/morphobricks_normalization/
                     compute_block_histogram for planes read in blocks), memory estimate;
                     robust range with HistogramTail underflow/overflow and
                     histogram_with_range_check, quantiles by radix selection (Milestone 5)
+  bin_centres.py    float_bin_centres: bin centres that do not overflow near the float64 limits
   ranges.py         HistogramSettings, RangeCheck, range_check_issues (Milestone 5)
   integrity.py      invariants every PlaneHistogram and HistogramTail checks when made
                     (counts, limits, tail sums) and the pixel type of every block

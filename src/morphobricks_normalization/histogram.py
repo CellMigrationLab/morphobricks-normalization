@@ -50,6 +50,7 @@ from typing import NamedTuple
 
 import numpy as np
 
+from .bin_centres import float_bin_centres
 from .dtypes import check_supported, default_bin_count, is_integer, validate_bin_count
 from .integrity import check_histogram, check_tail, checked_blocks
 from .ranges import CENTRAL_PERCENTILES, HistogramSettings, RangeCheck
@@ -177,8 +178,7 @@ class PlaneHistogram:
                 dtype=np.float64,
             )
         lo, hi = float(self.binning_min), float(self.binning_max)
-        half_range = hi * 0.5 - lo * 0.5
-        return lo + half_range * ((2 * np.arange(self.bin_count) + 1) / self.bin_count)
+        return float_bin_centres(lo, hi, self.bin_count)
 
     @property
     def max_representative_error(self) -> float:

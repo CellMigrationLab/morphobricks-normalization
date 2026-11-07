@@ -19,8 +19,9 @@ the library writes no file (N50).
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from itertools import groupby
 from typing import Any
 
 import numpy as np
@@ -187,9 +188,7 @@ def image_summaries(
     IncompatibleSummariesError
         For an image whose Z or T planes have different pixel types (issue #54).
     """
-    low, high = (float(q) for q in percentile)
-    if not 0 <= low < high <= 100:
-        raise ValueError(f"Expected 0 <= low < high <= 100; got low={low}, high={high}.")
+    low, high = _check_percentile(percentile)
     records = list(records)
     duplicate_planes(records, "These rows")
     if len({r.channel_count for r in records}) > 1:
@@ -202,6 +201,102 @@ def image_summaries(
     for record in records:
         images.setdefault(record.group_key("image"), []).append(record)
     return [_summary(planes, (low, high)) for _, planes in sorted(images.items())]
+
+
+def _check_percentile(percentile: tuple[float, float]) -> tuple[float, float]:
+    low, high = (float(q) for q in percentile)
+    if not 0 <= low < high <= 100:
+        raise ValueError(f"Expected 0 <= low < high <= 100; got low={low}, high={high}.")
+    return low, high
+
+
+def iter_image_summaries(
+    records: Iterable[PlaneRecord], percentile: tuple[float, float] = DEFAULT_PERCENTILE
+) -> Iterator[ImageSummary]:
+    """Summarize images one at a time from rows grouped by image, in bounded memory (issue #58).
+
+    The streaming counterpart of :func:`image_summaries`: it holds only the planes of the
+    image being read, emits its :class:`ImageSummary` when the next image starts, and drops
+    its histograms. Each summary equals the one :func:`image_summaries` gives for that image.
+
+    Precondition: all Z and T rows of an image are contiguous (next to each other in
+    ``records``). Rows are never sorted or staged here, so input that breaks the precondition is
+    refused, not summarized from part of an image. Summaries come in the order the images first
+    appear, which is the order of :func:`image_summaries` when the rows are already sorted by
+    condition, biological repeat, technical repeat and path.
+
+    Parameters
+    ----------
+    records
+        Rows of the statistics file (one XYC plane each), grouped by image.
+    percentile
+        ``(low, high)`` in percent, ``0 <= low < high <= 100``; default ``(1.0, 99.8)``.
+
+    Yields
+    ------
+    ImageSummary
+        One per image.
+
+    Raises
+    ------
+    ValueError
+        At the call, for invalid percentiles. While iterating: for an image whose rows are not
+        contiguous, a source file listed under two sets of labels, rows that repeat a
+        ``plane_id``, or images with different numbers of channels (N43).
+    IncompatibleSummariesError
+        For an image whose Z or T planes have different pixel types (issue #54).
+
+    Notes
+    -----
+    Whether all images have the same number of channels is only known as they are read, so an
+    error can come after earlier summaries were emitted. Those summaries are valid on their
+    own, but a run that ended with an error is incomplete: discard its output; do not publish
+    it as the result for the experiment. :func:`image_summaries` validates every row before
+    returning anything.
+    """
+    low, high = _check_percentile(percentile)
+    return _stream_summaries(records, (low, high))
+
+
+def _stream_summaries(
+    records: Iterable[PlaneRecord], percentile: tuple[float, float]
+) -> Iterator[ImageSummary]:
+    """Group rows by adjacent image, check each group and yield its summary."""
+    seen_keys: set[tuple[str, ...]] = set()
+    labels_of_path: dict[str, tuple[str, ...]] = {}
+    first_channels: tuple[str, int] | None = None
+    for key, group in groupby(records, key=lambda r: r.group_key("image")):
+        planes = list(group)
+        path = key[-1]
+        if key in seen_keys:
+            raise ValueError(
+                f"The rows of image {path} are not together: other images come between its "
+                "planes. The streaming summary reads one image at a time and never reorders "
+                "rows, so it cannot pool them. Sort the rows by condition, biological repeat, "
+                "technical repeat and path, or use image_summaries()."
+            )
+        seen_keys.add(key)
+        if labels_of_path.setdefault(path, key[:-1]) != key[:-1]:
+            raise ValueError(
+                f"The source file {path} appears under different condition or repeat labels, "
+                "so which image its planes belong to is not defined. Correct the labels, or run "
+                "the preprocessing brick again on this experiment."
+            )
+        duplicate_planes(planes, "These rows")
+        counts = {r.channel_count for r in planes}
+        if first_channels is None:
+            first_channels = (path, planes[0].channel_count)
+        counts.add(first_channels[1])
+        if len(counts) > 1:
+            raise ValueError(
+                different_channel_counts(
+                    [(first_channels[0], first_channels[1])]
+                    + [(r.source_relative_path, r.channel_count) for r in planes],
+                    "These images",
+                )
+            )
+        yield _summary(planes, percentile)
+        del planes
 
 
 def _check_one_dtype(planes: list[PlaneRecord]) -> None:

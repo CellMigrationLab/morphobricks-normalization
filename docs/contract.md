@@ -580,7 +580,10 @@ Computed from `plane_histograms.csv` rows alone (N38).
 `image_summaries(records, percentile=(1.0, 99.8))` returns one `ImageSummary` per image, sorted
 by condition, biological repeat, technical repeat and path, pooling all Z and T planes of the
 image with the group statistics of §1.2.3 (inverse-CDF percentiles, exact for 8- and 16-bit
-histograms). Images with different numbers of channels are refused with `ValueError` (N43).
+histograms). Images with different numbers of channels are refused with `ValueError` (N43), and so is an image whose Z or T planes have different pixel
+types (`IncompatibleSummariesError`, a `ValueError`). An `ImageSummary` whose per-channel tuples
+have different lengths is refused when made, and `intensity_checks` refuses summaries with
+different numbers of channels or different percentile definitions, with the same error.
 `ImageSummary.to_row()` gives the columns below as a dictionary, in this order (numbers as
 floats, a blank as `None`, `Histogram_Exact_C<i>` as a bool), and `summary_columns(n)` their
 names for `n` channels, so the calling brick can show the rows as a table or write them; the

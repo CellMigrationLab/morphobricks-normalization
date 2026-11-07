@@ -116,3 +116,29 @@ def test_linear_percentile_between_finite_extremes_does_not_overflow(q, low, hig
     exact = Fraction(low) + (Fraction(high) - Fraction(low)) * Fraction(q, 100)
     assert np.isfinite(got)
     assert abs(Fraction(got) - exact) <= abs(exact) * Fraction(1, 10**15) + Fraction(1, 10**300)
+
+
+@pytest.mark.parametrize("q", [0, 25, 50, 75, 100])
+@pytest.mark.parametrize("limit", [np.finfo(np.float64).max, 1e308])
+def test_percentiles_from_pixels_near_float64_limits_are_finite_and_exact(q, limit):
+    # End to end (#75): pixels at -limit and +limit -> histogram -> pooling -> percentile.
+    # Bin centres reach twice the half range, which overflowed before the guard.
+    from fractions import Fraction
+
+    from morphobricks_normalization.histogram import compute_plane_histogram
+
+    pixels = np.array([[-limit, limit]], dtype=np.float64)
+    n = 4
+    histogram = compute_plane_histogram(pixels, bin_count=n)
+    low, high = Fraction(-limit), Fraction(limit)
+    centres = [low + (high - low) * Fraction(2 * i + 1, 2 * n) for i in range(n)]
+    assert np.isfinite(histogram.representatives).all()
+    for got, want in zip(histogram.representatives, centres, strict=True):
+        assert abs(Fraction(float(got)) - want) <= abs(want) * Fraction(1, 10**14)
+    pooled = PooledHistogram([histogram])
+    gamma = Fraction(q, 100)
+    expected = centres[0] + (centres[-1] - centres[0]) * gamma
+    result = pooled.linear_percentile(q)
+    assert np.isfinite(result)
+    assert abs(Fraction(result) - expected) <= abs(expected) * Fraction(1, 10**14)
+    assert np.isfinite(pooled.percentile(q))

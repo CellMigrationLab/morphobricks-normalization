@@ -220,6 +220,7 @@ def _check_one_dtype(planes: list[PlaneRecord]) -> None:
 
 
 def _summary(planes: list[PlaneRecord], percentile: tuple[float, float]) -> ImageSummary:
+    """Pool the planes of one image, channel by channel."""
     _check_one_dtype(planes)
     first = planes[0]
     median, p_low, p_high, saturated, exact = [], [], [], [], []

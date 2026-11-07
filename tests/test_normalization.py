@@ -64,3 +64,12 @@ def test_non_finite_scale_is_refused_as_overflow_not_zero_spread():
     with pytest.raises(ValueError, match="not a finite number") as caught:
         z_score(pooled)
     assert "spread is zero" not in str(caught.value)
+
+
+def test_non_finite_scale_message_does_not_blame_sums_of_squares_for_min_max():
+    plane = np.array([[-1.7e308, 1.7e308], [-1.7e308, 1.7e308]])
+    pooled = PooledHistogram([compute_plane_histogram(plane)])
+    with pytest.raises(ValueError, match="not a finite number") as caught:
+        min_max(pooled)
+    assert "sums of squares" not in str(caught.value)
+    assert "spread is zero" not in str(caught.value)

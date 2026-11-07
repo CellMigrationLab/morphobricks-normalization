@@ -419,6 +419,22 @@ def _inverse_cdf_index(cumulative: np.ndarray, total: int, q: float) -> int:
     return int(np.searchsorted(cumulative, rank, side="left"))
 
 
+def _lerp(below: float, above: float, gamma: float) -> float:
+    """NumPy's ``_lerp``: start from the nearer endpoint; finite endpoints never overflow."""
+    with np.errstate(over="ignore"):  # an overflowing gap is handled just below
+        difference = above - below
+    if not math.isfinite(difference) and math.isfinite(below) and math.isfinite(above):
+        # The weighted mean of two finite values is representable; form it from the
+        # halved endpoints so the gap cannot overflow.
+        half = above * 0.5 - below * 0.5
+        if gamma >= 0.5:
+            return float(above - half * (2 * (1 - gamma)))
+        return float(below + half * (2 * gamma))
+    if gamma >= 0.5:
+        return float(above - difference * (1 - gamma))
+    return float(below + difference * gamma)
+
+
 def _linear_percentile(values: np.ndarray, cumulative: np.ndarray, total: float, q: float) -> float:
     # NumPy's "linear" method (Hyndman & Fan type 7), step by step as
     # numpy.lib's _quantile and _lerp compute it, so the result is bit-identical
@@ -436,10 +452,7 @@ def _linear_percentile(values: np.ndarray, cumulative: np.ndarray, total: float,
     below, above = (
         values[min(int(np.searchsorted(cumulative, i, side="right")), last)] for i in (k, k + 1)
     )
-    difference = above - below
-    if gamma >= 0.5:
-        return float(above - difference * (1 - gamma))
-    return float(below + difference * gamma)
+    return _lerp(below, above, gamma)
 
 
 def _weighted_index(cumulative: np.ndarray, total: float, q: float) -> int:

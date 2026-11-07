@@ -8,7 +8,7 @@ from morphobricks_normalization import (
     group_records,
     pooled_statistics,
 )
-from morphobricks_normalization.pooling import DEFAULT_PERCENTILES
+from morphobricks_normalization.pooling import DEFAULT_PERCENTILES, _linear_percentile
 from morphobricks_normalization.ranges import HistogramSettings
 from simulation import direct_stats, make_records, simulate_experiment
 
@@ -100,3 +100,19 @@ def test_opposing_infinite_tail_sums_are_a_named_refusal():
     with pytest.raises(ValueError, match="opposite sign") as caught:
         _ = PooledHistogram([histogram]).mean
     assert "tail 1 of 2" in str(caught.value) and "tail 2 of 2" in str(caught.value)
+
+
+@pytest.mark.parametrize("q", [0, 25, 50, 75, 100])
+@pytest.mark.parametrize("low, high", [(-1e308, 1e308), (-1.7e308, 1.7e308), (-1.7e308, 5e307)])
+def test_linear_percentile_between_finite_extremes_does_not_overflow(q, low, high):
+    # The gap between the endpoints exceeds float64 so above - below is infinite, yet
+    # the interpolation lies between them and is representable: it must be finite and
+    # equal the exact value (computed with fractions) to float64 precision.
+    from fractions import Fraction
+
+    values = np.array([low, high])
+    cumulative = np.array([1, 2])
+    got = _linear_percentile(values, cumulative, 2, q)
+    exact = Fraction(low) + (Fraction(high) - Fraction(low)) * Fraction(q, 100)
+    assert np.isfinite(got)
+    assert abs(Fraction(got) - exact) <= abs(exact) * Fraction(1, 10**15) + Fraction(1, 10**300)

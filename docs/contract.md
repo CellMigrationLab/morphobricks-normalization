@@ -601,6 +601,16 @@ library writes no file (N50). The columns are the shared columns `source_relativ
 | `Intensity_SaturatedFraction_C<i>` | Pixels equal to the type's maximum over valid pixels, for integer types whose histogram holds the maximum value in a bin of its own; blank otherwise (float images, or inexact top bins) |
 | `Histogram_Exact_C<i>` | Whether every pooled histogram of the channel was exact; blank (`None`) for a channel without finite pixels, which has no statistics to be exact |
 
+`iter_image_summaries(records, percentile=(1.0, 99.8))` is the streaming form for large tables
+(issue #58): a generator that holds one image's planes at a time and yields the same
+`ImageSummary` that `image_summaries` gives for that image. It requires every Z and T row of an
+image to be contiguous in `records`; it never sorts or stages rows, and refuses (`ValueError`)
+an image whose rows are not together, a source file under two sets of labels, repeated
+`plane_id`s and images with different numbers of channels. Summaries come in the order the
+images first appear (the eager order for rows sorted by condition, repeat and path). Channel
+counts are only compared as images are read, so an error can follow summaries already yielded:
+a run that raised is incomplete and its output must be discarded. `image_summaries` is unchanged.
+
 The checks below call these values `median`, `p_low`, `p_high` and `saturated_fraction`, the
 attributes of `ImageSummary` that hold one value per channel. A channel without finite pixels
 has blank values and is not checked; `unchecked_channels(summaries)` returns one

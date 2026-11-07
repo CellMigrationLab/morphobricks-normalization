@@ -48,6 +48,7 @@ from .summaries import (
     ImageSummary,
     IncompatibleSummariesError,
     image_summaries,
+    iter_image_summaries,
     summary_columns,
 )
 
@@ -85,6 +86,7 @@ __all__ = [
     "group_records",
     "histogram_with_range_check",
     "image_summaries",
+    "iter_image_summaries",
     "intensity_checks",
     "make_plane_id",
     "min_max",

@@ -1,6 +1,8 @@
 """Per-image intensity summaries from plane_histograms.csv rows (contract §7.1, N50)."""
 
+import gc
 import re
+import weakref
 
 import numpy as np
 import pytest
@@ -11,6 +13,7 @@ from morphobricks_normalization import (
     PlaneRecord,
     compute_plane_histogram,
     image_summaries,
+    iter_image_summaries,
     read_plane_histograms,
     summary_columns,
     write_plane_histograms,
@@ -245,3 +248,85 @@ def test_different_images_may_differ_in_pixel_type():
         record("b.tif", [np.full((8, 8), 5, np.uint16)]),
     ]
     assert [s.dtype for s in image_summaries(records)] == [np.uint8, np.uint16]
+
+
+# --- streaming API (issue #58) -------------------------------------------------------------
+
+
+def grouped_records(n_images=4, planes_per_image=3, channels=1, seed=20):
+    """Rows grouped by image and sorted as image_summaries sorts its output."""
+    rng = np.random.default_rng(seed)
+    rows = []
+    for i in range(n_images):
+        labels = ("control", "rep1", SINGLE)
+        for z in range(planes_per_image):
+            planes = [simulate_plane(rng, np.uint16, (10, 10)) for _ in range(channels)]
+            rows.append(record(f"img{i}.tif", planes, z=z, labels=labels))
+    return rows
+
+
+def test_streaming_summaries_equal_the_eager_ones():
+    rows = grouped_records(channels=2)
+    assert list(iter_image_summaries(rows)) == image_summaries(rows)
+    assert list(iter_image_summaries(rows, (5, 95))) == image_summaries(rows, (5, 95))
+
+
+def test_streaming_emits_one_image_at_a_time_and_drops_its_histograms():
+    rows = grouped_records(n_images=3)
+    pulled = []
+    first_hist = weakref.ref(rows[0].histograms[0])
+
+    def source():
+        for row in rows:
+            pulled.append(row.plane_id)
+            yield row
+
+    stream = iter_image_summaries(source())
+    next(stream)
+    # The first summary is out once the second image has started, not after all rows.
+    assert len(pulled) == 4 < len(rows)
+    del rows[:3]  # the caller's own list drops image 0; the stream must not keep it
+    gc.collect()
+    next(stream)
+    gc.collect()
+    assert first_hist() is None
+
+
+def test_streaming_refuses_rows_that_are_not_together():
+    rows = grouped_records(n_images=2)
+    mixed = [rows[0], rows[3], rows[1], rows[4], rows[2], rows[5]]
+    with pytest.raises(ValueError, match="not together"):
+        list(iter_image_summaries(mixed))
+    # The eager API still accepts any order.
+    assert len(image_summaries(mixed)) == 2
+
+
+def test_streaming_refuses_a_file_under_two_label_sets():
+    plane = simulate_plane(np.random.default_rng(1), np.uint16, (8, 8))
+    rows = [
+        record("a.tif", [plane], z=0, labels=("control", "rep1", SINGLE)),
+        record("a.tif", [plane], z=1, labels=("treated", "rep1", SINGLE)),
+    ]
+    with pytest.raises(ValueError, match="different condition or repeat labels"):
+        list(iter_image_summaries(rows))
+
+
+def test_streaming_refuses_repeated_planes_and_different_channel_counts():
+    rows = grouped_records(n_images=1)
+    with pytest.raises(ValueError, match="more than once"):
+        list(iter_image_summaries([*rows, rows[0]]))
+    one = grouped_records(n_images=1, channels=1)
+    two = [
+        r for r in grouped_records(n_images=2, channels=2) if r.source_relative_path == "img1.tif"
+    ]
+    with pytest.raises(ValueError, match="different numbers of channels"):
+        list(iter_image_summaries([*one, *two]))
+
+
+def test_streaming_validates_percentiles_at_the_call():
+    with pytest.raises(ValueError, match="0 <= low < high <= 100"):
+        iter_image_summaries([], percentile=(99.8, 1.0))
+
+
+def test_streaming_no_records_no_summaries():
+    assert list(iter_image_summaries([])) == []

@@ -18,6 +18,7 @@ from morphobricks_normalization import (
     rgb_percentile,
     scope_groups,
 )
+from morphobricks_normalization import fitting as fitting_module
 from morphobricks_normalization.fitting import offset_column, scale_column
 from morphobricks_normalization.rgb import EPSILON, apply_rgb
 from simulation import cached_rgb_design, make_rgb_records, simulate_rgb_design
@@ -321,3 +322,30 @@ def test_linear_percentile_equals_numpy_percentile(dtype):
         pooled.linear_percentile(101)
     with pytest.raises(ValueError, match="between 0 and 100"):
         unit.linear_percentile(-1)
+
+
+@pytest.mark.parametrize("axis", [-1, 2])
+@pytest.mark.parametrize(
+    ("shape", "dtype"),
+    [((6, 6, 4), np.uint16), ((6, 6, 2), np.uint8), ((6, 6, 3), np.float32)],
+)
+def test_invalid_rgb_pixels_are_refused_before_any_histogram_is_built(
+    monkeypatch, shape, dtype, axis
+):
+    """Issue #52: the channel count and pixel type are checked before the histograms."""
+    calls = []
+    original = fitting_module.compute_plane_histogram
+    monkeypatch.setattr(
+        fitting_module,
+        "compute_plane_histogram",
+        lambda *args, **kwargs: calls.append(1) or original(*args, **kwargs),
+    )
+    with pytest.raises(ValueError, match="exactly three 8- or 16-bit colour channels"):
+        fit(np.zeros(shape, dtype), rgb(scope="patch"), channel_axis=axis)
+    with pytest.raises(ValueError, match="exactly three 8- or 16-bit colour channels"):
+        fit(np.zeros(shape[:2], dtype), rgb(scope="patch"))
+    assert calls == []
+    # A valid array still builds its three histograms, also for a non-contiguous view.
+    view = np.zeros((3, 6, 12), np.uint8)[:, :, ::2].transpose(1, 2, 0)
+    fit(view + 1, rgb(scope="patch"), channel_axis=axis)
+    assert len(calls) == 3

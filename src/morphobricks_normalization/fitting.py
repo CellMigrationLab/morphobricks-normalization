@@ -364,6 +364,11 @@ def fit(
     """
     from_pixels = isinstance(statistics, np.ndarray)
     check_settings(settings, statistics_file=not from_pixels)
+    rgb = settings.image_type == "rgb"
+    if rgb and from_pixels:
+        # Issue #52: refuse a wrong channel count or pixel type before any histogram is built.
+        axis = None if channel_axis is None else _axis_index(channel_axis, statistics.ndim)
+        check_rgb(1 if axis is None else statistics.shape[axis], [statistics.dtype])
     if from_pixels:
         # One histogram per channel of the array, pooled like the rows' channels.
         items: list[PlaneRecord] | list[PlaneHistogram] = _pixel_histograms(
@@ -382,7 +387,6 @@ def fit(
             for channel, histogram in enumerate(record.histograms)
             if histogram.is_empty
         ]
-    rgb = settings.image_type == "rgb"
     if rgb:
         check_rgb(channel_count, _dtypes(items))
         # Contract §3.3: R, G and B pooled together give one shared offset and scale.

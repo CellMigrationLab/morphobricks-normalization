@@ -13,6 +13,7 @@ new refusal or a numerical-range fix (see the pull requests for the exact messag
   pooled mean (#72).
 - Percentiles are interpolated between finite extremes without overflowing the gap (#74).
 - Float bin centres are computed without overflowing near the float64 limits (#76).
+- Float histograms over a very narrow range (down to the smallest subnormal) bin pixels and place bin centres correctly: the position is a bounded fraction times the bin count where the halved arithmetic would round to zero or overflow. Histograms of ordinary ranges are bit-identical (#84).
 - Image summaries whose channels disagree, pooled summaries with different percentile
   definitions, and images whose Z/T planes have different pixel types are refused (#77).
 - RGB: channel count and pixel type are checked before histograms are built, RGB groups with

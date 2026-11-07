@@ -137,6 +137,40 @@ def test_float_extreme_range_does_not_overflow():
     assert np.all(np.isfinite(hist.representatives))
 
 
+SMALLEST_SUBNORMAL = 5e-324
+
+
+def test_float_range_of_the_smallest_subnormal_keeps_distinct_bins():
+    plane = np.array([0.0, 0.0, SMALLEST_SUBNORMAL, SMALLEST_SUBNORMAL, SMALLEST_SUBNORMAL])
+    hist = compute_plane_histogram(plane, 4)
+    np.testing.assert_array_equal(hist.counts, [2, 0, 0, 3])
+    assert hist.representatives[0] == 0.0 and hist.representatives[-1] == SMALLEST_SUBNORMAL
+    block = compute_block_histogram(lambda: iter((plane[:2], plane[2:])), plane.dtype, 4)
+    np.testing.assert_array_equal(block.counts, hist.counts)
+    assert histogram_module._bin_index(0.0, plane.dtype, 4, 0.0, SMALLEST_SUBNORMAL) == 0
+    assert (
+        histogram_module._bin_index(SMALLEST_SUBNORMAL, plane.dtype, 4, 0.0, SMALLEST_SUBNORMAL)
+        == 3
+    )
+
+
+def test_float_narrow_range_does_not_overflow_the_bin_scale():
+    # n / half_range is infinite for 1024 bins over 1e-306: the position must stay bounded.
+    plane = np.array([0.0, 0.5e-306, 1e-306])
+    hist = compute_plane_histogram(plane, 1024)
+    assert np.flatnonzero(hist.counts).tolist() == [0, 512, 1023]
+    assert hist.counts.sum() == 3
+    assert np.all(np.diff(hist.representatives) > 0)
+    assert histogram_module._bin_index(0.5e-306, plane.dtype, 1024, 0.0, 1e-306) == 512
+
+
+def test_float_range_between_subnormals_keeps_every_pixel_in_its_bin():
+    plane = np.array([1e-320, 1.5e-320, 2e-320, 1e-320])
+    hist = compute_plane_histogram(plane, 4)
+    assert hist.counts.sum() == 4
+    np.testing.assert_array_equal(hist.counts, [2, 0, 1, 1])
+
+
 def test_float32_input():
     plane = rng.normal(0, 1, (32, 32)).astype(np.float32)
     hist = compute_plane_histogram(plane, 64)

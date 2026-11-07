@@ -1,7 +1,5 @@
 """Installed version of the package, recorded with every set of settings."""
 
-from __future__ import annotations
-
 from importlib.metadata import PackageNotFoundError, version
 
 try:

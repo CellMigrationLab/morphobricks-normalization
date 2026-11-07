@@ -25,6 +25,8 @@ from collections.abc import Iterable
 import numpy as np
 
 from .pooling import PooledHistogram, WeightedHistogram
+from .records import PlaneRecord
+from .summaries import IncompatibleSummariesError
 
 # Added to the scale by csbdeep.utils.normalize_mi_ma (its ``eps``).
 EPSILON = 1e-20
@@ -97,4 +99,53 @@ def check_rgb(channel_count: int, dtypes: Iterable[np.dtype]) -> None:
             f"but these images have {channel_count} channels of type {' and '.join(dtypes)}. "
             "Check the axis mapping (the samples axis must be the channel axis), or choose "
             "image type 'fluorescence'."
+        )
+
+
+def check_rgb_pixels(pixels: np.ndarray, channel_axis: int | None) -> None:
+    """Refuse a pixel array that is not three integer channels, before any work (issue #52).
+
+    Parameters
+    ----------
+    pixels
+        The image or patch.
+    channel_axis
+        Axis of the channels (negative counts from the end); None for one channel.
+
+    Raises
+    ------
+    ValueError
+        If the axis is outside the array, or as :func:`check_rgb`.
+    """
+    if channel_axis is None:
+        count = 1
+    elif -pixels.ndim <= channel_axis < pixels.ndim:
+        count = pixels.shape[channel_axis]
+    else:
+        raise ValueError(
+            f"channel_axis {channel_axis} is outside the pixel array's {pixels.ndim} axes."
+        )
+    check_rgb(count, [pixels.dtype])
+
+
+def check_rgb_records(records: list[PlaneRecord], group: str | None) -> None:
+    """Refuse rows that are not three channels of one integer type (contract §5, §9.1, #51).
+
+    RGB pools all images of a group into one distribution, so bit depths are never mixed
+    or converted; the message names the images of each pixel type.
+    """
+    check_rgb(records[0].channel_count, [h.dtype for r in records for h in r.histograms])
+    by_dtype: dict[str, list[str]] = {}
+    for record in records:
+        files = by_dtype.setdefault(record.histograms[0].dtype.name, [])
+        if record.source_relative_path not in files:
+            files.append(record.source_relative_path)
+    if len(by_dtype) > 1:
+        subject = f"The images of group '{group}'" if group else "The images of this group"
+        parts = "; ".join(f"{name}: {', '.join(files)}" for name, files in sorted(by_dtype.items()))
+        raise IncompatibleSummariesError(
+            f"{subject} have different pixel types ({parts}). RGB normalization pools the "
+            "colour channels of all images into one shared offset and scale, and pixel types "
+            "are not converted, so it needs one pixel type. Save the images with one pixel "
+            "type, or put them in separate groups, then fit again."
         )

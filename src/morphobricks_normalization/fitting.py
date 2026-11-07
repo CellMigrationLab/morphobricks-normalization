@@ -42,6 +42,7 @@ from .pooling import NoValidPixelsError, PooledHistogram, WeightedHistogram
 from .records import PlaneRecord, different_channel_counts, duplicate_planes
 from .rgb import RGB_CHANNEL_COUNT, apply_rgb, check_rgb, rgb_percentile
 from .settings import SCOPES, NormalizationSettings, check_settings
+from .summaries import IncompatibleSummariesError
 
 # Columns written once per row; the per-channel pairs follow (offset_column,
 # scale_column).
@@ -389,6 +390,8 @@ def fit(
         ]
     if rgb:
         check_rgb(channel_count, _dtypes(items))
+        if not from_pixels:
+            _check_one_rgb_dtype(items, group)
         # Contract §3.3: R, G and B pooled together give one shared offset and scale.
         channel_sets = [tuple(range(channel_count))]
     else:
@@ -453,6 +456,27 @@ def _pixel_histograms(pixels: np.ndarray, channel_axis: int | None) -> list[Plan
     return [
         compute_plane_histogram(np.take(pixels, c, axis=axis)) for c in range(pixels.shape[axis])
     ]
+
+
+def _check_one_rgb_dtype(records: list[PlaneRecord], group: str | None) -> None:
+    # Issue #51: R, G and B of every image are pooled into one distribution, so the images
+    # must share one pixel type; different bit depths have different dynamic ranges.
+    by_dtype: dict[str, list[str]] = {}
+    for record in records:
+        files = by_dtype.setdefault(record.histograms[0].dtype.name, [])
+        if record.source_relative_path not in files:
+            files.append(record.source_relative_path)
+    if len(by_dtype) > 1:
+        subject = f"The images of group '{group}'" if group else "The images of this group"
+        parts = "; ".join(
+            f"{dtype}: {', '.join(files)}" for dtype, files in sorted(by_dtype.items())
+        )
+        raise IncompatibleSummariesError(
+            f"{subject} have different pixel types ({parts}). RGB normalization pools the "
+            "colour channels of all images into one shared offset and scale, and pixel types "
+            "are not converted, so it needs one pixel type. Save the images with one pixel "
+            "type, or put them in separate groups, then fit again."
+        )
 
 
 def _dtypes(items: list[PlaneRecord] | list[PlaneHistogram]) -> set[np.dtype]:

@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from morphobricks_normalization import (
+    IncompatibleSummariesError,
     MethodNotAllowedError,
     NormalizationSettings,
     NoValidPixelsError,
@@ -349,3 +350,25 @@ def test_invalid_rgb_pixels_are_refused_before_any_histogram_is_built(
     view = np.zeros((3, 6, 12), np.uint8)[:, :, ::2].transpose(1, 2, 0)
     fit(view + 1, rgb(scope="patch"), channel_axis=axis)
     assert len(calls) == 3
+
+
+def test_rgb_images_with_different_pixel_types_are_refused_before_pooling(monkeypatch):
+    """Issue #51: uint8 and uint16 images are not pooled into one shared normalization."""
+    rows = []
+    for kind, path in (("uint8", "c/r/a8.tif"), ("uint16", "c/r/b16.tif")):
+        images = simulate_rgb_design(seed=51, n_images=1, **DTYPES[kind])
+        rows += make_rgb_records([(labels, path, t, px) for labels, _, t, px in images[:1]])
+    monkeypatch.setattr(
+        PooledHistogram, "__init__", lambda *a, **k: pytest.fail("histograms were pooled")
+    )
+    with pytest.raises(IncompatibleSummariesError, match="uint16: c/r/b16.tif; uint8: c/r/a8.tif"):
+        fit(rows, rgb(scope="biological_repeat"), group="r")
+    with pytest.raises(ValueError, match="one pixel type"):
+        fit(rows, rgb(scope="biological_repeat", pooling="conditions"))
+
+
+@pytest.mark.parametrize("kind", DTYPES)
+def test_rgb_images_with_one_pixel_type_and_several_times_are_pooled(kind):
+    images, records = cached_rgb_design(seed=51, n_times=2, **DTYPES[kind])
+    parameters = fit(records[:4], rgb(scope="biological_repeat"))
+    assert parameters.channels == (0, 1, 2)

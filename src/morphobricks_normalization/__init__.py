@@ -7,6 +7,8 @@ bricks (preprocessing, patch extraction) call it; it never reads folders or
 modifies source images.
 """
 
+from __future__ import annotations
+
 from ._version import __version__
 from .checks import IntensityCheckSettings, intensity_checks, unchecked_channels
 from .csv_io import OUTPUT_FILENAME, read_plane_histograms, write_plane_histograms

@@ -1,6 +1,8 @@
+> Historical record, not current. Done; merged in CellPatcher PRs 29 to 38.
+
 # Follow-up Plan — CellPatcher
 
-> See also: [Normalization brick plan](plan.md) · [Preprocessing follow-up](followup_preprocessing.md)
+> See also: [Normalization brick plan](../plan.md) · [Preprocessing follow-up](followup_preprocessing.md)
 
 **Status:** done (29 October 2026). C1–C5 were merged into CellPatcher's `main` (pull requests
 [29](https://github.com/CellMigrationLab/CellPatcher/pull/29),
@@ -10,7 +12,7 @@
 [38](https://github.com/CellMigrationLab/CellPatcher/pull/38)), with the `preprocessing` extra
 pinned to preprocessing `v0.3.0`, which brings this brick's `v0.3.1`
 ([34](https://github.com/CellMigrationLab/CellPatcher/pull/34)). Decision numbers N refer to §12 of the
-[normalization plan](plan.md); D-numbers refer to CellPatcher's own `docs/plan.md`, and this
+[normalization plan](../plan.md); D-numbers refer to CellPatcher's own `docs/plan.md`, and this
 plan revises some of them (see the last section).
 **Repository:** [CellMigrationLab/CellPatcher](https://github.com/CellMigrationLab/CellPatcher)
 

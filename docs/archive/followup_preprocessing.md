@@ -1,10 +1,12 @@
+> Historical record, not current. Done; released in morphobricks-preprocessing v0.2.0 and v0.3.0; see its CHANGELOG.
+
 # Follow-up Plan — morphobricks-preprocessing
 
-> See also: [Normalization brick plan](plan.md) · [CellPatcher follow-up](followup_cellpatcher.md)
+> See also: [Normalization brick plan](../plan.md) · [CellPatcher follow-up](followup_cellpatcher.md)
 
 **Status:** done (28 October 2026). P1–P5 were released in preprocessing `v0.2.0` and P6
 in `v0.3.0` (pinning this brick's `v0.3.1`). The CellPatcher follow-up comes next. Decision
-numbers refer to §12 of the [normalization plan](plan.md).
+numbers refer to §12 of the [normalization plan](../plan.md).
 **Repository:** [CellMigrationLab/morphobricks-preprocessing](https://github.com/CellMigrationLab/morphobricks-preprocessing)
 
 ## Goal

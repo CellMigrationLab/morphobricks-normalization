@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from morphobricks_normalization import (
+    IncompatibleSummariesError,
     MethodNotAllowedError,
     NormalizationSettings,
     NoValidPixelsError,
@@ -18,6 +19,7 @@ from morphobricks_normalization import (
     rgb_percentile,
     scope_groups,
 )
+from morphobricks_normalization import fitting as fitting_module
 from morphobricks_normalization.fitting import offset_column, scale_column
 from morphobricks_normalization.rgb import EPSILON, apply_rgb
 from simulation import cached_rgb_design, make_rgb_records, simulate_rgb_design
@@ -321,3 +323,115 @@ def test_linear_percentile_equals_numpy_percentile(dtype):
         pooled.linear_percentile(101)
     with pytest.raises(ValueError, match="between 0 and 100"):
         unit.linear_percentile(-1)
+
+
+@pytest.mark.parametrize("axis", [-1, 2])
+@pytest.mark.parametrize(
+    ("shape", "dtype"),
+    [((6, 6, 4), np.uint16), ((6, 6, 2), np.uint8), ((6, 6, 3), np.float32)],
+)
+def test_invalid_rgb_pixels_are_refused_before_any_histogram_is_built(
+    monkeypatch, shape, dtype, axis
+):
+    """Issue #52: the channel count and pixel type are checked before the histograms."""
+    calls = []
+    original = fitting_module.compute_plane_histogram
+    monkeypatch.setattr(
+        fitting_module,
+        "compute_plane_histogram",
+        lambda *args, **kwargs: calls.append(1) or original(*args, **kwargs),
+    )
+    with pytest.raises(ValueError, match="exactly three 8- or 16-bit colour channels"):
+        fit(np.zeros(shape, dtype), rgb(scope="patch"), channel_axis=axis)
+    with pytest.raises(ValueError, match="exactly three 8- or 16-bit colour channels"):
+        fit(np.zeros(shape[:2], dtype), rgb(scope="patch"))
+    assert calls == []
+    # A valid array still builds its three histograms, also for a non-contiguous view.
+    view = np.zeros((3, 6, 12), np.uint8)[:, :, ::2].transpose(1, 2, 0)
+    fit(view + 1, rgb(scope="patch"), channel_axis=axis)
+    assert len(calls) == 3
+
+
+def test_rgb_images_with_different_pixel_types_are_refused_before_pooling(monkeypatch):
+    """Issue #51: uint8 and uint16 images are not pooled into one shared normalization."""
+    rows = []
+    for kind, path in (("uint8", "c/r/a8.tif"), ("uint16", "c/r/b16.tif")):
+        images = simulate_rgb_design(seed=51, n_images=1, **DTYPES[kind])
+        rows += make_rgb_records([(labels, path, t, px) for labels, _, t, px in images[:1]])
+    monkeypatch.setattr(
+        PooledHistogram, "__init__", lambda *a, **k: pytest.fail("histograms were pooled")
+    )
+    with pytest.raises(IncompatibleSummariesError, match="uint16: c/r/b16.tif; uint8: c/r/a8.tif"):
+        fit(rows, rgb(scope="biological_repeat"), group="r")
+    with pytest.raises(ValueError, match="one pixel type"):
+        fit(rows, rgb(scope="biological_repeat", pooling="conditions"))
+
+
+@pytest.mark.parametrize("kind", DTYPES)
+def test_rgb_images_with_one_pixel_type_and_several_times_are_pooled(kind):
+    images, records = cached_rgb_design(seed=51, n_times=2, **DTYPES[kind])
+    parameters = fit(records[:4], rgb(scope="biological_repeat"))
+    assert parameters.channels == (0, 1, 2)
+
+
+@pytest.mark.parametrize("subset", [[2], [0, 1], [1, 2], [0, 2]])
+def test_rgb_parameters_refuse_a_channel_subset(subset):
+    """Issue #50: a subset could not be read back by from_columns."""
+    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3)
+    with pytest.raises(ValueError, match="three colour channels together"):
+        p.select(subset)
+
+
+def test_rgb_parameters_select_all_channels_unchanged_and_fluorescence_subsets_work():
+    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3)
+    assert p.select([2, 1, 0]) == p
+    settings = rgb()
+    assert Parameters.from_columns(p.select([0, 1, 2]).to_columns(), settings) == p
+    pixels = np.arange(27, dtype=np.uint8).reshape(3, 3, 3)
+    assert np.array_equal(
+        p.select([0, 1, 2]).apply(pixels, channel_axis=0), p.apply(pixels, channel_axis=0)
+    )
+    fluorescence = Parameters("percentile 1-99.8", "image", "g", True, (1.0, 2.0, 3.0), (4.0,) * 3)
+    assert fluorescence.select([2]).channels == (2,)
+
+
+@pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.float32, np.float64])
+@pytest.mark.parametrize("layout", ["last", "first", "view"])
+def test_apply_rgb_is_bitwise_the_csbdeep_arithmetic_and_never_shares_the_input(dtype, layout):
+    """Issue #53: the in-place steps give the same bits as the direct float32 expression."""
+    rng = np.random.default_rng(53)
+    base = rng.integers(0, 250, (3, 20, 24)).astype(dtype)
+    pixels = {
+        "last": np.ascontiguousarray(np.moveaxis(base, 0, -1)),
+        "first": base,
+        "view": np.moveaxis(base, 0, -1),
+    }[layout]
+    axis = 0 if layout == "first" else -1
+    shape = [1, 1, 1]
+    shape[axis] = 3
+    offset, scale = np.array([3.3, 3.3, 3.3]).reshape(shape), np.full(shape, 90.1)
+    before = pixels.copy()
+    out = apply_rgb(pixels, offset, scale)
+    mi = offset.astype(np.float32)
+    ma = (offset + scale - EPSILON).astype(np.float32)
+    expected = (pixels.astype(np.float32) - mi) / (ma - mi + np.float32(EPSILON))
+    assert out.dtype == np.float32
+    assert out.tobytes() == expected.astype(np.float32).tobytes()
+    assert not np.shares_memory(out, pixels)
+    assert np.array_equal(pixels, before)
+    zero = apply_rgb(np.full((4, 4, 3), 7, dtype), 7.0, EPSILON)  # no spread: zeros, not an error
+    assert not zero.any()
+
+
+def test_apply_rgb_allocates_one_array_beyond_its_input():
+    """Issue #53: the peak is the float32 result, not a copy plus two temporaries."""
+    import tracemalloc
+
+    pixels = np.random.default_rng(53).integers(0, 4096, (512, 512, 3)).astype(np.uint16)
+    tracemalloc.start()
+    try:
+        out = apply_rgb(pixels, 10.0, 1000.0)
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert peak < 1.5 * out.nbytes

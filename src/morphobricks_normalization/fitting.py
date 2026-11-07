@@ -40,7 +40,14 @@ from .normalization import (
 from .parameter_checks import channel_indices, check_offset_scale, check_scope
 from .pooling import NoValidPixelsError, PooledHistogram, WeightedHistogram
 from .records import PlaneRecord, different_channel_counts, duplicate_planes
-from .rgb import RGB_CHANNEL_COUNT, apply_rgb, check_rgb, rgb_percentile
+from .rgb import (
+    RGB_CHANNEL_COUNT,
+    apply_rgb,
+    check_rgb_pixels,
+    check_rgb_records,
+    check_rgb_selection,
+    rgb_percentile,
+)
 from .settings import SCOPES, NormalizationSettings, check_settings
 
 # Columns written once per row; the per-channel pairs follow (offset_column,
@@ -144,7 +151,8 @@ class Parameters:
         Raises
         ------
         ValueError
-            If a channel is not among :attr:`channels`, or is not a whole number.
+            If a channel is not among :attr:`channels`, or is not a whole number; for RGB
+            parameters, if not all of R, G and B are selected (issue #50).
         """
         wanted = sorted(set(channel_indices(channels)))
         missing = [c for c in wanted if c not in self.channels]
@@ -155,6 +163,8 @@ class Parameters:
                 f"These parameters have channel(s) {list(self.channels)}; channel(s) "
                 f"{missing} cannot be selected."
             )
+        if self.image_type == "rgb":
+            check_rgb_selection(wanted, self.channels)
         index = [self.channels.index(c) for c in wanted]
         return replace(
             self,
@@ -364,6 +374,9 @@ def fit(
     """
     from_pixels = isinstance(statistics, np.ndarray)
     check_settings(settings, statistics_file=not from_pixels)
+    rgb = settings.image_type == "rgb"
+    if rgb and from_pixels:  # refuse before any histogram is built (#52)
+        check_rgb_pixels(statistics, channel_axis)
     if from_pixels:
         # One histogram per channel of the array, pooled like the rows' channels.
         items: list[PlaneRecord] | list[PlaneHistogram] = _pixel_histograms(
@@ -376,15 +389,15 @@ def fit(
             raise ValueError("channel_axis applies to pixel arrays only, not to histogram rows.")
         items = _records(statistics, group)
         channel_count = items[0].channel_count
+        if rgb:  # refuse before the rows are pooled
+            check_rgb_records(items, group)
         excluded = [
             f"{record.plane_id} (channel {channel})"
             for record in items
             for channel, histogram in enumerate(record.histograms)
             if histogram.is_empty
         ]
-    rgb = settings.image_type == "rgb"
     if rgb:
-        check_rgb(channel_count, _dtypes(items))
         # Contract §3.3: R, G and B pooled together give one shared offset and scale.
         channel_sets = [tuple(range(channel_count))]
     else:
@@ -449,12 +462,6 @@ def _pixel_histograms(pixels: np.ndarray, channel_axis: int | None) -> list[Plan
     return [
         compute_plane_histogram(np.take(pixels, c, axis=axis)) for c in range(pixels.shape[axis])
     ]
-
-
-def _dtypes(items: list[PlaneRecord] | list[PlaneHistogram]) -> set[np.dtype]:
-    if isinstance(items[0], PlaneHistogram):
-        return {histogram.dtype for histogram in items}
-    return {histogram.dtype for record in items for histogram in record.histograms}
 
 
 def _channel_histograms(

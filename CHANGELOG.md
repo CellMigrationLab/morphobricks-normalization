@@ -19,6 +19,7 @@ new refusal or a numerical-range fix (see the pull requests for the exact messag
   different pixel types are refused before pooling, `Parameters.select` of a strict subset of
   R, G and B is refused, and `apply_rgb` uses one float32 copy (#78).
 - `range_check_issues` refuses malformed channels and mixed settings (#79).
+- The non-finite scale refusal names no method-specific cause: it says finite pixel values overflowed float64 arithmetic, which is true for min-max, percentile range and robust z-score as well as z-score (#82).
 - New `iter_image_summaries(records)`: streaming, bounded-memory per-image summaries for rows
   grouped by image (contiguity required, otherwise refused); `image_summaries` is unchanged (#58).
 

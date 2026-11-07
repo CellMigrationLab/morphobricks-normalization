@@ -103,8 +103,8 @@ def _parameters(method: str, offset: float, scale: float) -> NormalizationParame
     if not np.isfinite(scale):
         raise ValueError(
             f"The {method} normalization cannot be used for this group: its intensity spread "
-            f"is {scale!r}, not a finite number, because the pixel values are too large for "
-            "float64 sums of squares (overflow). Choose another method or a different range."
+            f"is {scale!r}, not a finite number, usually because finite pixel values overflowed "
+            "float64 arithmetic. Choose another method or a different range."
         )
     if scale <= 0:
         raise ValueError(

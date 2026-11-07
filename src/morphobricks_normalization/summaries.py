@@ -49,6 +49,14 @@ SUMMARY_FEATURES = (
 )
 
 
+class IncompatibleSummariesError(ValueError):
+    """Raised for image summaries that cannot be compared or pooled with each other.
+
+    Different numbers of channels, percentile definitions or pixel types make the
+    values measure different things; nothing is converted or guessed.
+    """
+
+
 @dataclass(frozen=True)
 class ImageSummary:
     """Intensity summary of one image, all Z and T planes pooled per channel.
@@ -85,6 +93,21 @@ class ImageSummary:
     p_high: tuple[float | None, ...]
     saturated_fraction: tuple[float | None, ...]
     exact: tuple[bool | None, ...]
+
+    def __post_init__(self) -> None:
+        """Refuse per-channel tuples of different lengths, or none (issue #56)."""
+        lengths = {
+            name: len(getattr(self, name))
+            for name in ("median", "p_low", "p_high", "saturated_fraction", "exact")
+        }
+        if len(set(lengths.values())) > 1 or lengths["median"] == 0:
+            found = ", ".join(f"{name}: {n}" for name, n in lengths.items())
+            raise IncompatibleSummariesError(
+                f"Image {self.source_relative_path}: its per-channel values do not have one "
+                f"entry per channel ({found}), so the channels of the image are not defined. "
+                "Give median, p_low, p_high, saturated_fraction and exact the same, non-zero "
+                "length, or build the summary with image_summaries()."
+            )
 
     @property
     def image_file(self) -> str:

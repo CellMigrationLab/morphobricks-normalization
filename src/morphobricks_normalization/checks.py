@@ -43,7 +43,8 @@ from .issues import (
     Issue,
 )
 from .normalization import NORMAL_CONSISTENCY
-from .summaries import ImageSummary
+from .records import different_channel_counts
+from .summaries import ImageSummary, IncompatibleSummariesError
 
 _KEYS = ("library_version", "outlier_limit", "saturation_limit", "min_images")
 
@@ -178,6 +179,7 @@ def intensity_checks(
     """
     settings = IntensityCheckSettings() if settings is None else settings
     summaries = sorted(summaries, key=_order)
+    _check_comparable(summaries)
     return [
         *_image_outliers(summaries, settings),
         *_repeat_shifts(summaries, settings),
@@ -381,6 +383,16 @@ def _compare(value: float, others: list[float], limit: float) -> tuple[float, fl
         return None
     distance = abs(value - reference) / deviation
     return (reference, deviation, distance) if distance > limit else None
+
+
+def _check_comparable(summaries: list[ImageSummary]) -> None:
+    """Refuse summaries that do not describe the same channels (issue #56)."""
+    if len({s.channel_count for s in summaries}) > 1:
+        raise IncompatibleSummariesError(
+            different_channel_counts(
+                [(s.source_relative_path, s.channel_count) for s in summaries], "These images"
+            )
+        )
 
 
 def _order(summary: ImageSummary) -> tuple[str, ...]:

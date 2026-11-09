@@ -136,6 +136,13 @@ and ±infinity are ignored.
 - No finite pixels: `lo`, `hi` blank; all counts 0.
 - Representative value: the bin midpoint `lo + (i + 0.5)·width`.
 - Bound: every pixel is within `width / 2` of its representative.
+- Ultra-narrow ranges (#86): when `[lo, hi]` holds fewer representable floats than bins
+  (`[0, 5e-324]` with 4 bins), bins that no value can fall in may share a representative
+  (`0, 0, 5e-324, 5e-324`); they stay empty and the bin count is not reduced. Every bin that
+  holds two or more representable values has a representative that falls in that bin. A bin
+  holding exactly one can have a representative that rounds to the neighbouring float, in the
+  adjacent bin, because its midpoint is not representable. Bins and representatives are
+  unchanged by this statement.
 
 ##### Planes read in blocks
 

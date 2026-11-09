@@ -14,6 +14,7 @@ new refusal or a numerical-range fix (see the pull requests for the exact messag
 - Percentiles are interpolated between finite extremes without overflowing the gap (#74).
 - Float bin centres are computed without overflowing near the float64 limits (#76).
 - Float histograms over a very narrow range (down to the smallest subnormal) bin pixels and place bin centres correctly: the position is a bounded fraction times the bin count where the halved arithmetic would round to zero or overflow. Histograms of ordinary ranges are bit-identical (#84).
+- Ultra-narrow float ranges (fewer representable floats than bins, e.g. `[0, 5e-324]` with 4 bins): documented and tested, no output changes. Bins no float64 value can fall in may share a representative centre; the centre of every bin holding two or more representable values maps back to it, and a bin holding exactly one can have a centre that rounds into the adjacent bin. New `bin_reachability` helpers state this; `tools/dump_outputs.py` gains a generated corpus (extremes, subnormals, narrow to wide ranges) showing bit-identical output against `main` (#86).
 - Image summaries whose channels disagree, pooled summaries with different percentile
   definitions, and images whose Z/T planes have different pixel types are refused (#77).
 - RGB: channel count and pixel type are checked before histograms are built, RGB groups with

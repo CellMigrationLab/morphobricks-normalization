@@ -44,6 +44,13 @@ def float_bin_centres(lo: float, hi: float, bin_count: int) -> np.ndarray:
     reaches twice the half range (up to the full range) for the last bins, which
     overflows near the float64 limits although the centre is representable; only then are
     the affected bins stepped from the midpoint instead.
+
+    A range that holds fewer representable floats than ``bin_count`` has bins no value can
+    fall in (``[0, 5e-324]`` with 4 bins: ``0, 0, 5e-324, 5e-324``). Such unreachable bins may
+    share a centre. For every bin that some float64 value falls in, the centre maps back to
+    that bin, except that a bin holding exactly one float can have a centre that rounds to the
+    neighbouring float, in the adjacent bin (its midpoint is not representable). The binning
+    and the centres do not depend on this; ``bin_reachability`` states and tests it.
     """
     fraction = (2 * np.arange(bin_count) + 1) / bin_count
     span = hi - lo

@@ -11,9 +11,15 @@ pooled statistics, image summaries, intensity checks and fitted parameters for
 every method and scope. Floats are written with :meth:`float.hex`, so any
 change of a single bit changes the digest.
 
+With ``--corpus`` the dump is the generated corpus instead: histograms of every pixel
+type over extreme, subnormal, one-ulp, narrow, ordinary and wide ranges, at many bin counts,
+whole and in blocks, min-max and robust. It uses only the public API that exists on
+older commits, so the same corpus runs on the base commit (``PYTHONPATH=<base>/src``) and
+on the change; the digests must be equal.
+
 Usage::
 
-    python tools/dump_outputs.py [--out DUMP]
+    python tools/dump_outputs.py [--out DUMP] [--corpus]
 """
 
 from __future__ import annotations
@@ -49,6 +55,11 @@ ROBUST = HistogramSettings(histogram_range="robust")
 # Quantiles that leave pixels of these small planes in both tails.
 TIGHT = HistogramSettings(histogram_range="robust", robust_quantiles=(2.0, 97.0))
 BIN_COUNTS = (16, 256)
+CORPUS_BIN_COUNTS = (2, 3, 4, 5, 7, 16, 64, 256, 1024)
+CORPUS_INTEGER_BIN_COUNTS = (1, 3, 16, 256)
+SMALLEST_SUBNORMAL = 5e-324
+SMALLEST_NORMAL = float(np.finfo(np.float64).tiny)
+FLOAT64_MAX = float(np.finfo(np.float64).max)
 METHODS = ("minmax", "percentile", "zscore", "robust_zscore")
 
 
@@ -277,13 +288,168 @@ def dump_lines(folder: Path) -> Iterator[str]:
         yield from experiment_lines(f"{dtype}-{bins}-{kind}", hists, folder)
 
 
+def one_ulp(x: float) -> tuple[float, float]:
+    """Return ``x`` and the next float64 above it, or below it at the maximum.
+
+    Parameters
+    ----------
+    x
+        A finite float64.
+
+    Returns
+    -------
+    tuple of float
+        ``(x, next float)`` in increasing order.
+    """
+    with np.errstate(over="ignore"):  # the next float above the maximum is infinity
+        up = float(np.nextafter(x, np.inf))
+    return (x, up) if np.isfinite(up) else (float(np.nextafter(x, 0.0)), x)
+
+
+def corpus_ranges() -> list[tuple[float, float]]:
+    """Return the float64 ranges of the corpus, from one ulp to the whole float64 range.
+
+    Returns
+    -------
+    list of tuple of float
+        ``(lo, hi)`` with ``lo < hi``.
+    """
+    tiny, sub, big = SMALLEST_NORMAL, SMALLEST_SUBNORMAL, FLOAT64_MAX
+    pairs = [
+        (0.0, sub),
+        (0.0, 2 * sub),
+        (0.0, 3 * sub),
+        (-sub, sub),
+        (-sub, 0.0),
+        (1e-320, 2e-320),
+        (0.0, 1e-310),
+        (0.0, tiny),
+        (-tiny, tiny),
+        (tiny, 2 * tiny),
+        (0.0, 1e-306),
+        (0.0, 1e-100),
+        (0.0, 1.0),
+        (-1.0, 1.0),
+        (0.0, 255.0),
+        (-1e4, 1e4),
+        (1e-30, 1e30),
+        (-1e30, 1e30),
+        (0.0, 1e300),
+        (-1e308, 1e308),
+        (0.0, big),
+        (-big, 0.0),
+        (-big, big),
+    ]
+    for x in (sub, 1e-320, tiny, 1e-300, 0.1, 1.0, -2.0, 3.7, 1e10, 1e300, 1e308, -big, big):
+        pairs.append(one_ulp(x))
+    pairs.append((1.0, 1.0 + 4 * 2.0**-52))
+    return pairs
+
+
+def corpus_plane(lo: float, hi: float, dtype: str) -> np.ndarray:
+    """Return a plane whose finite range is ``[lo, hi]``, with values spread inside it.
+
+    Parameters
+    ----------
+    lo, hi
+        The float64 range, ``lo < hi``.
+    dtype
+        ``"float32"`` or ``"float64"``; for float32 the range is cast and may collapse.
+
+    Returns
+    -------
+    numpy.ndarray
+        A 2D plane of ``dtype`` with the endpoints, their neighbours and an even spread.
+    """
+    fractions = np.linspace(0.0, 1.0, 40)
+    values = np.clip(lo * (1 - fractions) + hi * fractions, lo, hi)
+    near = [lo, hi, float(np.nextafter(lo, hi)), float(np.nextafter(hi, lo))]
+    flat = np.concatenate([values, near, [0.0 if lo <= 0.0 <= hi else lo]])
+    with np.errstate(over="ignore"):
+        cast = flat.astype(dtype)
+    cast = cast[np.isfinite(cast)]
+    return np.resize(cast, (8, max(cast.size // 8, 1))) if cast.size >= 8 else cast.reshape(1, -1)
+
+
+def corpus_planes() -> Iterator[tuple[str, np.ndarray]]:
+    """Yield the corpus planes: float ranges of both widths, and extreme integer planes.
+
+    Yields
+    ------
+    tuple of str and numpy.ndarray
+        A name and a 2D plane.
+    """
+    for lo, hi in corpus_ranges():
+        for dtype in ("float64", "float32"):
+            yield f"{dtype}[{lo.hex()},{hi.hex()}]", corpus_plane(lo, hi, dtype)
+    rng = np.random.default_rng(SEED)
+    for dtype in ("uint8", "uint16", "int8", "int16", "uint32", "int32", "int64", "uint64"):
+        info = np.iinfo(dtype)
+        for low, high in ((info.min, info.min + 1), (info.max - 1, info.max), (info.min, info.max)):
+            extremes = np.array([low, high, low, high, (low + high) // 2], dtype=dtype)
+            yield f"{dtype}[{low},{high}]", np.resize(extremes, (4, 5))
+        mid = rng.integers(max(info.min, -5), min(info.max, 40), (6, 7), endpoint=True)
+        yield f"{dtype}-small", mid.astype(dtype)
+
+
+def corpus_histogram_lines(
+    name: str, plane: np.ndarray, bins: int, label: str, settings: HistogramSettings | None
+) -> Iterator[str]:
+    """Yield the lines of one plane read whole and in two blocks, or the error raised.
+
+    Parameters
+    ----------
+    name
+        The plane's name.
+    plane
+        The plane.
+    bins
+        Bin count.
+    label
+        Name of the range setting.
+    settings
+        The range setting, or None for min-max.
+
+    Yields
+    ------
+    str
+        A line for the whole plane and a line for the blocks.
+    """
+    half = max(plane.shape[0] // 2, 1)
+    blocks = [plane[:half], plane[half:]]
+    for how in ("plane", "blocks"):
+        try:
+            if how == "plane":
+                hist = compute_plane_histogram(plane, bins, settings=settings)
+            else:
+                hist = compute_block_histogram(lambda: blocks, plane.dtype, bins, settings=settings)
+            yield f"{name}/{bins}/{label}/{how} {histogram_text(hist)}"
+        except ValueError as error:
+            yield f"{name}/{bins}/{label}/{how} {type(error).__name__}: {error}"
+
+
+def corpus_lines() -> Iterator[str]:
+    """Yield the histogram lines of the corpus.
+
+    Yields
+    ------
+    str
+        One line per plane, bin count, range setting and way of reading the plane.
+    """
+    for name, plane in corpus_planes():
+        counts = CORPUS_BIN_COUNTS if plane.dtype.kind == "f" else CORPUS_INTEGER_BIN_COUNTS
+        for bins in counts:
+            for label, settings in (("minmax", None), ("robust", ROBUST), ("tight", TIGHT)):
+                yield from corpus_histogram_lines(name, plane, bins, label, settings)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Write the dump and print its SHA-256.
 
     Parameters
     ----------
     argv
-        Command-line arguments; ``--out`` names the dump file.
+        Command-line arguments; ``--out`` names the dump file, ``--corpus`` selects the corpus.
 
     Returns
     -------
@@ -292,9 +458,15 @@ def main(argv: list[str] | None = None) -> int:
     """
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, help="where to write the dump (default: not kept)")
+    parser.add_argument(
+        "--corpus",
+        action="store_true",
+        help="dump the generated corpus of narrow and extreme ranges",
+    )
     args = parser.parse_args(argv)
     with tempfile.TemporaryDirectory() as folder:
-        dump = "".join(line + "\n" for line in dump_lines(Path(folder))).encode("utf-8")
+        lines = corpus_lines() if args.corpus else dump_lines(Path(folder))
+        dump = "".join(line + "\n" for line in lines).encode("utf-8")
     if args.out is not None:
         args.out.write_bytes(dump)
     lines = dump.count(b"\n")

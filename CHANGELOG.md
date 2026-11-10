@@ -4,7 +4,10 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
-## Unreleased (after v0.3.4)
+## v0.4.0 (2026-11-10)
+
+Breaking release: `PlaneRecord.position_id` is required (NM-04) and the readers of old table layouts
+are removed (NM-01). See [Migrating to v0.4.0](#migrating-to-v040).
 
 Obsolete-code sweep (SWEEP-NM; inventory rows NM-01, NM-02, NM-04). No fitted number, histogram
 or written table changes: `tools/dump_outputs.py` (and `--corpus`) give identical SHA-256 digests on
@@ -25,7 +28,7 @@ or written table changes: `tools/dump_outputs.py` (and `--corpus`) give identica
   `tests/data/golden_*.{npz,json}`. The checks that only compared tables and one-channel rows of the
   old layout, the two version-2 CSV fixtures and `make_v2_fixture.py` are deleted.
 
-Merged to `main` since the `v0.3.4` tag; from the commit history, not yet released. Each is a
+Merged to `main` between `v0.3.4` and `v0.4.0`; from the commit history. Each is a
 new refusal or a numerical-range fix (see the pull requests for the exact messages):
 
 - Named refusals for a non-finite z-score scale and for opposing infinite tail sums in the
@@ -43,6 +46,24 @@ new refusal or a numerical-range fix (see the pull requests for the exact messag
 - The non-finite scale refusal names no method-specific cause: it says finite pixel values overflowed float64 arithmetic, which is true for min-max, percentile range and robust z-score as well as z-score (#82).
 - New `iter_image_summaries(records)`: streaming, bounded-memory per-image summaries for rows
   grouped by image (contiguity required, otherwise refused); `image_summaries` is unchanged (#58).
+
+### Migrating to v0.4.0
+
+Valid inputs give bit-identical results (`tools/dump_outputs.py` and `--corpus` digests are
+unchanged, and the 400 golden fits are bit-identical). Two inputs that were accepted before are
+now refused:
+
+- **`PlaneRecord` needs `position_id`.** It is required and keyword-only. The preprocessing brick
+  (and any other caller that builds `PlaneRecord`s) must pass the position of the plane's field of
+  view; `None`, blank or non-text values raise `ValueError`. Nothing is filled in or guessed.
+  `read_plane_histograms` refuses a row whose `position_id` is blank with a `CsvFormatError`
+  (it used to read it as `None`). A `plane_histograms.csv` written before the field was filled
+  must be recomputed by running preprocessing again.
+- **Old-version tables are refused, not read.** A `plane_histograms.csv` of schema version 1, 2 or
+  3 is recognised by the `schema_version` of its rows and refused with the same pointed messages as
+  before; each names the version and says to run the preprocessing brick again to write schema
+  version 4. A version 1 to 3 header with no rows is refused as a table with unexpected columns.
+  Only schema version 4 is read.
 
 ## Release notes moved from the README
 

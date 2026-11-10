@@ -2,7 +2,7 @@
 
 > See also: [Preprocessing follow-up](archive/followup_preprocessing.md) (done) · [CellPatcher follow-up](archive/followup_cellpatcher.md) (done)
 
-**Status:** implemented through v0.3.4 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
+**Status:** implemented through v0.4.0 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
 channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
 (N4–N28) is withdrawn where §12 says so. A robust histogram range was added on 28 October
@@ -280,6 +280,11 @@ their formula is implemented here.
   `math.fsum` sums, independent of the CPU thread count, so they change in their last bits
   (at most 3.7e-14 relative; #67, PR #69); and the section 9 code-standards gate is
   installed (PR #66). Every other output is bit-identical. Migration notes in the README.
+- **Release `v0.4.0`** (10 November 2026): the obsolete-code sweep (SWEEP-NM). `PlaneRecord.position_id`
+  is required (NM-04); the readers of schema versions 1 to 3 are removed and those tables are refused
+  with the same messages (NM-01); the version-2 parity tests became fit goldens (NM-02); plus the
+  numerical-range and refusal fixes merged since `v0.3.4` (CHANGELOG). Valid inputs give
+  bit-identical outputs. Migration notes in the CHANGELOG.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
   schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag

@@ -6,6 +6,38 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
 
 ## Unreleased
 
+Stage 3 S3.2 (MorphoBricks-Spec roadmap; ADR 0003, plan N61–N64). Breaking: `plane_histograms.csv`
+schema version 5 and channels named by canonical channel ID everywhere. Version not bumped yet.
+
+- **`plane_histograms.csv` schema version 5** (HV1, HV2): one row per plane; the presence column
+  `channels` (the plane's IDs in source order, `;`-separated) after the 15 plane columns; the
+  per-channel columns of every channel ID of the experiment, sorted, named
+  `<Category>_<Feature>_<ID>` (`Histogram_Count_DNA_00042`). An absent channel is blank and a value
+  there is refused. `write_plane_histograms(records, path, *, channel_ids, failures=())` needs the
+  experiment's channel IDs; new `read_plane_histogram_table` (header IDs and records),
+  `table_header`, `header_channels`.
+- **Failed measurements** (HV3): `ChannelMeasurementFailure`, `ChannelMeasurementError`,
+  `check_measurements`; the writer writes nothing when given a failure.
+- **Version 4 is refused** (HV4) with a message naming version 5 and how to recompute; no converter.
+- **Channels by ID**: `PlaneRecord(..., *, position_id, channels)` (required), `channel_histogram(id)`,
+  `has_channel`; `PooledHistogram(..., channel=id)`; `fit(..., channels=)` (rows: which IDs, default
+  all; pixels: the ID of each entry, required except RGB); `Parameters.channels` are sorted IDs
+  (required), `select(ids)`, `apply(..., channels=)`, columns `Normalization_Offset_<ID>` /
+  `Normalization_Scale_<ID>`; `ImageSummary.channels`, `summary_columns(channel_ids)`;
+  `range_check_issues` takes channel IDs; `Issue.channel` is an ID. RGB uses the IDs `R`, `G`, `B`.
+  An index where an ID is expected is refused.
+- **Heterogeneous images** (N43 replaced): rows may have different channels. A channel is pooled
+  over the planes that have it, with the new warning `channel_partially_present` when only some
+  planes of a group have it; planes of one image with different channel lists are refused.
+- `Parameters` moved to the new module `parameters.py` (re-exported by `fitting` and the package).
+- Tests: the Spec's test material is vendored at `cc9820f` (`tests/spec_fixtures`, pin test and CI
+  check); described-tree tests for the owner's extra-stain case and fixtures v04, v05, v06, v13,
+  v17, v22.
+
+Numbers: for planes whose channels are all present, histograms and fits are bit-identical to
+v0.4.0 for the same pixels (`tools/evidence_v4_parity.py`, draft only; the 400 golden fits;
+`tools/dump_outputs.py --corpus` digest unchanged).
+
 Numerical-correctness fixes. Each says which outputs change; every other output is
 bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden fits).
 

@@ -60,7 +60,14 @@ def summaries_of(design, seed=0):
             pixels = [c if isinstance(c, np.ndarray) else image(c, rng) for c in channels]
             histograms = [compute_plane_histogram(p) for p in pixels]
             records.append(
-                PlaneRecord(path(condition, repeat, index), condition, repeat, SINGLE, histograms)
+                PlaneRecord(
+                    path(condition, repeat, index),
+                    condition,
+                    repeat,
+                    SINGLE,
+                    histograms,
+                    position_id="p",
+                )
             )
     return image_summaries(records)
 

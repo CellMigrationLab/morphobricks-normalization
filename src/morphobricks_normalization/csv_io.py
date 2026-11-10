@@ -20,6 +20,7 @@ precision and read back unchanged.
 from __future__ import annotations
 
 import csv
+import itertools
 import os
 import tempfile
 from collections.abc import Iterable
@@ -70,11 +71,9 @@ CHANNEL_FEATURES = (
     "Histogram_OverflowSumOfSquares",
 )
 BIN_COLUMN_PREFIX = "Histogram_Count"
-# The per-channel features of schema version 3, before the tails, to recognise its tables.
-_VERSION_3_FEATURES = CHANNEL_FEATURES[:5]
-
-# Rows of an earlier version are recognised by these columns of their header.
-_EARLIER_LAYOUT = ("c", "schema_version")
+# Tables of these versions are refused by their ``schema_version`` value alone, with a message
+# that names the fix; no reader of their layouts is kept (they would have to be recomputed).
+_EARLIER_VERSIONS = ("1", "2", "3")
 
 
 class CsvFormatError(ValueError):
@@ -165,10 +164,11 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
         If the header, schema version or a row does not match the format, including
         a row whose ``plane_id``, ``image_file`` or ``bit_depth`` differs from what its
         path, coordinates and pixel type give, or whose statistics break the rules
-        of :mod:`~morphobricks_normalization.integrity`; if the table was written with
-        an earlier schema version (1 and 2 had one row per channel, 3 no underflow and
-        overflow columns); if it has no rows, or two rows with the same ``plane_id``;
-        or if its rows have different numbers of channels.
+        of :mod:`~morphobricks_normalization.integrity`; if a row says the table was written
+        with an earlier schema version (1 and 2 had one row per channel, 3 no underflow and
+        overflow columns), which is refused by that value alone, without reading the layout;
+        if it has no rows, or two rows with the same ``plane_id``; or if its rows have
+        different numbers of channels.
     """
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.reader(fh)
@@ -176,18 +176,16 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
             header = next(reader)
         except StopIteration:
             raise CsvFormatError(f"{path} is empty.") from None
+        first = next(reader, None)
+        if "schema_version" in header and first is not None:
+            index = header.index("schema_version")
+            if index < len(first) and first[index] in _EARLIER_VERSIONS:
+                raise CsvFormatError(_earlier_version_message(path, first[index]))
+        reader = itertools.chain([] if first is None else [first], reader)
         n_meta = len(METADATA_COLUMNS)
         if tuple(header[:n_meta]) != METADATA_COLUMNS:
-            if all(name in header for name in _EARLIER_LAYOUT):
-                first = next(reader, None)
-                version = "1 or 2"
-                if first is not None and len(first) == len(header):
-                    version = first[header.index("schema_version")] or version
-                raise CsvFormatError(_earlier_version_message(path, version))
             raise CsvFormatError(f"{path} does not have the plane-histogram columns.")
-        if _channel_layout(header[n_meta:], _VERSION_3_FEATURES) is not None:
-            raise CsvFormatError(_earlier_version_message(path, "3"))
-        layout = _channel_layout(header[n_meta:], CHANNEL_FEATURES)
+        layout = _channel_layout(header[n_meta:])
         if layout is None:
             raise CsvFormatError(f"{path} has unexpected per-channel column names.")
         n_channels, n_bins = layout
@@ -212,18 +210,18 @@ def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
         return records
 
 
-def _channel_layout(columns: list[str], features: tuple[str, ...]) -> tuple[int, int] | None:
+def _channel_layout(columns: list[str]) -> tuple[int, int] | None:
     # The bins of channel 0 give the bin count; the header must then hold the
     # same columns for a whole number of channels, in order. None otherwise.
     prefix = f"{BIN_COLUMN_PREFIX}_C0_"
     n_bins = sum(name.startswith(prefix) for name in columns)
-    width = len(features) + n_bins
+    width = len(CHANNEL_FEATURES) + n_bins
     n_channels = len(columns) // width
     expected = [
         name
         for c in range(n_channels)
         for name in (
-            *(channel_column(feature, c) for feature in features),
+            *(channel_column(feature, c) for feature in CHANNEL_FEATURES),
             *(bin_column(c, i) for i in range(n_bins)),
         )
     ]
@@ -235,7 +233,7 @@ def _channel_layout(columns: list[str], features: tuple[str, ...]) -> tuple[int,
 def _row(record: PlaneRecord) -> list[str]:
     first = record.histograms[0]
     row = [
-        _text(record.position_id),
+        record.position_id,
         record.image_file,
         _text(record.z),
         _text(record.t),
@@ -277,7 +275,7 @@ def _record(
         raise CsvFormatError(f"{path}, line {line}: expected {n_meta + n_channels * width} values.")
     meta = dict(zip(METADATA_COLUMNS, row[:n_meta], strict=True))
     if meta["schema_version"] != SCHEMA_VERSION:
-        if meta["schema_version"] in ("1", "2", "3"):
+        if meta["schema_version"] in _EARLIER_VERSIONS:
             raise CsvFormatError(_earlier_version_message(path, meta["schema_version"]))
         raise CsvFormatError(
             f"{path}, line {line}: schema version {meta['schema_version']!r} is not supported "
@@ -310,7 +308,7 @@ def _record(
             histograms=histograms,
             z=int(meta["z"]),
             t=int(meta["t"]),
-            position_id=meta["position_id"] or None,
+            position_id=meta["position_id"],
         )
         # These columns are written from the others, never read into the record, so a
         # row whose stored values disagree would otherwise pass with another identity.

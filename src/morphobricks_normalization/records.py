@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numbers
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -46,9 +46,9 @@ class PlaneRecord:
         with length 1, has coordinate 0; None is stored as 0. Booleans,
         fractions, text and negative numbers are refused with ``ValueError``.
     position_id
-        The XY position within its technical repeat (MorphoBricks decision D02):
-        from reliable metadata, or the file stem when one file is one position; None
-        only for records written before the field was filled.
+        Required, keyword-only, non-empty text: the XY position within its technical
+        repeat (MorphoBricks decision D02), from reliable metadata, or the file stem
+        when one file is one position. A record without it is refused.
     """
 
     source_relative_path: str
@@ -58,7 +58,7 @@ class PlaneRecord:
     histograms: Sequence[PlaneHistogram]
     z: int = 0
     t: int = 0
-    position_id: str | None = None
+    position_id: str = field(kw_only=True)
 
     def __post_init__(self) -> None:
         # Every plane has both coordinates (contract §6.2), so a plane is
@@ -69,6 +69,7 @@ class PlaneRecord:
         if isinstance(histograms, PlaneHistogram):
             histograms = (histograms,)
         object.__setattr__(self, "histograms", tuple(histograms))
+        self._check_position_id()
         self._check_channels()
 
     @property
@@ -113,6 +114,16 @@ class PlaneRecord:
             raise ValueError(f"Unknown level {level!r}; expected one of {(*LEVELS, 'image')}.")
         labels = (self.condition, self.biological_repeat, self.technical_repeat)
         return labels[: LEVELS.index(level) + 1]
+
+    def _check_position_id(self) -> None:
+        # Never guessed or filled in: the position is part of the identity of the image.
+        if not isinstance(self.position_id, str) or not self.position_id.strip():
+            raise ValueError(
+                f"Plane of {self.source_relative_path}: it has no position_id (got "
+                f"{self.position_id!r}). Every plane needs the XY position of its image within "
+                "its technical repeat, as the preprocessing brick records it; give "
+                "position_id, or run the preprocessing brick again on this experiment."
+            )
 
     def _check_channels(self) -> None:
         if not self.histograms:

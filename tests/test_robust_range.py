@@ -104,7 +104,7 @@ def test_minmax_keeps_todays_result_and_the_check_flags_it():
     # ...and the same zero-spread error (fit gives no new warning, N57).
     with pytest.raises(ValueError, match=ZERO_SPREAD):
         percentile_range(PooledHistogram([histogram]), 1, 99.8)
-    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram)
+    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram, position_id="p")
     with pytest.raises(ValueError, match=ZERO_SPREAD):
         fit([record], NormalizationSettings())
     # The check sees the collapsed central range and what the robust range would give.
@@ -141,7 +141,7 @@ def test_robust_range_gives_percentiles_close_to_the_clean_planes():
     assert parameters.offset == pytest.approx(exact[0], abs=0.01)
     # Pixels in the tails are represented by their mean, so the bound covers them.
     assert pooled.max_representative_error > 1e5
-    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram)
+    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram, position_id="p")
     parameters = fit([record], NormalizationSettings())
     assert not parameters.exact
     assert [i.code for i in parameters.issues] == ["approximate_parameters"]
@@ -388,7 +388,14 @@ def test_weighted_pooling_uses_the_sums_too():
 def test_zscore_from_a_robust_table_uses_the_exact_sums():
     planes = wide_integer_planes(np.random.default_rng(13), 2)
     records = [
-        PlaneRecord(f"c/{i}.tif", "c", "r", "t", compute_plane_histogram(p, 1000, settings=ROBUST))
+        PlaneRecord(
+            f"c/{i}.tif",
+            "c",
+            "r",
+            "t",
+            compute_plane_histogram(p, 1000, settings=ROBUST),
+            position_id="p",
+        )
         for i, p in enumerate(planes)
     ]
     parameters = fit(records, NormalizationSettings(method="zscore", scope="biological_repeat"))
@@ -413,10 +420,18 @@ def robust_records():
             "t",
             [compute_plane_histogram(p, 500, settings=ROBUST), compute_plane_histogram(p, 500)],
             t=i,
+            position_id="p",
         )
         for i, p in enumerate(float_planes)
     ], [
-        PlaneRecord(f"c/i{i}.tif", "c", "r", "t", compute_plane_histogram(p, settings=ROBUST))
+        PlaneRecord(
+            f"c/i{i}.tif",
+            "c",
+            "r",
+            "t",
+            compute_plane_histogram(p, settings=ROBUST),
+            position_id="p",
+        )
         for i, p in enumerate(int_planes)
     ]
 
@@ -451,13 +466,13 @@ def as_version_3(path):
     return path
 
 
-@pytest.mark.parametrize("with_rows", [True, False])
-def test_version_3_is_refused(tmp_path, with_rows):
-    records = [PlaneRecord("c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)))]
+def test_version_3_is_refused(tmp_path):
+    records = [
+        PlaneRecord(
+            "c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)), position_id="p"
+        )
+    ]
     path = as_version_3(write_plane_histograms(records, tmp_path / "plane_histograms.csv"))
-    if not with_rows:
-        lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
-        path.write_text(lines[0], encoding="utf-8")
     with pytest.raises(CsvFormatError) as error:
         read_plane_histograms(path)
     assert str(error.value) == (
@@ -467,8 +482,26 @@ def test_version_3_is_refused(tmp_path, with_rows):
     )
 
 
+def test_a_version_3_header_without_rows_is_refused_by_its_columns(tmp_path):
+    # No row, so no schema_version value to read: the missing tail columns refuse it.
+    records = [
+        PlaneRecord(
+            "c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)), position_id="p"
+        )
+    ]
+    path = as_version_3(write_plane_histograms(records, tmp_path / "plane_histograms.csv"))
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    path.write_text(lines[0], encoding="utf-8")
+    with pytest.raises(CsvFormatError, match="unexpected per-channel column names"):
+        read_plane_histograms(path)
+
+
 def test_a_row_of_version_3_in_a_version_4_table_is_refused(tmp_path):
-    records = [PlaneRecord("c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)))]
+    records = [
+        PlaneRecord(
+            "c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)), position_id="p"
+        )
+    ]
     path = write_plane_histograms(records, tmp_path / "t.csv")
     text = path.read_text(encoding="utf-8").replace(",4,", ",3,", 1)
     path.write_text(text, encoding="utf-8")
@@ -548,7 +581,9 @@ def test_saturated_fraction_is_blank_when_the_maximum_is_in_the_overflow():
     plane[0, :3] = np.iinfo(np.uint32).max
     histogram = compute_plane_histogram(plane, 1000, settings=ROBUST)
     assert histogram.overflow.count >= 3
-    (summary,) = image_summaries([PlaneRecord("c/a.tif", "c", "r", "t", histogram)])
+    (summary,) = image_summaries(
+        [PlaneRecord("c/a.tif", "c", "r", "t", histogram, position_id="p")]
+    )
     assert summary.saturated_fraction == (None,)
     assert summary.exact == (False,)
 

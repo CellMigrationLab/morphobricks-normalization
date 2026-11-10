@@ -82,7 +82,7 @@ The names that change:
 
 | Module | Milestone 2b |
 |---|---|
-| `records.py` | `PlaneRecord(..., histograms, z, t, position_id)`: `histograms` holds one `PlaneHistogram` per channel (a single histogram is accepted for one channel), all with the same pixel type, bin count and size; `channel_count`, `channel_histogram(c)`. No `c` and no `histogram`. `make_plane_id(path, z=, t=)`. `group_records` and `PlaneRecord.group_key` never used `c` and are unchanged. |
+| `records.py` | `PlaneRecord(..., histograms, z, t, *, position_id)` (`position_id` is required and keyword-only; None and blank text are refused): `histograms` holds one `PlaneHistogram` per channel (a single histogram is accepted for one channel), all with the same pixel type, bin count and size; `channel_count`, `channel_histogram(c)`. No `c` and no `histogram`. `make_plane_id(path, z=, t=)`. `group_records` and `PlaneRecord.group_key` never used `c` and are unchanged. |
 | `csv_io.py` | `SCHEMA_VERSION = "3"`; `METADATA_COLUMNS` are the plane columns of §6.2; `CHANNEL_FEATURES`, `channel_column(feature, c)`, `channel_columns(c, bin_count)`; `BIN_COLUMN_PREFIX = "Histogram_Count"` and `bin_column(c, index)`. The writer raises `ValueError` and the reader `CsvFormatError` for different channel counts (N43). |
 | `pooling.py` | `PooledHistogram(histograms, channel=None)` and `pooled_statistics(..., channel=None)`: `channel` picks the channel of records and may be left out when every record has one channel. `WeightedHistogram` adds pooled histograms of one channel, as before. |
 | `fitting.py` | `fit` pools channel `i` of every row of the group; rows with different channel counts are refused. `Parameters.channels` and `select` (N46); `COLUMNS` holds the four `normalization_*` columns, `offset_column(i)` and `scale_column(i)` the per-channel ones. |
@@ -545,7 +545,7 @@ they are zero.
 
 | Column | Type | Meaning |
 |---|---|---|
-| `position_id` | text or blank | The XY position within its technical repeat (MorphoBricks decision D02): from reliable metadata, or the image file name without extension when one file holds exactly one position, as morphobricks-preprocessing writes it. Blank only in tables written before it was filled. |
+| `position_id` | text, required | The XY position within its technical repeat (MorphoBricks decision D02): from reliable metadata, or the image file name without extension when one file holds exactly one position, as morphobricks-preprocessing writes it. Never blank: `PlaneRecord` refuses a record without it, and the reader refuses a row with it blank (it is not filled in or guessed). |
 | `image_file` | text | File name. |
 | `z`, `t` | integer | Zero-based plane coordinates, always written; 0 for an axis the image does not have (preprocessing contract §2). Whole numbers 0 or above; `PlaneRecord` refuses booleans, fractions, text and negative numbers. |
 | `condition`, `biological_repeat`, `technical_repeat` | text | Folder labels; `single` when absent. Always read as text. |
@@ -724,6 +724,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Statistics file with the columns but no rows | `CsvFormatError` | Names the file and asks to run the preprocessing brick again |
 | Two rows with the same `plane_id`: in the statistics file, or given to `write_plane_histograms`, `scope_groups`, `fit` or `image_summaries` | `CsvFormatError` (file), `ValueError` | Names the plane and both lines (file) or every repeated plane, and asks to remove the repeats or run the preprocessing brick again |
 | A histogram or tail that breaks the invariants of §1.2.2 (negative or wrapping counts, valid above total, missing or disordered limits, impossible tail sums) | `ValueError`; `CsvFormatError` in the file | Names the rule and the values; in the file also the line and channel |
+| A `PlaneRecord` without `position_id` (None, blank or not text); in the file a row with `position_id` blank | `ValueError`; `CsvFormatError` in the file | Names the image, says every plane needs its position and asks to run the preprocessing brick again |
 | A plane coordinate `z` or `t` that is not a whole number 0 or above | `ValueError`; `CsvFormatError` in the file | Names the image, coordinate and value |
 | A block of another pixel type than the plane's | `ValueError` | Names the block and both pixel types |
 | `repeat_groups` with an empty or non-text label, or two biological repeats of one condition in one repeat group | `ValueError` | Names the pairs and the label, and asks to correct the experiment design in the preprocessing brick |
@@ -735,6 +736,13 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | `from_columns` with a missing or unreadable column, an unknown `normalization_scope`, or a channel without both its offset and scale | `ValueError` | Names the column |
 | `from_columns` with a `normalization_method` or `normalization_scope` other than the settings' | `ValueError` | Names the column, the row's value and the settings' value, and asks to read the parameters with the settings of the run that wrote them |
 | `Parameters` or `NormalizationParameters` with a non-finite offset, or a scale that is not finite and above 0; a channel index that is not a whole number 0 or above | `ValueError` | Names the channel (or method) and the value |
+
+Tables of schema versions 1 to 3 are recognised by the `schema_version` value of their rows alone and
+refused with the messages above; no reader or converter of their layouts exists (the owner's ruling
+of 10 November 2026: no backward compatibility before the first pipeline release). A version 1 to 3
+header with no rows has no such value and is refused by its columns ("does not have the
+plane-histogram columns" for versions 1 and 2, "unexpected per-channel column names" for version 3),
+without the pointed message.
 
 ### 9.2 Warnings
 

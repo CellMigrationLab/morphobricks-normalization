@@ -63,10 +63,14 @@ def test_accepted_parameters_round_trip_through_their_columns():
 
 def test_fitted_parameters_are_valid_and_a_zero_spread_keeps_its_message():
     plane = np.arange(64, dtype=np.uint16).reshape(8, 8)
-    record = PlaneRecord("c/r/a.tif", "c", "r", SINGLE, [compute_plane_histogram(plane)])
+    record = PlaneRecord(
+        "c/r/a.tif", "c", "r", SINGLE, [compute_plane_histogram(plane)], position_id="p"
+    )
     fitted = fit([record], NormalizationSettings(method="zscore"))
     assert all(math.isfinite(o) for o in fitted.offset) and fitted.scale[0] > 0
-    flat = PlaneRecord("c/r/b.tif", "c", "r", SINGLE, [compute_plane_histogram(plane * 0)])
+    flat = PlaneRecord(
+        "c/r/b.tif", "c", "r", SINGLE, [compute_plane_histogram(plane * 0)], position_id="p"
+    )
     with pytest.raises(ValueError, match="intensity spread is zero"):
         fit([flat], NormalizationSettings(method="zscore"))
 
@@ -136,7 +140,9 @@ def test_integer_channel_indices_are_accepted():
 
 def summaries_with(*channels):
     histograms = [compute_plane_histogram(np.asarray(c, np.float32), 100) for c in channels]
-    return image_summaries([PlaneRecord("c/r/img.tif", "c", "r", SINGLE, histograms)])
+    return image_summaries(
+        [PlaneRecord("c/r/img.tif", "c", "r", SINGLE, histograms, position_id="p")]
+    )
 
 
 @pytest.mark.parametrize("missing", [np.nan, np.inf, -np.inf])

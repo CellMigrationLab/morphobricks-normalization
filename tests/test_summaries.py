@@ -26,7 +26,7 @@ CHANNEL_COLUMN = re.compile(r"^[A-Z][A-Za-z]*_[A-Z][A-Za-z]*_C(0|[1-9][0-9]*)$")
 def record(path, planes, z=0, t=0, bin_count=None, labels=("control", "rep1", SINGLE)):
     """One XYC plane of ``path``; ``planes`` holds one array per channel."""
     histograms = [compute_plane_histogram(p, bin_count) for p in planes]
-    return PlaneRecord(path, *labels, histograms=histograms, z=z, t=t)
+    return PlaneRecord(path, *labels, histograms=histograms, z=z, t=t, position_id="p")
 
 
 def direct(pixels, low=1.0, high=99.8):

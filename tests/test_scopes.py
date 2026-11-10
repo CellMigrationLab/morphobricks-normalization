@@ -21,7 +21,9 @@ IMAGE = NormalizationSettings(scope="image")
 def record(condition, repeat, technical=SINGLE, image="img.tif", t=0):
     path = f"{condition}/{repeat}/{technical}/{image}"
     histogram = compute_plane_histogram(np.arange(4, dtype=np.uint8))
-    return PlaneRecord(path, condition, repeat, technical, (histogram, histogram), t=t)
+    return PlaneRecord(
+        path, condition, repeat, technical, (histogram, histogram), t=t, position_id="p"
+    )
 
 
 def test_repeats_with_the_same_name_form_one_group_across_conditions():
@@ -59,6 +61,7 @@ def test_pairing_differently_named_repeats_changes_only_the_grouping():
             r.technical_repeat,
             r.histograms,
             t=r.t,
+            position_id="p",
         )
         for r in matching
     ]

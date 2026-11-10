@@ -319,9 +319,16 @@ def test_approximate_parameters_are_reported():
 
 
 def test_planes_without_finite_pixels_are_left_out_and_reported():
-    good = PlaneRecord("c/r/a.tif", "c", "r", "single", compute_plane_histogram(np.arange(10.0)))
+    good = PlaneRecord(
+        "c/r/a.tif", "c", "r", "single", compute_plane_histogram(np.arange(10.0)), position_id="p"
+    )
     empty = PlaneRecord(
-        "c/r/b.tif", "c", "r", "single", compute_plane_histogram(np.full(4, np.nan))
+        "c/r/b.tif",
+        "c",
+        "r",
+        "single",
+        compute_plane_histogram(np.full(4, np.nan)),
+        position_id="p",
     )
     parameters = fit([good, empty], NormalizationSettings(method="minmax"))
     assert (parameters.offset, parameters.scale) == ((0.0,), (9.0,))
@@ -337,8 +344,8 @@ def test_a_channel_without_finite_pixels_in_one_plane_is_left_out_of_that_channe
     finite = compute_plane_histogram(np.arange(10.0))
     empty = compute_plane_histogram(np.full(10, np.nan))
     planes = [
-        PlaneRecord("c/r/a.tif", "c", "r", "single", (finite, empty), t=0),
-        PlaneRecord("c/r/a.tif", "c", "r", "single", (finite, finite), t=1),
+        PlaneRecord("c/r/a.tif", "c", "r", "single", (finite, empty), t=0, position_id="p"),
+        PlaneRecord("c/r/a.tif", "c", "r", "single", (finite, finite), t=1, position_id="p"),
     ]
     parameters = fit(planes, NormalizationSettings(method="minmax"), group="c/r/a.tif")
     assert (parameters.offset, parameters.scale) == ((0.0, 0.0), (9.0, 9.0))
@@ -351,8 +358,8 @@ def test_a_channel_without_finite_pixels_in_one_plane_is_left_out_of_that_channe
 def test_fit_refuses_rows_with_different_channel_counts():
     one = compute_plane_histogram(np.arange(10, dtype=np.uint8))
     rows = [
-        PlaneRecord("c/r/a.tif", "c", "r", "single", (one, one)),
-        PlaneRecord("c/r/b.tif", "c", "r", "single", (one,)),
+        PlaneRecord("c/r/a.tif", "c", "r", "single", (one, one), position_id="p"),
+        PlaneRecord("c/r/b.tif", "c", "r", "single", (one,), position_id="p"),
     ]
     with pytest.raises(ValueError) as error:
         fit(rows, NormalizationSettings(), group="r")

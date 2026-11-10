@@ -230,7 +230,7 @@ def test_wrong_channel_counts_are_refused(shape):
     with pytest.raises(ValueError, match="have 1 channels of type uint16"):
         fit(np.zeros((6, 6), np.uint16), rgb(scope="patch"))
     histogram = compute_plane_histogram(np.arange(10, dtype=np.uint8))
-    row = PlaneRecord("c/r/a.tif", "c", "r", "single", (histogram,) * shape[-1])
+    row = PlaneRecord("c/r/a.tif", "c", "r", "single", (histogram,) * shape[-1], position_id="p")
     with pytest.raises(ValueError) as error:
         fit([row], rgb())
     assert str(error.value) == RGB_MESSAGE.format(shape[-1], "uint8")
@@ -271,7 +271,7 @@ def test_approximate_histograms_stay_within_their_bound():
 
 def test_a_group_without_pixels_names_the_three_channels():
     empty = compute_plane_histogram(np.zeros((0, 0), np.uint8))
-    row = PlaneRecord("c/r/a.tif", "c", "r", "single", (empty,) * 3)
+    row = PlaneRecord("c/r/a.tif", "c", "r", "single", (empty,) * 3, position_id="p")
     with pytest.raises(NoValidPixelsError, match="Group 'g', channels R, G and B"):
         fit([row], rgb(), group="g")
 

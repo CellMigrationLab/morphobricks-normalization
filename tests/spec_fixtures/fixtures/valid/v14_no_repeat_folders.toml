@@ -1,0 +1,45 @@
+# Fixture v14_no_repeat_folders
+# Expected: PASS
+# Source: Extra: single convention
+# No biological-repeat or technical-repeat folders: the source label is `single` (N31, one group for the whole experiment).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.single]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.single.members.CTRL]
+source_repeat = "single"
+image_count = 20
+
+[repeats.single.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.single.members.DrugA]
+source_repeat = "single"
+image_count = 18
+
+[repeats.single.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["single"]
+technical_repeats = ["single"]

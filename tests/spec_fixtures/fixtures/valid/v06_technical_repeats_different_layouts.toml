@@ -1,0 +1,75 @@
+# Fixture v06_technical_repeats_different_layouts
+# Expected: PASS
+# Source: RFC case 6; adversarial 1
+# One biological repeat (R002) whose CTRL member has two technical repeats with different counts and orders. It stays ONE biological repeat (N = 2 repeats in total, not 3). Heterogeneous.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[channels.PAXILLIN]
+display_name = "Paxillin"
+
+[channels.PHASE]
+display_name = "Phase contrast"
+
+[repeats.R001]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.R001.members.CTRL]
+source_repeat = "rep1"
+image_count = 5
+
+[repeats.R001.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN", "PAXILLIN"]
+
+[repeats.R001.members.DrugA]
+source_repeat = "experiment_23"
+image_count = 5
+
+[repeats.R001.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["ACTIN", "DNA", "PAXILLIN"]
+
+[repeats.R002]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.R002.members.CTRL]
+source_repeat = "rep2"
+image_count = 9
+
+[repeats.R002.members.CTRL.technical_repeats.acquisition_1]
+source_folder = "acquisition_1"
+channels = ["DNA", "ACTIN", "PAXILLIN", "PHASE"]
+
+[repeats.R002.members.CTRL.technical_repeats.acquisition_2]
+source_folder = "acquisition_2"
+channels = ["ACTIN", "DNA", "PAXILLIN"]
+
+[repeats.R002.members.DrugA]
+source_repeat = "rep2_drug"
+image_count = 5
+
+[repeats.R002.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN", "PAXILLIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA", "PAXILLIN", "PHASE"]
+repeats = ["R001", "R002"]
+technical_repeats = ["acquisition_1", "acquisition_2", "single"]

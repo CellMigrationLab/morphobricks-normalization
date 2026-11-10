@@ -1,0 +1,46 @@
+# Fixture v29_rgb_and_channels_mixed
+# Expected: PASS
+# Source: Owner decision AQ6
+# One condition with an RGB brightfield unit and a two-channel fluorescence unit of the same biological repeat. Valid schema; heterogeneous (different lists), so the Stage 1-2 runtime refuses it (R_HETEROGENEOUS_LAYOUT_NOT_ENABLED). Both units stay ONE biological repeat.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[channels.R]
+
+[channels.G]
+
+[channels.B]
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 6
+
+[repeats.rep1.members.CTRL.technical_repeats.brightfield]
+source_folder = "brightfield"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[repeats.rep1.members.CTRL.technical_repeats.fluorescence]
+source_folder = "fluorescence"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL"]
+channels = ["ACTIN", "B", "DNA", "G", "R"]
+repeats = ["rep1"]
+technical_repeats = ["brightfield", "fluorescence"]

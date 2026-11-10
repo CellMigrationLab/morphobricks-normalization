@@ -1,0 +1,34 @@
+# Fixture i131_condition_id_single_with_real_folder
+# Expected: E_SINGLE_MISUSE
+# Source: Owner decision SQ6 (7 Nov 2026; matrix audit MS-1)
+# The condition ID `single` names the folder `CTRL`: `single` means no condition folder level and is the ID of `source_folder = "single"` only (experiment-v1 3.2).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.single]
+source_folder = "CTRL"
+
+[channels.ACTIN]
+header_names = ["Actin"]
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[repeats.single]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.single.members.single]
+source_repeat = "single"
+image_count = 4
+
+[repeats.single.members.single.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["single"]
+channels = ["ACTIN", "DNA"]
+repeats = ["single"]
+technical_repeats = ["single"]

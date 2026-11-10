@@ -1,0 +1,45 @@
+# Fixture i133_condition_single_not_alone
+# Expected: E_SINGLE_MISUSE
+# Source: Owner decision SQ6 (7 Nov 2026; matrix audit MS-1)
+# The condition `single` (no condition folder level) is declared next to the condition DrugA: a condition whose `source_folder` is `single` must be the only condition of the file (experiment-v1 3.2).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.DrugA]
+source_folder = "DrugA"
+
+[conditions.single]
+source_folder = "single"
+
+[channels.ACTIN]
+header_names = ["Actin"]
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[repeats.single]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.single.members.DrugA]
+source_repeat = "single"
+image_count = 4
+
+[repeats.single.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.single.members.single]
+source_repeat = "single"
+image_count = 4
+
+[repeats.single.members.single.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["DrugA", "single"]
+channels = ["ACTIN", "DNA"]
+repeats = ["single"]
+technical_repeats = ["single"]

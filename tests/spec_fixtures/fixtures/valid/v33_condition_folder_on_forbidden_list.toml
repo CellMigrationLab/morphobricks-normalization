@@ -1,0 +1,71 @@
+# Fixture v33_condition_folder_on_forbidden_list
+# Expected: PASS
+# Source: Owner decision of 6 Nov 2026 (fourth round: folder labels never restricted)
+# The condition folder on disk is `control`, a forbidden name (experiment-v1 4.7), so it cannot be the ID. It is recorded as `source_folder` (never restricted) and the user confirmed the ID `ctrl`, with `display_name` `control`. DrugA references `ctrl`, the ID. The derived experiment_design.csv still has `control` in the `condition` column (experiment-v1 11).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.ctrl]
+source_folder = "control"
+display_name = "control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "ctrl"
+target = "SRC"
+treatment_key = "saracatinib"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.ctrl]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.ctrl.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 11
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.ctrl]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.ctrl.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["DrugA", "ctrl"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

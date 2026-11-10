@@ -1,0 +1,65 @@
+# Fixture v30_same_source_label_different_repeats
+# Expected: PASS
+# Source: Owner decision AQ5; S0.1 audit section 5
+# Source folder label rep1 is in canonical repeat Day1 for CTRL and in Day2 for DrugA (and rep2 the other way round). Valid: no repeat ID equals another repeat's source label. The FOV key keeps the source label in `biological_repeat` and stays unique through the condition; the added `repeat_group` is Day1 or Day2, and grouping and pairing use it (experiment-v1 3.4, P25).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.Day1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.Day1.members.CTRL]
+source_repeat = "rep1"
+image_count = 9
+
+[repeats.Day1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day1.members.DrugA]
+source_repeat = "rep2"
+image_count = 9
+
+[repeats.Day1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.Day2.members.CTRL]
+source_repeat = "rep2"
+image_count = 9
+
+[repeats.Day2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day2.members.DrugA]
+source_repeat = "rep1"
+image_count = 9
+
+[repeats.Day2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["Day1", "Day2"]
+technical_repeats = ["single"]

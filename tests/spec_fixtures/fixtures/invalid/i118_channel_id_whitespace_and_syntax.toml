@@ -1,0 +1,53 @@
+# Fixture i118_channel_id_whitespace_and_syntax
+# Expected: E_ID_TEXT, E_ID_SYNTAX
+# Source: Owner decision AQ13c
+# Channel ID " DNA" (leading space): it breaks two rules, the Label rule (outer whitespace) and the Token expression, and gets both codes (one code per broken rule).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels." DNA"]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = [" DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 10
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = [" DNA", "ACTIN"]
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+source_channels = [" DNA"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = [" DNA", "ACTIN"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

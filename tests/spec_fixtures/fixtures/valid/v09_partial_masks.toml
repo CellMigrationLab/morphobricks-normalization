@@ -1,0 +1,50 @@
+# Fixture v09_partial_masks
+# Expected: PASS
+# Source: RFC case 10
+# Masks declared while segmentation is in progress (e.g. 0/1000 or 300/1000 FOVs). Completeness lives in the run manifest, so the file is valid at every stage; scope checks belong to the analysis layer (A_SCOPE_INCOMPLETE).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 500
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 500
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+source_channels = ["DNA"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

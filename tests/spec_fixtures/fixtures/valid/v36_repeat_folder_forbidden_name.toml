@@ -1,0 +1,67 @@
+# Fixture v36_repeat_folder_forbidden_name
+# Expected: PASS
+# Source: Matrix audit 2026-11-07 (case F16)
+# Biological-repeat folders named `z` (a forbidden ID key, 4.7) in both conditions are paired into the repeat `R1`; `source_repeat` is never restricted. The proposed repeat ID would be the folder label `z`, which is not allowed (a forbidden name, 4.7; i130), so preprocessing makes no proposal and the user names the repeat ID `R1` (4.6a; owner decision SQ6, matrix audit MS-2). The condition folder `control` is the condition `ctrl` (as v33).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "ctrl"
+
+[conditions.ctrl]
+source_folder = "control"
+display_name = "control"
+
+[channels.ACTIN]
+header_names = ["Actin"]
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[repeats.R1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.R1.members.DrugA]
+source_repeat = "z"
+image_count = 2
+
+[repeats.R1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.R1.members.ctrl]
+source_repeat = "z"
+image_count = 2
+
+[repeats.R1.members.ctrl.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 2
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.ctrl]
+source_repeat = "rep2"
+image_count = 2
+
+[repeats.rep2.members.ctrl.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["DrugA", "ctrl"]
+channels = ["ACTIN", "DNA"]
+repeats = ["R1", "rep2"]
+technical_repeats = ["single"]

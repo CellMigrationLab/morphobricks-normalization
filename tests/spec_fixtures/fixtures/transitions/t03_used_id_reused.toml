@@ -1,0 +1,61 @@
+# Fixture t03_used_id_reused
+# Expected: R_USED_ID_REUSED (against predecessor valid/v25)
+# Source: Owner decisions of 6 Nov 2026 (Q1); LabChronicle audit L2
+# Valid on its own, but DrugA was retired in v25 (listed in used_ids, not declared) and is declared again here for a new source folder. A listed ID is never reused, even by the same folder returning: it needs a new ID. Repeat rep1 gains the member DrugA/new_folder_1; adding a member to an existing repeat is not a changed entity (experiment-v1 4.6, owner decision AQ1), so the set is exactly {R_USED_ID_REUSED}, not R_CONFIRMED_ID_CHANGED.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "new_folder_1"
+image_count = 4
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

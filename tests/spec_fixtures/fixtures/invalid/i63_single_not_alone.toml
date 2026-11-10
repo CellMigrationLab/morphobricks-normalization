@@ -1,0 +1,57 @@
+# Fixture i63_single_not_alone
+# Expected: E_SINGLE_MISUSE
+# Source: Extra: single convention
+# Technical repeat `single` beside `acquisition_2`.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 10
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+source_channels = ["DNA"]
+
+[repeats.rep1.members.CTRL.technical_repeats.acquisition_2]
+source_folder = "acquisition_2"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1"]
+technical_repeats = ["acquisition_2", "single"]

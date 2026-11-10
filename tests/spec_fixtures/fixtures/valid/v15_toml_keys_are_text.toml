@@ -1,0 +1,45 @@
+# Fixture v15_toml_keys_are_text
+# Expected: PASS
+# Source: Extra: implicit-conversion traps (valid side)
+# Folder labels that YAML would retype (2026-01-01, 012, NO, 1.0, off) stay exact text in TOML keys and strings. The quoted key "1.0" is needed: a bare 1.0 would be a dotted key.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.NO]
+source_folder = "NO"
+
+[conditions."1.0"]
+source_folder = "1.0"
+reference = "NO"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.2026-01-01]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.2026-01-01.members.NO]
+source_repeat = "2026-01-01"
+image_count = 3
+
+[repeats.2026-01-01.members.NO.technical_repeats.012]
+source_folder = "012"
+channels = ["DNA", "ACTIN"]
+
+[repeats.2026-01-01.members."1.0"]
+source_repeat = "2026-01-01"
+image_count = 3
+
+[repeats.2026-01-01.members."1.0".technical_repeats.off]
+source_folder = "off"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["1.0", "NO"]
+channels = ["ACTIN", "DNA"]
+repeats = ["2026-01-01"]
+technical_repeats = ["012", "off"]

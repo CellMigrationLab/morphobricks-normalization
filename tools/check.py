@@ -66,9 +66,13 @@ def config() -> dict:
 
 
 def _python_files() -> list[Path]:
-    """Return the repository's checked Python files (guard fixtures are deliberately bad)."""
+    """Return the repository's checked Python files.
+
+    The guard fixtures are deliberately bad and ``spec_fixtures`` holds byte-exact copies of
+    MorphoBricks-Spec files (``tests/spec_fixtures/README.md``), so neither is checked.
+    """
     files = [path for folder in LINTED for path in sorted((ROOT / folder).rglob("*.py"))]
-    return [path for path in files if "guard_fixtures" not in path.parts]
+    return [path for path in files if not {"guard_fixtures", "spec_fixtures"} & set(path.parts)]
 
 
 def _module_name(path: Path, package_dir: Path) -> str:

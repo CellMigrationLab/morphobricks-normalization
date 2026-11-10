@@ -1,0 +1,2 @@
+{"confirmed_on": "2026-11-06", "id_kind": "repeats", "new_id": "R001", "new_sha256": "9f22bfc4999c1b45655fb5dc377b77782c844cb09b77a1b15d7befa6948172cf", "old_id": "Day1", "old_sha256": "absent", "type": "reconfirmation"}
+{"condition_id": "DrugA", "condition_source_folder": "DrugA", "confirmed_on": "2026-02-30", "entity": "unit", "repeat_id": "rep1", "source_repeat": "rep1", "technical_repeat_id": "single", "technical_repeat_source_folder": "single", "type": "removed"}

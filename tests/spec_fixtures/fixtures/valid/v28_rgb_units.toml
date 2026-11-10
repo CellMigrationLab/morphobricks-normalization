@@ -1,0 +1,78 @@
+# Fixture v28_rgb_units
+# Expected: PASS
+# Source: Owner decision AQ6 (supersedes D8)
+# An RGB experiment (e.g. H&E): every unit declares `image_type = "rgb"` with the fixed channels R, G, B in that order and no aliases. Valid and homogeneous. The scientific meaning is left to each brick: a brick that does not declare RGB support refuses a request on these units (A_RGB_NOT_SUPPORTED, P24); preprocessing compares the declaration with the image header and never with pixels (P13, P23).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels.R]
+display_name = "Red"
+
+[channels.G]
+display_name = "Green"
+
+[channels.B]
+display_name = "Blue"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["B", "G", "R"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

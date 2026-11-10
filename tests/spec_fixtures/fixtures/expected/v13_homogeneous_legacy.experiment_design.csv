@@ -1,0 +1,10 @@
+condition,biological_repeat,repeat_group,control,image_count,technical_repeat_count,confirmed,confirmed_on,schema_version
+CTRL,rep1,rep1,true,10,0,true,2026-10-30,1
+CTRL,rep2,rep2,true,10,0,true,2026-10-30,1
+CTRL,rep3,rep3,true,10,0,true,2026-10-30,1
+DrugA,rep1,rep1,false,10,0,true,2026-10-30,1
+DrugA,rep2,rep2,false,10,0,true,2026-10-30,1
+DrugA,rep3,rep3,false,10,0,true,2026-10-30,1
+DrugB,rep1,rep1,false,10,0,true,2026-10-30,1
+DrugB,rep2,rep2,false,10,0,true,2026-10-30,1
+DrugB,rep3,rep3,false,10,0,true,2026-10-30,1

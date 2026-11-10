@@ -1,0 +1,113 @@
+# Fixture v13_homogeneous_legacy
+# Expected: PASS
+# Source: Adversarial 4
+# A legacy homogeneous dataset: folder-name repeat IDs, one control, same layout everywhere (IDs proposed equal to the folder labels). The derived experiment_design.csv, which carries the `source_folder` labels, must be byte-identical to today's; numerical outputs must keep parity.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[conditions.DrugB]
+source_folder = "DrugB"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-10-30"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 10
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 10
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugB]
+source_repeat = "rep1"
+image_count = 10
+
+[repeats.rep1.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-10-30"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.DrugB]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep3]
+confirmed = true
+confirmed_on = "2026-10-30"
+
+[repeats.rep3.members.CTRL]
+source_repeat = "rep3"
+image_count = 10
+
+[repeats.rep3.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep3.members.DrugA]
+source_repeat = "rep3"
+image_count = 10
+
+[repeats.rep3.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep3.members.DrugB]
+source_repeat = "rep3"
+image_count = 10
+
+[repeats.rep3.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA", "DrugB"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1", "rep2", "rep3"]
+technical_repeats = ["single"]

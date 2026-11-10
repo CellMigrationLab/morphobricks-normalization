@@ -1,0 +1,53 @@
+# Fixture i113_forbidden_name_condition_key
+# Expected: E_FORBIDDEN_FIELD
+# Source: Owner decision AQ13a
+# A condition ID `control`: forbidden names apply to ID keys as well as fields (reported at the condition and at its member keys). The folder `control` itself is describable under another ID (v33); only the key is refused.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.control]
+source_folder = "control"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "control"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.control]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.control.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 10
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+source_channels = ["DNA"]
+
+[used_ids]
+conditions = ["control", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

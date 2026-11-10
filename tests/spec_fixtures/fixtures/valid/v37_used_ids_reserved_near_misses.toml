@@ -1,0 +1,43 @@
+# Fixture v37_used_ids_reserved_near_misses
+# Expected: PASS
+# Source: Owner decision of 7 Nov 2026 (MorphoBricks-Spec issue 11)
+# Retired channel IDs next to the reserved list are valid in used_ids.channels (experiment-v1 4.9): Ringer and label2 are listed but not declared. Only the exact reserved names, compared case-folded, are refused there as for declared IDs (i135).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[channels.c1]
+
+[channels.t0]
+
+[channels.z2]
+
+[channels.label]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 4
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["c1", "t0", "z2", "label"]
+
+[masks.Patches]
+source_type = "patches"
+representation = "instances"
+
+[masks.Labels]
+source_type = "labels"
+representation = "binary"
+
+[used_ids]
+conditions = ["CTRL"]
+channels = ["Ringer", "c1", "label", "label2", "t0", "z2"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

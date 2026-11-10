@@ -1,0 +1,74 @@
+# Fixture i104_rgb_token_in_plain_unit
+# Expected: E_RGB_TOKEN_MISUSE
+# Source: Owner decision AQ6
+# Units that list R, G, B without `image_type = "rgb"`: the tokens are only for declared RGB units (and an undeclared RGB image is never inferred).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels.R]
+display_name = "Red"
+
+[channels.G]
+display_name = "Green"
+
+[channels.B]
+display_name = "Blue"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["B", "G", "R"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

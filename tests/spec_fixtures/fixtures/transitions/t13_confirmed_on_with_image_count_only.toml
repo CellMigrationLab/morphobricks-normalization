@@ -1,0 +1,71 @@
+# Fixture t13_confirmed_on_with_image_count_only
+# Expected: R_CONFIRMED_ON_CHANGED (against predecessor valid/v01, N35 not reopened)
+# Source: Preprocessing PR 188 (Stage 1 publication); experiment-v1 10
+# Valid on its own. Against v01, rep1 has the same members, units and channel lists and only two things change: CTRL/rep1 `image_count` 12 to 17 (new FOVs in an existing unit) and `confirmed_on` 2026-11-06 to 2026-11-07. New FOVs do not reopen the N35 confirmation (experiment-v1 10), so the new date is refused: a changed `image_count` alone never makes a new `confirmed_on` acceptable.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+target = "SRC"
+treatment_key = "saracatinib"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-07"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 17
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 11
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

@@ -1,0 +1,33 @@
+# Fixture v31_header_alias_whitespace_and_decomposed
+# Expected: PASS
+# Source: Owner decision AQ7
+# Header evidence is compared exactly after NFC of both sides, with no trimming. DNA lists the aliases "DAPI", " DAPI" (leading space) and "DAPI " (trailing space): outer whitespace needs its own confirmed alias, each is a distinct entry. ACTIN lists a decomposed alias (written with a TOML escape and stored as typed), which matches the header name "Caf\u00e9 488" after NFC of both sides (P26). header_names are not identities and are not NFC-checked.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[channels.DNA]
+header_names = ["DAPI", " DAPI", "DAPI "]
+
+[channels.ACTIN]
+header_names = ["Cafe\u0301 488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 4
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

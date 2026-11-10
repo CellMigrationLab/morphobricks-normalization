@@ -247,7 +247,15 @@ def experiment_lines(dtype: str, hists: list[PlaneHistogram], folder: Path) -> I
         Lines of the dump.
     """
     records = [
-        PlaneRecord(f"c{i % 2}/r{i % 3}/img{i}.tif", f"c{i % 2}", f"r{i % 3}", "t", [h], t=i % 2)
+        PlaneRecord(
+            f"c{i % 2}/r{i % 3}/img{i}.tif",
+            f"c{i % 2}",
+            f"r{i % 3}",
+            "t",
+            [h],
+            t=i % 2,
+            position_id=f"img{i}",
+        )
         for i, h in enumerate(hists)
     ]
     path = write_plane_histograms(records, folder / f"{dtype}.csv")

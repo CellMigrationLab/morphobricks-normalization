@@ -38,7 +38,7 @@ src/morphobricks_normalization/
   integrity.py      invariants every PlaneHistogram and HistogramTail checks when made
                     (counts, limits, tail sums) and the pixel type of every block
   records.py        PlaneRecord (one plane_histograms.csv row: an XYC plane, one
-                    histogram per channel), plane_id, group_records
+                    histogram per channel; position_id required), plane_id, group_records
   csv_io.py         write/read plane_histograms.csv schema version 4, channels in
                     CellProfiler-style columns, underflow/overflow columns (atomic write,
                     labels always text)
@@ -62,7 +62,7 @@ src/morphobricks_normalization/
                     from_columns checks against the settings
   issues.py         Issue: warnings returned to the calling brick (channel for the checks)
 tests/              pytest with simulated planes (tests/simulation.py); tests/data holds
-                    a schema-version-2 fixture written by the Milestone 2 code
+                    the golden pixels and fitted parameters of tests/test_fit_goldens.py
 tools/check.py      the release gate: ruff format, pytest and the code standards (design v0.4 §9);
                     `--rules` runs only the standards (CI); tools/code_rules.py is the shared
                     copy (SHA-256 pinned in tests/test_code_rules.py), tools/code_rules_baseline.json
@@ -116,8 +116,8 @@ range check.
 2. **Ask before deciding.** Decisions N1–N60 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
-3. **Outputs stay bit-identical** unless a change says otherwise. `tests/test_schema_v2_equivalence.py` keeps the
-   numbers of the version-2 table layout bit-identical (contract §1.3).
+3. **Outputs stay bit-identical** unless a change says otherwise. `tests/test_fit_goldens.py` keeps the fitted
+   parameters of simulated planes equal to the numbers stored in `tests/data` (contract §1.3).
 4. **Tests** use simulated data generated in the tests; real data only as an optional
    check. Each formula is tested against a direct implementation (plan §11).
 5. **Style** as in morphobricks-preprocessing: Python 3.11+ (MorphoBricks decision D01), `ruff` (line length 100,

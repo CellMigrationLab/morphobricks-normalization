@@ -39,7 +39,6 @@
     "src/morphobricks_normalization/settings.py _percentile_pair: # Ruff findings any-type": 1,
     "src/morphobricks_normalization/settings.py _positive_number: # Ruff findings any-type": 1,
     "src/morphobricks_normalization/summaries.py _saturated_fraction: # Ruff findings missing-type-function-argument": 1,
-    "src/morphobricks_normalization/summaries.py _saturated_fraction: private function of # lines without a docstring": 16,
-    "tests/data/make_v#_fixture.py <module>: # Ruff findings module-import-not-at-top-of-file": 3
+    "src/morphobricks_normalization/summaries.py _saturated_fraction: private function of # lines without a docstring": 16
   }
 }

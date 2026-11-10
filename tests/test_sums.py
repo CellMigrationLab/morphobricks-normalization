@@ -38,7 +38,9 @@ def _records(settings: HistogramSettings | None = None) -> list[PlaneRecord]:
     for i in range(60):
         plane = rng.gamma(2.0, 300.0 + 7 * i, size=(64, 64))
         hist = compute_plane_histogram(plane, 256, settings=settings)
-        records.append(PlaneRecord(f"c/r/img{i}.tif", "c", f"r{i % 2}", "t", [hist]))
+        records.append(
+            PlaneRecord(f"c/r/img{i}.tif", "c", f"r{i % 2}", "t", [hist], position_id="p")
+        )
     return records
 
 

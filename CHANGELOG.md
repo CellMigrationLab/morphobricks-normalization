@@ -6,6 +6,25 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
 
 ## Unreleased (after v0.3.4)
 
+Obsolete-code sweep (SWEEP-NM; inventory rows NM-01, NM-02, NM-04). No fitted number, histogram
+or written table changes: `tools/dump_outputs.py` (and `--corpus`) give identical SHA-256 digests on
+`main` 1c9ef7c and on this change, and the 400 golden fits are bit-identical.
+
+- **Breaking, NM-04:** `PlaneRecord.position_id` is required and keyword-only. `None`, blank or
+  non-text values are refused with a `ValueError`, and `read_plane_histograms` refuses a row whose
+  `position_id` is blank with a `CsvFormatError` (it used to read it as `None`). Nothing is filled in
+  or guessed. Callers that build records (preprocessing, tests) must pass it; a table written
+  before the field was filled must be recomputed.
+- **NM-01:** the readers behind the old-version refusals are removed (`_EARLIER_LAYOUT`,
+  `_VERSION_3_FEATURES`, the second layout pass). A table of schema version 1, 2 or 3 is recognised
+  by the `schema_version` value of its rows alone and refused with the same messages as before,
+  which name the version and the fix. A version 1 to 3 header with no rows has no value to read and
+  is refused as a table with unexpected columns.
+- **NM-02:** `tests/test_schema_v2_equivalence.py` is now `tests/test_fit_goldens.py`, a science
+  golden of the 400 fitted parameters of simulated planes against the numbers stored in
+  `tests/data/golden_*.{npz,json}`. The checks that only compared tables and one-channel rows of the
+  old layout, the two version-2 CSV fixtures and `make_v2_fixture.py` are deleted.
+
 Merged to `main` since the `v0.3.4` tag; from the commit history, not yet released. Each is a
 new refusal or a numerical-range fix (see the pull requests for the exact messages):
 

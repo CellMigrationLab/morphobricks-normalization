@@ -57,7 +57,9 @@ def simulate_experiment(
 def make_records(planes, bin_count=None):
     """One single-channel record per plane of :func:`simulate_experiment`."""
     return [
-        PlaneRecord(path, *labels, histograms=compute_plane_histogram(pixels, bin_count))
+        PlaneRecord(
+            path, *labels, histograms=compute_plane_histogram(pixels, bin_count), position_id="p"
+        )
         for labels, path, pixels in planes
     ]
 
@@ -124,7 +126,9 @@ def make_design_records(planes, bin_count=None):
         _, channels = by_plane.setdefault((path, t), (labels, {}))
         channels[c] = compute_plane_histogram(pixels, bin_count)
     return [
-        PlaneRecord(path, *labels, histograms=[channels[c] for c in sorted(channels)], t=t)
+        PlaneRecord(
+            path, *labels, histograms=[channels[c] for c in sorted(channels)], t=t, position_id="p"
+        )
         for (path, t), (labels, channels) in by_plane.items()
     ]
 
@@ -192,6 +196,7 @@ def make_rgb_records(images, bin_count=None):
             *labels,
             histograms=[compute_plane_histogram(pixels[..., c], bin_count) for c in range(3)],
             t=t,
+            position_id="p",
         )
         for labels, path, t, pixels in images
     ]

@@ -1,6 +1,5 @@
 import csv
 import re
-import shutil
 from pathlib import Path
 
 import numpy as np
@@ -27,12 +26,13 @@ def record(
     labels=("control", "bio_rep1", "tech_rep1"),
     channels=None,
     bin_count=None,
+    position_id="p",
     **coords,
 ):
     if channels is None:
         channels = [rng.integers(0, 4000, (16, 16)).astype(np.uint16) for _ in range(2)]
     histograms = [compute_plane_histogram(pixels, bin_count) for pixels in channels]
-    return PlaneRecord(path, *labels, histograms=histograms, **coords)
+    return PlaneRecord(path, *labels, histograms=histograms, position_id=position_id, **coords)
 
 
 def assert_same(a, b):
@@ -181,14 +181,35 @@ def test_images_with_different_channel_counts_are_not_written(tmp_path):
 def test_the_channels_of_a_plane_share_type_bins_and_size():
     a = compute_plane_histogram(np.arange(16, dtype=np.uint16).reshape(4, 4))
     with pytest.raises(ValueError, match="channel 1 has pixel type uint8, but channel 0"):
-        PlaneRecord("p.tif", "c", "r", "t", (a, compute_plane_histogram(np.zeros(16, np.uint8))))
+        PlaneRecord(
+            "p.tif",
+            "c",
+            "r",
+            "t",
+            (a, compute_plane_histogram(np.zeros(16, np.uint8))),
+            position_id="p",
+        )
     with pytest.raises(ValueError, match="channel 1 has bin count 4"):
-        PlaneRecord("p.tif", "c", "r", "t", (a, compute_plane_histogram(np.zeros(16, a.dtype), 4)))
+        PlaneRecord(
+            "p.tif",
+            "c",
+            "r",
+            "t",
+            (a, compute_plane_histogram(np.zeros(16, a.dtype), 4)),
+            position_id="p",
+        )
     with pytest.raises(ValueError, match="channel 1 has number of pixels 9"):
-        PlaneRecord("p.tif", "c", "r", "t", (a, compute_plane_histogram(np.zeros(9, a.dtype))))
+        PlaneRecord(
+            "p.tif",
+            "c",
+            "r",
+            "t",
+            (a, compute_plane_histogram(np.zeros(9, a.dtype))),
+            position_id="p",
+        )
     with pytest.raises(ValueError, match="has no channels"):
-        PlaneRecord("p.tif", "c", "r", "t", ())
-    single = PlaneRecord("p.tif", "c", "r", "t", a)
+        PlaneRecord("p.tif", "c", "r", "t", (), position_id="p")
+    single = PlaneRecord("p.tif", "c", "r", "t", a, position_id="p")
     assert single.histograms == (a,) and single.channel_count == 1
     with pytest.raises(ValueError, match="has 1 channel"):
         single.channel_histogram(1)
@@ -277,15 +298,16 @@ def test_unexpected_channel_columns_are_rejected(tmp_path):
 
 @pytest.mark.parametrize("version", ["2", "1"])
 def test_tables_with_one_row_per_channel_are_refused(tmp_path, version):
-    # A table written by the Milestone 2 code (schema version 2).
-    path = shutil.copy(DATA / "v2_uint16.csv", tmp_path / "plane_histograms.csv")
-    if version == "1":
-        with open(path, newline="", encoding="utf-8") as fh:
-            header, *rows = list(csv.reader(fh))
-        for row in rows:
-            row[header.index("schema_version")] = "1"
-        with open(path, "w", newline="", encoding="utf-8") as fh:
-            csv.writer(fh).writerows([header, *rows])
+    # Only the schema_version value is read: the layout of such a table is not (and a table
+    # of these versions is not converted); the message names the fix.
+    path = tmp_path / "plane_histograms.csv"
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        csv.writer(fh).writerows(
+            [
+                ["image_file", "c", "dtype", "schema_version", "histogram_bin_00000"],
+                ["img.tif", "0", "uint16", version, "5"],
+            ]
+        )
     with pytest.raises(CsvFormatError) as error:
         read_plane_histograms(path)
     assert str(error.value) == (
@@ -293,6 +315,16 @@ def test_tables_with_one_row_per_channel_are_refused(tmp_path, version):
         "per channel. Run the preprocessing brick again on this experiment: it rewrites the "
         "table with the channels in columns (schema version 4)."
     )
+
+
+def test_a_table_without_a_known_version_or_the_columns_is_refused_without_a_fix_guess(tmp_path):
+    path = tmp_path / "plane_histograms.csv"
+    path.write_text("image_file,c\nimg.tif,0\n", encoding="utf-8")
+    with pytest.raises(CsvFormatError, match="does not have the plane-histogram columns"):
+        read_plane_histograms(path)
+    path.write_text("image_file,c,schema_version\nimg.tif,0,9\n", encoding="utf-8")
+    with pytest.raises(CsvFormatError, match="does not have the plane-histogram columns"):
+        read_plane_histograms(path)
 
 
 @pytest.mark.parametrize(
@@ -315,3 +347,36 @@ def test_derived_plane_columns_must_match_the_row(tmp_path, column, value, impli
         read_plane_histograms(table_with(tmp_path, column, value))
     if implied is not None:
         assert repr(implied) in str(error.value)
+
+
+@pytest.mark.parametrize("value", [None, "", "  ", 7])
+def test_a_record_without_a_position_id_is_refused(value):
+    histogram = compute_plane_histogram(np.arange(6))
+    with pytest.raises(ValueError, match=r"c/a\.tif.*no position_id.*preprocessing brick"):
+        PlaneRecord("c/a.tif", "c", "r", "t", histogram, position_id=value)
+
+
+def test_position_id_has_no_default_and_is_keyword_only():
+    histogram = compute_plane_histogram(np.arange(6))
+    with pytest.raises(TypeError, match="position_id"):
+        PlaneRecord("c/a.tif", "c", "r", "t", histogram)
+    with pytest.raises(TypeError):
+        PlaneRecord("c/a.tif", "c", "r", "t", histogram, 0, 0, "p")
+
+
+def test_a_row_with_a_blank_position_id_is_refused_not_filled(tmp_path):
+    path = write_plane_histograms([record()], tmp_path / "t.csv")
+    with open(path, newline="", encoding="utf-8") as fh:
+        header, *rows = list(csv.reader(fh))
+    for row in rows:
+        row[header.index("position_id")] = ""
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        csv.writer(fh).writerows([header, *rows])
+    with pytest.raises(CsvFormatError, match=r"line 2: .*no position_id"):
+        read_plane_histograms(path)
+
+
+def test_position_id_round_trips_as_written(tmp_path):
+    original = record(position_id="NA")
+    (back,) = read_plane_histograms(write_plane_histograms([original], tmp_path / "t.csv"))
+    assert back.position_id == "NA"

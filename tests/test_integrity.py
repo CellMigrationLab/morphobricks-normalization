@@ -287,7 +287,7 @@ def test_a_sum_of_squares_that_overflows_float64_is_accepted_where_possible():
 def record(path="c/r/a.tif", histograms=None, **coords):
     if histograms is None:
         histograms = [compute_plane_histogram(np.array([[0, 1], [1, 255]], np.uint8), 2)]
-    return PlaneRecord(path, "c", "r", "t", histograms, **coords)
+    return PlaneRecord(path, "c", "r", "t", histograms, **coords, position_id="p")
 
 
 def edited(tmp_path, records, changes, row=0):

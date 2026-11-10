@@ -22,7 +22,9 @@ def repeat_settings(method, pooling):
 
 def plane(condition, pixels, repeat="r1", name="img.tif"):
     histogram = compute_plane_histogram(np.asarray(pixels))
-    return PlaneRecord(f"{condition}/{repeat}/{name}", condition, repeat, "single", histogram)
+    return PlaneRecord(
+        f"{condition}/{repeat}/{name}", condition, repeat, "single", histogram, position_id="p"
+    )
 
 
 def weighted_direct(pixels_by_condition, method, percentile=(1.0, 99.8)):

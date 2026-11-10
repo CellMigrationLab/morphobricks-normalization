@@ -29,7 +29,7 @@ out of scope for now.
 
 ## Status
 
-Pre-alpha; the latest release is v0.3.4. The library offers:
+Pre-alpha; the latest release is v0.4.0. The library offers:
 
 - supported pixel types, bin counts and per-plane histograms (`dtypes`, `histogram`), with a robust range and a range check;
 - plane records, `plane_histograms.csv` reading and writing (schema version 4) and pooling of group statistics (`records`, `csv_io`, `pooling`);
@@ -56,7 +56,7 @@ for key, rows in groups.items():
 ## Installation
 
 ```bash
-pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.3.4"
+pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.4.0"
 ```
 
 For development, from a clone:

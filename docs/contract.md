@@ -734,13 +734,15 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | `HistogramSettings` with an unknown range, invalid quantiles or `min_central_bins` below 1 | `ValueError` | Names the value and the allowed ones |
 | Rows or images with different numbers of channels (N43) | `CsvFormatError` (table), `ValueError` (pixels) | Names the images and their channel counts, and says that every image of an experiment must have the same channels |
 | `from_columns` with a missing or unreadable column, an unknown `normalization_scope`, or a channel without both its offset and scale | `ValueError` | Names the column |
+| `from_columns` with a `normalization_method` or `normalization_scope` other than the settings' | `ValueError` | Names the column, the row's value and the settings' value, and asks to read the parameters with the settings of the run that wrote them |
+| `Parameters` or `NormalizationParameters` with a non-finite offset, or a scale that is not finite and above 0; a channel index that is not a whole number 0 or above | `ValueError` | Names the channel (or method) and the value |
 
 Tables of schema versions 1 to 3 are recognised by the `schema_version` value of their rows alone and
 refused with the messages above; no reader or converter of their layouts exists (the owner's ruling
 of 10 November 2026: no backward compatibility before the first pipeline release). A version 1 to 3
-header with no rows has no such value and is refused as a table with unexpected columns.
-| `from_columns` with a `normalization_method` or `normalization_scope` other than the settings' | `ValueError` | Names the column, the row's value and the settings' value, and asks to read the parameters with the settings of the run that wrote them |
-| `Parameters` or `NormalizationParameters` with a non-finite offset, or a scale that is not finite and above 0; a channel index that is not a whole number 0 or above | `ValueError` | Names the channel (or method) and the value |
+header with no rows has no such value and is refused by its columns ("does not have the
+plane-histogram columns" for versions 1 and 2, "unexpected per-channel column names" for version 3),
+without the pointed message.
 
 ### 9.2 Warnings
 

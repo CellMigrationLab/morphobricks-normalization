@@ -13,7 +13,7 @@ from morphobricks_normalization import (
 )
 from morphobricks_normalization.normalization import NORMAL_CONSISTENCY
 from morphobricks_normalization.settings import FLUORESCENCE_METHODS
-from simulation import cached_design
+from simulation import cached_design, channel_ids
 
 
 def repeat_settings(method, pooling):
@@ -23,7 +23,13 @@ def repeat_settings(method, pooling):
 def plane(condition, pixels, repeat="r1", name="img.tif"):
     histogram = compute_plane_histogram(np.asarray(pixels))
     return PlaneRecord(
-        f"{condition}/{repeat}/{name}", condition, repeat, "single", histogram, position_id="p"
+        f"{condition}/{repeat}/{name}",
+        condition,
+        repeat,
+        "single",
+        histogram,
+        position_id="p",
+        channels=("DNA",),
     )
 
 
@@ -121,7 +127,10 @@ def test_both_weights_agree_at_the_image_and_patch_scopes(method, scope):
     by_pixels = NormalizationSettings(method=method, scope=scope, pooling="pixels")
     by_conditions = NormalizationSettings(method=method, scope=scope, pooling="conditions")
     assert by_pixels == by_conditions  # the pooling weight has no effect at these scopes
-    assert fit(stack, by_conditions, channel_axis=0) == fit(stack, by_pixels, channel_axis=0)
+    ids = channel_ids(2)
+    assert fit(stack, by_conditions, channel_axis=0, channels=ids) == fit(
+        stack, by_pixels, channel_axis=0, channels=ids
+    )
     records = [r for r in all_records if r.source_relative_path == path]
     if scope == "image":
         assert fit(records, by_conditions) == fit(records, by_pixels)

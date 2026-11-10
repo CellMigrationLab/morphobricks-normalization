@@ -16,6 +16,8 @@ BIOLOGICAL_REPEAT_SCOPE = "biological_repeat_scope"
 REPEAT_MISSING_CONDITIONS = "repeat_missing_conditions"
 APPROXIMATE_PARAMETERS = "approximate_parameters"
 PLANES_WITHOUT_FINITE_PIXELS = "planes_without_finite_pixels"
+# A channel only some planes of a fitted group have (ADR 0003): pooled over those planes.
+CHANNEL_PARTIALLY_PRESENT = "channel_partially_present"
 
 # Intensity checks of contract §7.2, Milestone 4.
 IMAGE_INTENSITY_OUTLIER = "image_intensity_outlier"
@@ -46,9 +48,10 @@ class Issue:
     action
         What the user can do about it.
     channel
-        The zero-based channel the warning is about, for the intensity checks
-        (N52), so a calling brick can mark the image in that channel's plots;
-        None for warnings about whole images or groups.
+        The canonical channel ID the warning is about (ADR 0003 HV2), for the
+        intensity checks (N52), the range check and ``channel_partially_present``,
+        so a calling brick can mark the image in that channel's plots; None for
+        warnings about whole images or groups.
     """
 
     severity: str
@@ -56,4 +59,4 @@ class Issue:
     message: str
     items: tuple[str, ...] = ()
     action: str = ""
-    channel: int | None = None
+    channel: str | None = None

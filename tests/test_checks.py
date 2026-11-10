@@ -67,6 +67,8 @@ def summaries_of(design, seed=0):
                     SINGLE,
                     histograms,
                     position_id="p",
+                    # IDs that look like indices are legal Tokens; the checks go by ID.
+                    channels=tuple(f"C{c}" for c in range(len(histograms))),
                 )
             )
     return image_summaries(records)
@@ -88,7 +90,7 @@ def test_a_shifted_image_is_an_outlier_in_its_median_and_high_percentile():
     design["control", "2024_05_02"][3] *= 1.6
     issues = intensity_checks(summaries_of(design))
     shifted = path("control", "2024_05_02", 3)
-    assert found(issues) == [("image_intensity_outlier", (shifted,), 0)] * 2
+    assert found(issues) == [("image_intensity_outlier", (shifted,), "C0")] * 2
     median, high = issues
     assert median.message.startswith(f"Image {shifted}, channel C0: its median intensity ")
     assert "the median of the other 5 images of condition 'control', biological repeat " in (
@@ -124,7 +126,7 @@ def test_a_shifted_repeat_is_reported_for_its_condition_only():
     design = balanced()
     design["control", "2024_05_03"] = [level * 1.5 for level in design["control", "2024_05_03"]]
     issues = intensity_checks(summaries_of(design))
-    assert found(issues) == [("repeat_intensity_shift", ("control/2024_05_03",), 0)]
+    assert found(issues) == [("repeat_intensity_shift", ("control/2024_05_03",), "C0")]
     assert issues[0].message.startswith(
         "Biological repeat '2024_05_03' of condition 'control', channel C0: the median of its "
         "6 image medians, "
@@ -152,7 +154,7 @@ def test_groups_below_min_images_are_skipped():
     issues = intensity_checks(summaries, IntensityCheckSettings(min_images=4))
     assert (
         found(issues, "image_intensity_outlier")
-        == [("image_intensity_outlier", (path("control", "2024_05_01", 1),), 0)] * 2
+        == [("image_intensity_outlier", (path("control", "2024_05_01", 1),), "C0")] * 2
     )
 
 
@@ -165,8 +167,8 @@ def test_repeat_check_needs_min_images_in_the_other_repeats():
     issues = intensity_checks(summaries, IntensityCheckSettings(min_images=2))
     # With two repeats, each is compared with the other, so both are reported.
     assert found(issues) == [
-        ("repeat_intensity_shift", ("control/2024_05_01",), 0),
-        ("repeat_intensity_shift", ("control/2024_05_02",), 0),
+        ("repeat_intensity_shift", ("control/2024_05_01",), "C0"),
+        ("repeat_intensity_shift", ("control/2024_05_02",), "C0"),
     ]
 
 
@@ -188,7 +190,7 @@ def test_saturated_images():
     design = {("control", "rep1"): [many, few, image(100, rng)]}
     summaries = summaries_of(design)
     issues = intensity_checks(summaries)
-    assert found(issues) == [("saturated_image", (path("control", "rep1", 0),), 0)]
+    assert found(issues) == [("saturated_image", (path("control", "rep1", 0),), "C0")]
     assert issues[0].message == (
         f"Image {path('control', 'rep1', 0)}, channel C0: 5.08 % of its pixels are at the maximum "
         "of its pixel type, 255 (uint8), above the limit of 1 %."
@@ -203,8 +205,8 @@ def test_constant_images_have_no_spread():
     design["control", "rep1"].append(image(100, np.random.default_rng(3)))
     issues = intensity_checks(summaries_of(design))
     assert found(issues) == [
-        ("no_intensity_spread", (path("control", "rep1", 0),), 0),
-        ("no_intensity_spread", (path("control", "rep1", 1),), 0),
+        ("no_intensity_spread", (path("control", "rep1", 0),), "C0"),
+        ("no_intensity_spread", (path("control", "rep1", 1),), "C0"),
     ]
     assert issues[0].message == (
         f"Image {path('control', 'rep1', 0)}, channel C0: its 1st and 99.8th percentiles are "
@@ -219,7 +221,7 @@ def test_each_channel_is_checked_separately():
     design["treated", "2024_05_02"][4] = (first, second * 0.4)  # only channel 1 is dimmer
     issues = intensity_checks(summaries_of(design))
     shifted = path("treated", "2024_05_02", 4)
-    assert found(issues) == [("image_intensity_outlier", (shifted,), 1)] * 2
+    assert found(issues) == [("image_intensity_outlier", (shifted,), "C1")] * 2
     assert all(", channel C1: " in issue.message for issue in issues)
 
 
@@ -271,6 +273,7 @@ def test_checks_match_a_direct_implementation():
                             SINGLE,
                             np.dtype(np.uint16),
                             (1.0, 99.8),
+                            ("C0", "C1"),
                             tuple(map(float, median)),
                             tuple(map(float, low)),
                             tuple(map(float, high)),
@@ -321,7 +324,7 @@ def direct_checks(summaries, settings):
                 ]
                 if len(others) >= settings.min_images and beyond(np.median(own), others):
                     shifts.append(("repeat_intensity_shift", (f"{condition}/{repeat}",), c))
-    return outliers + shifts + saturated + spread
+    return [(code, items, f"C{c}") for code, items, c in outliers + shifts + saturated + spread]
 
 
 def test_settings_defaults_and_round_trip():
@@ -366,7 +369,7 @@ def test_unknown_settings_are_refused():
 def test_other_warnings_have_no_channel():
     issue = Issue("warning", "repeat_missing_conditions", "message")
     assert issue.channel is None
-    assert replace(issue, channel=1) != issue
+    assert replace(issue, channel="DNA") != issue
 
 
 def _direct(path_, channels, percentile=(1.0, 99.8)):
@@ -379,6 +382,7 @@ def _direct(path_, channels, percentile=(1.0, 99.8)):
         technical_repeat="",
         dtype=np.dtype(np.uint8),
         percentile=percentile,
+        channels=tuple(f"C{c}" for c in range(channels)),
         median=values,
         p_low=values,
         p_high=tuple(v + 5 for v in values),
@@ -393,15 +397,24 @@ def test_summary_with_mismatched_channel_tuples_is_refused():
     with pytest.raises(IncompatibleSummariesError, match=r"a\.tif.*p_high: 1"):
         replace(good, p_high=(1.0,))
     with pytest.raises(IncompatibleSummariesError, match=r"a\.tif"):
-        replace(good, median=(), p_low=(), p_high=(), saturated_fraction=(), exact=())
+        replace(good, channels=(), median=(), p_low=(), p_high=(), saturated_fraction=(), exact=())
+    with pytest.raises(IncompatibleSummariesError, match=r"a\.tif.*channels: 1"):
+        replace(good, channels=("C0",))
+    with pytest.raises(IncompatibleSummariesError, match="not in sorted order"):
+        replace(good, channels=("C1", "C0"))
 
 
 @pytest.mark.parametrize("order", [(1, 2), (2, 1)])
-def test_summaries_with_different_channel_counts_are_refused(order):
-    """Issue #56: one- and two-channel images in either order, naming both images."""
-    summaries = [_direct(f"img_{i}.tif", n) for i, n in enumerate(order * 3)]
-    with pytest.raises(IncompatibleSummariesError, match=r"1 channel\(s\).*2 channel\(s\)"):
-        intensity_checks(summaries)
+def test_summaries_with_different_channels_are_compared_by_channel_id(order):
+    """ADR 0003 replaces N43: a channel is compared among the images that have it."""
+    summaries = []
+    for i, n in enumerate(order * 3):
+        s = _direct(f"img_{i}.tif", n)
+        level = (10.0, 11.0, 12.0, 10.5, 11.5, 1000.0)[i]  # img_5 is far from the others in C0
+        summaries.append(replace(s, median=(level,) * n, p_low=(level,) * n))
+    found_ = found(intensity_checks(summaries))
+    # C1 is only in three images, below min_images: not compared, and never taken as zero.
+    assert found_ == [("image_intensity_outlier", ("img_5.tif",), "C0")]
 
 
 @pytest.mark.parametrize("odd_first", [True, False])

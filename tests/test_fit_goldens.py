@@ -10,6 +10,9 @@ fitted parameter.
 
 Here the same pixels go through the current code (histograms, the ``plane_histograms.csv``
 writer and reader, scope groups, ``fit``) and every parameter must equal the stored number.
+Since schema version 5 the channels are named by canonical channel ID (ADR 0003): channel ``c``
+is ``ch<c>``, whose sorted order is the index order, so the stored per-index numbers line up
+with the parameters' channels and every channel is present in every plane.
 
 Parameters built from a mean or standard deviation are sums over the pooled values
 (``np.dot``, weighted ``np.bincount``), whose last bits depend on the NumPy build and the
@@ -35,6 +38,7 @@ from morphobricks_normalization import (
     scope_groups,
     write_plane_histograms,
 )
+from simulation import channel_ids
 
 DATA = Path(__file__).parent / "data"
 DATASETS = ("uint16", "float32")
@@ -74,10 +78,13 @@ def table_records(name, folder):
             histograms=[channels[c] for c in sorted(channels)],
             t=t,
             position_id=path.rsplit("/", 1)[-1].rsplit(".", 1)[0],
+            channels=channel_ids(len(channels)),
         )
         for (path, t), (labels, channels) in by_plane.items()
     ]
-    table = write_plane_histograms(records, Path(folder) / f"golden_{name}.csv")
+    table = write_plane_histograms(
+        records, Path(folder) / f"golden_{name}.csv", channel_ids=channel_ids(2)
+    )
     return read_plane_histograms(table)
 
 
@@ -97,7 +104,7 @@ def test_fitted_parameters_equal_the_golden_numbers_at_every_scope(name, folder)
         group = entry["group"]
         if settings.scope == "patch":
             stack = np.stack([p for _, path, c, t, p in planes(name) if path == group and t == 0])
-            statistics, options = stack, {"channel_axis": 0}
+            statistics, options = stack, {"channel_axis": 0, "channels": channel_ids(2)}
         else:
             key = json.dumps(entry["settings"], sort_keys=True)
             if key not in groups_by_settings:
@@ -112,6 +119,7 @@ def test_fitted_parameters_equal_the_golden_numbers_at_every_scope(name, folder)
         else:
             parameters = fit(statistics, settings, group=group, **options)
             where = (entry["settings"], group)
+            assert parameters.channels == channel_ids(len(entry["offset"])), where
             if settings.method in SUMMED_METHODS:
                 for value, stored in (("offset", entry["offset"]), ("scale", entry["scale"])):
                     np.testing.assert_array_max_ulp(

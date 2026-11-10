@@ -81,8 +81,10 @@ class PooledHistogram:
         per channel. Planes without finite pixels are skipped and counted in
         ``n_excluded_planes``.
     channel
-        For records, the channel to pool (zero-based); it may be left out when
-        every record has one channel. Plane histograms are used as given.
+        For records, the canonical ID of the channel to pool; it may be left out when
+        every record has one channel. Every record must have that channel: only the
+        same channel ID is pooled, and a plane without it is refused, never skipped.
+        Plane histograms are used as given.
 
     Raises
     ------
@@ -90,8 +92,9 @@ class PooledHistogram:
         If none of the planes has a finite pixel.
     ValueError
         If a record has more than one channel and ``channel`` is not given, or
-        has no channel ``channel``; or if the planes hold more than ``2**63 - 1``
-        finite pixels together, more than the int64 counts can hold.
+        does not have channel ``channel`` (it is absent there); or if the planes
+        hold more than ``2**63 - 1`` finite pixels together, more than the int64
+        counts can hold.
 
     Notes
     -----
@@ -100,7 +103,7 @@ class PooledHistogram:
     """
 
     def __init__(
-        self, histograms: Iterable[PlaneHistogram | PlaneRecord], channel: int | None = None
+        self, histograms: Iterable[PlaneHistogram | PlaneRecord], channel: str | None = None
     ) -> None:
         values, weights = [], []
         bin_values, bin_weights = [], []
@@ -345,7 +348,7 @@ def pooled_statistics(
     histograms: Iterable[PlaneHistogram | PlaneRecord],
     percentiles: Sequence[float] = DEFAULT_PERCENTILES,
     *,
-    channel: int | None = None,
+    channel: str | None = None,
 ) -> PooledStatistics:
     """Pool a group of planes and return its summary statistics.
 
@@ -452,14 +455,14 @@ def _non_finite_squares_message(squares: list[float]) -> str:
     )
 
 
-def _channel_histogram(record: PlaneRecord, channel: int | None) -> PlaneHistogram:
+def _channel_histogram(record: PlaneRecord, channel: str | None) -> PlaneHistogram:
     if channel is None:
         if record.channel_count != 1:
             raise ValueError(
-                f"Plane {record.plane_id} has {record.channel_count} channels; give the "
-                f"channel to pool, from 0 to {record.channel_count - 1}."
+                f"Plane {record.plane_id} has {record.channel_count} channels "
+                f"({', '.join(record.channels)}); give the ID of the channel to pool."
             )
-        channel = 0
+        return record.histograms[0]
     return record.channel_histogram(channel)
 
 

@@ -24,6 +24,8 @@ from morphobricks_normalization.fitting import offset_column, scale_column
 from morphobricks_normalization.rgb import EPSILON, apply_rgb, check_rgb
 from simulation import cached_rgb_design, make_rgb_records, simulate_rgb_design
 
+RGB = ("R", "G", "B")
+RGB_SORTED = ("B", "G", "R")
 RGB_MESSAGE = (
     "RGB normalization needs images with exactly three 8- or 16-bit colour channels, but these "
     "images have {} channels of type {}. Check the axis mapping (the samples axis must be the "
@@ -45,7 +47,7 @@ def direct(pixels, low=1.0, high=99.8):
 
 
 def assert_rgb(parameters, offset, scale):
-    assert parameters.channels == (0, 1, 2)
+    assert parameters.channels == ("B", "G", "R")
     assert parameters.offset == (offset,) * 3
     assert parameters.scale == (scale,) * 3
 
@@ -187,7 +189,7 @@ def test_a_constant_image_gives_zeros_not_an_error():
 def test_fluorescence_still_refuses_zero_spread():
     pixels = np.full((5, 6, 3), 200, np.uint8)
     with pytest.raises(ValueError, match="intensity spread is zero"):
-        fit(pixels, NormalizationSettings(scope="patch"), channel_axis=-1)
+        fit(pixels, NormalizationSettings(scope="patch"), channel_axis=-1, channels=("A", "B", "C"))
 
 
 def test_columns_hold_the_shared_value_and_round_trip_exactly():
@@ -195,11 +197,11 @@ def test_columns_hold_the_shared_value_and_round_trip_exactly():
     settings = rgb()
     parameters = fit(records[:2], settings, group="control/2024_05_01/img_01.tif")
     columns = parameters.to_columns()
-    for c in (0, 1, 2):
+    for c in ("R", "G", "B"):
         assert columns[offset_column(c)] == repr(parameters.offset[0])
         assert columns[scale_column(c)] == repr(parameters.scale[0])
     assert columns["normalization_method"] == "rgb percentile 1-99.8"
-    assert offset_column(3) not in columns
+    assert offset_column("C0") not in columns
     again = Parameters.from_columns(columns, settings)
     assert again == parameters
     assert (again.offset, again.scale, again.channels) == (
@@ -210,14 +212,18 @@ def test_columns_hold_the_shared_value_and_round_trip_exactly():
 
 
 def test_from_columns_refuses_incomplete_or_different_rgb_values():
-    parameters = Parameters("rgb percentile 1-99.8", "image", "g", True, (2.0,) * 3, (5.0,) * 3)
+    parameters = Parameters(
+        "rgb percentile 1-99.8", "image", "g", True, (2.0,) * 3, (5.0,) * 3, RGB_SORTED
+    )
     columns = parameters.to_columns()
-    with pytest.raises(ValueError, match="Normalization_Offset_C2, Normalization_Scale_C2"):
-        Parameters.from_columns({**columns, offset_column(2): "", scale_column(2): ""}, rgb())
+    with pytest.raises(ValueError, match="Normalization_Offset_B, Normalization_Scale_B"):
+        Parameters.from_columns({**columns, offset_column("B"): "", scale_column("B"): ""}, rgb())
     with pytest.raises(ValueError, match="also holds channel"):
-        Parameters.from_columns({**columns, offset_column(3): "1.0", scale_column(3): "2.0"}, rgb())
+        Parameters.from_columns(
+            {**columns, offset_column("C3"): "1.0", scale_column("C3"): "2.0"}, rgb()
+        )
     with pytest.raises(ValueError, match="the same offset and scale"):
-        Parameters.from_columns({**columns, offset_column(1): "2.5"}, rgb())
+        Parameters.from_columns({**columns, offset_column("G"): "2.5"}, rgb())
     with pytest.raises(ValueError, match="the settings use 'percentile 1-99.8'"):
         Parameters.from_columns(columns, NormalizationSettings())
 
@@ -230,7 +236,15 @@ def test_wrong_channel_counts_are_refused(shape):
     with pytest.raises(ValueError, match="have 1 channels of type uint16"):
         fit(np.zeros((6, 6), np.uint16), rgb(scope="patch"))
     histogram = compute_plane_histogram(np.arange(10, dtype=np.uint8))
-    row = PlaneRecord("c/r/a.tif", "c", "r", "single", (histogram,) * shape[-1], position_id="p")
+    row = PlaneRecord(
+        "c/r/a.tif",
+        "c",
+        "r",
+        "single",
+        (histogram,) * shape[-1],
+        position_id="p",
+        channels=("R", "G", "B", "PHASE")[: shape[-1]],
+    )
     with pytest.raises(ValueError) as error:
         fit([row], rgb())
     assert str(error.value) == RGB_MESSAGE.format(shape[-1], "uint8")
@@ -271,7 +285,7 @@ def test_approximate_histograms_stay_within_their_bound():
 
 def test_a_group_without_pixels_names_the_three_channels():
     empty = compute_plane_histogram(np.zeros((0, 0), np.uint8))
-    row = PlaneRecord("c/r/a.tif", "c", "r", "single", (empty,) * 3, position_id="p")
+    row = PlaneRecord("c/r/a.tif", "c", "r", "single", (empty,) * 3, position_id="p", channels=RGB)
     with pytest.raises(NoValidPixelsError, match="Group 'g', channels R, G and B"):
         fit([row], rgb(), group="g")
 
@@ -283,7 +297,7 @@ def test_apply_returns_a_new_array_and_never_changes_the_input():
     normalized = parameters.apply(pixels, channel_axis=-1)
     np.testing.assert_array_equal(pixels, before)
     assert not np.shares_memory(normalized, pixels)
-    with pytest.raises(ValueError, match="give channel_axis"):
+    with pytest.raises(ValueError, match="give channels"):
         parameters.apply(pixels)
     float_pixels = pixels.astype(np.float32)
     again = parameters.apply(float_pixels, channel_axis=-1)
@@ -371,28 +385,58 @@ def test_rgb_images_with_different_pixel_types_are_refused_before_pooling(monkey
 def test_rgb_images_with_one_pixel_type_and_several_times_are_pooled(kind):
     images, records = cached_rgb_design(seed=51, n_times=2, **DTYPES[kind])
     parameters = fit(records[:4], rgb(scope="biological_repeat"))
-    assert parameters.channels == (0, 1, 2)
+    assert parameters.channels == RGB_SORTED
 
 
-@pytest.mark.parametrize("subset", [[2], [0, 1], [1, 2], [0, 2]])
+@pytest.mark.parametrize("subset", [["B"], ["R", "G"], ["G", "B"], ["R", "B"]])
 def test_rgb_parameters_refuse_a_channel_subset(subset):
     """Issue #50: a subset could not be read back by from_columns."""
-    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3)
+    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3, RGB_SORTED)
     with pytest.raises(ValueError, match="three colour channels together"):
         p.select(subset)
 
 
 def test_rgb_parameters_select_all_channels_unchanged_and_fluorescence_subsets_work():
-    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3)
-    assert p.select([2, 1, 0]) == p
+    p = Parameters("rgb percentile 1-99.8", "image", "g", True, (1.0,) * 3, (4.0,) * 3, RGB_SORTED)
+    assert p.select(["B", "G", "R"]) == p
     settings = rgb()
-    assert Parameters.from_columns(p.select([0, 1, 2]).to_columns(), settings) == p
+    assert Parameters.from_columns(p.select(["R", "G", "B"]).to_columns(), settings) == p
     pixels = np.arange(27, dtype=np.uint8).reshape(3, 3, 3)
     assert np.array_equal(
-        p.select([0, 1, 2]).apply(pixels, channel_axis=0), p.apply(pixels, channel_axis=0)
+        p.select(RGB).apply(pixels, channel_axis=0), p.apply(pixels, channel_axis=0)
     )
-    fluorescence = Parameters("percentile 1-99.8", "image", "g", True, (1.0, 2.0, 3.0), (4.0,) * 3)
-    assert fluorescence.select([2]).channels == (2,)
+    assert np.array_equal(
+        p.apply(pixels, channel_axis=0, channels=RGB), p.apply(pixels, channel_axis=0)
+    )
+    with pytest.raises(ValueError, match="channels R, G and B of an RGB imaging unit"):
+        p.apply(pixels, channel_axis=0, channels=["B", "G", "R"])
+    fluorescence = Parameters(
+        "percentile 1-99.8", "image", "g", True, (1.0, 2.0, 3.0), (4.0,) * 3, ("A", "B", "C")
+    )
+    assert fluorescence.select(["C"]).channels == ("C",)
+
+
+def test_rgb_rows_need_the_rgb_channel_ids_in_order():
+    _, records = cached_rgb_design(seed=52)
+    row = records[0]
+    swapped = PlaneRecord(
+        row.source_relative_path,
+        row.condition,
+        row.biological_repeat,
+        row.technical_repeat,
+        row.histograms,
+        position_id="p",
+        channels=("B", "G", "R"),
+    )
+    with pytest.raises(ValueError, match="R, G and B of an RGB imaging unit, in this order"):
+        fit([swapped], rgb())
+    with pytest.raises(ValueError, match="R, G and B of an RGB imaging unit, in this order"):
+        fit(
+            np.zeros((4, 4, 3), np.uint8),
+            rgb(scope="patch"),
+            channel_axis=-1,
+            channels=("B", "G", "R"),
+        )
 
 
 @pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.float32, np.float64])

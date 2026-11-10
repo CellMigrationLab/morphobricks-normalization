@@ -19,7 +19,9 @@ from morphobricks_normalization import (
     image_summaries,
     read_plane_histograms,
     scope_groups,
-    write_plane_histograms,
+)
+from morphobricks_normalization import (
+    write_plane_histograms as write_table,
 )
 from morphobricks_normalization.csv_io import CsvFormatError
 from morphobricks_normalization.integrity import LIMIT_NAMES
@@ -287,7 +289,12 @@ def test_a_sum_of_squares_that_overflows_float64_is_accepted_where_possible():
 def record(path="c/r/a.tif", histograms=None, **coords):
     if histograms is None:
         histograms = [compute_plane_histogram(np.array([[0, 1], [1, 255]], np.uint8), 2)]
-    return PlaneRecord(path, "c", "r", "t", histograms, **coords, position_id="p")
+    # A channel named C0: a legal channel ID (ADR 0003), so the columns keep their old names.
+    return PlaneRecord(path, "c", "r", "t", histograms, **coords, position_id="p", channels=("C0",))
+
+
+def write_plane_histograms(records, path):
+    return write_table(records, path, channel_ids=("C0",))
 
 
 def edited(tmp_path, records, changes, row=0):
@@ -323,7 +330,7 @@ LIMITS = (
 )
 def test_impossible_counts_and_limits_in_the_file_are_refused(tmp_path, changes, message):
     path = edited(tmp_path, [record()], changes)
-    with pytest.raises(CsvFormatError, match=f"line 2: the bin counts of channel 0 .*{message}"):
+    with pytest.raises(CsvFormatError, match=f"line 2: the bin counts of channel C0 .*{message}"):
         read_plane_histograms(path)
 
 
@@ -332,7 +339,7 @@ def test_a_single_blank_limit_in_the_file_is_refused(tmp_path, column):
     # The default record's limits are min-max, so a blank extremum equals its binning limit
     # and was silently filled in from it before #47 was fixed.
     path = edited(tmp_path, [record()], {column: ""})
-    message = f"line 2: the bin counts of channel 0 .*{column} is blank, but the channel has 4"
+    message = f"line 2: the bin counts of channel C0 .*{column} is blank, but the channel has 4"
     with pytest.raises(CsvFormatError, match=message):
         read_plane_histograms(path)
 
@@ -366,7 +373,7 @@ def test_wrapping_counts_in_the_file_are_refused(tmp_path):
 )
 def test_impossible_sums_of_a_populated_tail_are_refused(tmp_path, column, value):
     path = edited(tmp_path, [record(histograms=[robust_plane_histogram()])], {column: value})
-    with pytest.raises(CsvFormatError, match="line 2: the bin counts of channel 0"):
+    with pytest.raises(CsvFormatError, match="line 2: the bin counts of channel C0"):
         read_plane_histograms(path)
 
 

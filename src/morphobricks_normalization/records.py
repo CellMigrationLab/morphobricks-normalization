@@ -220,10 +220,16 @@ class ChannelMeasurementError(ValueError):
     ----------
     failures
         Every failed measurement, in the order given.
+    removed
+        The table of an earlier run that the writer removed, so that no stale table is
+        left that looks current; None when there was none.
     """
 
-    def __init__(self, failures: Sequence[ChannelMeasurementFailure]) -> None:
+    def __init__(
+        self, failures: Sequence[ChannelMeasurementFailure], removed: str | None = None
+    ) -> None:
         self.failures = tuple(failures)
+        self.removed = removed
         listed = "; ".join(
             f"plane {f.plane_id}, channel {f.channel}: {f.reason}"
             for f in self.failures[:_MAX_LISTED]
@@ -233,11 +239,17 @@ class ChannelMeasurementError(ValueError):
             if len(self.failures) > _MAX_LISTED
             else ""
         )
+        stale = (
+            f" The table of an earlier run, {removed}, was removed, so that no out-of-date "
+            "table is left that looks current."
+            if removed
+            else ""
+        )
         super().__init__(
             f"{len(self.failures)} channel measurement(s) failed ({listed}{more}), so "
             "plane_histograms.csv was not written: the table holds a measured histogram for "
-            "every channel a plane has, and never a partial table. Fix the cause (read the "
-            "failing image and channel), then run the preprocessing brick again."
+            f"every channel a plane has, and never a partial table.{stale} Fix the cause (read "
+            "the failing image and channel), then run the preprocessing brick again."
         )
 
 
@@ -301,6 +313,25 @@ def duplicate_planes(records: Iterable[PlaneRecord], subject: str) -> None:
             f"{subject} hold some planes more than once: {shown}{more}. Every plane (an image "
             "at one Z and T position) must appear once, or its pixels count twice; remove the "
             "repeated rows, or run the preprocessing brick again on this experiment."
+        )
+
+
+def check_universe(records: list[PlaneRecord], universe: set[str]) -> None:
+    """Refuse records with a channel the experiment's list does not have."""
+    outside: dict[str, list[str]] = {}
+    for record in records:
+        for channel in record.channels:
+            if channel not in universe:
+                outside.setdefault(channel, []).append(record.plane_id)
+    if outside:
+        parts = "; ".join(
+            f"{channel} (in {', '.join(ids[:3])}{' ...' if len(ids) > 3 else ''})"
+            for channel, ids in sorted(outside.items())
+        )
+        raise ValueError(
+            f"Some planes have channels that are not in the experiment's channel IDs "
+            f"({', '.join(sorted(universe))}): {parts}. Give channel_ids every channel ID of the "
+            "experiment description."
         )
 
 

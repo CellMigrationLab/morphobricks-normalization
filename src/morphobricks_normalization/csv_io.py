@@ -46,9 +46,11 @@ from .channels import check_channel_ids
 from .dtypes import bit_depth, check_supported, is_integer
 from .histogram import EMPTY_TAIL, HistogramTail, PlaneHistogram
 from .records import (
+    ChannelMeasurementError,
     ChannelMeasurementFailure,
     PlaneRecord,
     check_measurements,
+    check_universe,
     duplicate_planes,
     same_channels_per_image,
 )
@@ -212,7 +214,8 @@ def write_plane_histograms(
         header. Each record's channels must be among them.
     failures
         The run's failed channel measurements (HV3). When there is any, nothing is
-        written and the existing file, if any, is left as it was.
+        written, and a file already at ``path`` (an earlier run's table) is removed, so
+        that no out-of-date table is left that looks current (contract §6.2).
 
     Returns
     -------
@@ -222,15 +225,15 @@ def write_plane_histograms(
     Raises
     ------
     ChannelMeasurementError
-        When ``failures`` is not empty, naming each failing plane and channel; checked
-        before anything else.
+        When ``failures`` is not empty, naming each failing plane and channel and the
+        earlier table it removed (``removed``); checked before anything else.
     ValueError
         If there are no records, two records have the same ``plane_id``, their bin
         counts differ, ``channel_ids`` is not a list of distinct channel IDs, a record
         has a channel that is not in ``channel_ids``, or the planes of one image list
         different channels.
     """
-    check_measurements(failures)
+    _refuse_failures(failures, Path(path))
     universe = check_channel_ids(channel_ids, "The table's channel IDs")
     if not universe:
         raise ValueError("Give the experiment's channel IDs (channel_ids); the list is empty.")
@@ -242,7 +245,7 @@ def write_plane_histograms(
         raise ValueError(
             f"All planes in one table must use the same bin count; found {sorted(bin_counts)}."
         )
-    _check_universe(records, set(universe))
+    check_universe(records, set(universe))
     duplicate_planes(records, "The planes to write")
     same_channels_per_image(records, "The planes to write")
     path = Path(path)
@@ -260,6 +263,21 @@ def write_plane_histograms(
         Path(temporary).unlink(missing_ok=True)
         raise
     return path
+
+
+def _refuse_failures(failures: Iterable[ChannelMeasurementFailure], path: Path) -> None:
+    """Raise for failed measurements, after removing an earlier table at ``path`` (HV3).
+
+    An earlier run's table left in place would read as this run's, so it is removed and
+    the error names it (``ChannelMeasurementError.removed``).
+    """
+    try:
+        check_measurements(failures)
+    except ChannelMeasurementError as error:
+        if not path.is_file():
+            raise
+        path.unlink()
+        raise ChannelMeasurementError(error.failures, removed=str(path)) from None
 
 
 def read_plane_histograms(path: str | Path) -> list[PlaneRecord]:
@@ -333,25 +351,6 @@ def read_plane_histogram_table(path: str | Path) -> PlaneHistogramTable:
         except ValueError as error:
             raise CsvFormatError(str(error)) from None
         return PlaneHistogramTable(ids, records)
-
-
-def _check_universe(records: list[PlaneRecord], universe: set[str]) -> None:
-    """Refuse records with a channel the experiment's list does not have."""
-    outside: dict[str, list[str]] = {}
-    for record in records:
-        for channel in record.channels:
-            if channel not in universe:
-                outside.setdefault(channel, []).append(record.plane_id)
-    if outside:
-        parts = "; ".join(
-            f"{channel} (in {', '.join(ids[:3])}{' ...' if len(ids) > 3 else ''})"
-            for channel, ids in sorted(outside.items())
-        )
-        raise ValueError(
-            f"Some planes have channels that are not in the experiment's channel IDs "
-            f"({', '.join(sorted(universe))}): {parts}. Give channel_ids every channel ID of the "
-            "experiment description."
-        )
 
 
 def _row(record: PlaneRecord, ids: tuple[str, ...]) -> list[str]:

@@ -226,16 +226,30 @@ def test_planes_of_one_image_with_different_channels_are_refused(tmp_path):
 
 def test_a_failed_measurement_writes_nothing(tmp_path):
     # HV3: the table is not written, and the run is told which plane and channel failed.
-    path = write([record()], tmp_path / "t.csv")
-    before = path.read_bytes()
+    path = tmp_path / "t.csv"
     failure = ChannelMeasurementFailure(record("a/2.tif").plane_id, "ACTIN", "read error")
     with pytest.raises(ChannelMeasurementError) as error:
         write([record("a/1.tif"), record("a/2.tif")], path, failures=[failure])
-    assert error.value.failures == (failure,)
+    assert error.value.failures == (failure,) and error.value.removed is None
     assert "plane a/2.tif::z=0,t=0, channel ACTIN: read error" in str(error.value)
     assert "plane_histograms.csv was not written" in str(error.value)
-    assert path.read_bytes() == before
-    assert [p.name for p in tmp_path.iterdir()] == ["t.csv"]
+    assert "earlier run" not in str(error.value)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_a_failed_measurement_removes_an_earlier_table_so_none_looks_current(tmp_path):
+    # Open question 5 of PR #90: an earlier run's table left in place would read as this
+    # run's, so the writer removes it and says so; nothing else in the folder is touched.
+    path = write([record()], tmp_path / "t.csv")
+    other = tmp_path / "other.csv"
+    other.write_text("kept", encoding="utf-8")
+    failure = ChannelMeasurementFailure(record("a/2.tif").plane_id, "ACTIN", "read error")
+    with pytest.raises(ChannelMeasurementError) as error:
+        write([record("a/1.tif"), record("a/2.tif")], path, failures=[failure])
+    assert error.value.removed == str(path) and error.value.failures == (failure,)
+    assert f"The table of an earlier run, {path}, was removed" in str(error.value)
+    assert [p.name for p in tmp_path.iterdir()] == ["other.csv"]
+    assert other.read_text(encoding="utf-8") == "kept"
 
 
 def test_the_channels_of_a_plane_share_type_bins_and_size():

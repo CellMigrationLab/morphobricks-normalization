@@ -291,6 +291,7 @@ def test_from_columns_reads_numbers_and_booleans_as_a_table_reader_gives_them():
         "normalization_scope": "image",
         "normalization_group": float("nan"),  # blank cell read by pandas
         "normalization_exact": True,
+        "normalization_parameters_version": np.int64(2),
         "Normalization_Offset_DNA": 12.5,
         "Normalization_Scale_DNA": np.float64(0.1),
         "Normalization_Offset_ACTIN": float("nan"),
@@ -300,6 +301,25 @@ def test_from_columns_reads_numbers_and_booleans_as_a_table_reader_gives_them():
     }
     parameters = Parameters.from_columns(row, NormalizationSettings(method="zscore"))
     assert parameters == Parameters("z-score", "image", None, True, (12.5,), (0.1,), ("DNA",))
+    row["normalization_parameters_version"] = 2.0  # a column with blanks, read by pandas
+    assert Parameters.from_columns(row, NormalizationSettings(method="zscore")) == parameters
+
+
+@pytest.mark.parametrize("version", [None, "", "1", 1, 3.0, True, "2.0"])
+def test_from_columns_refuses_parameter_columns_of_another_version(version):
+    # Open question 4 of PR #90: the version-4 column Normalization_Offset_C0 is also a valid
+    # channel-ID column (C0), so the columns carry their own version and an old row is refused.
+    settings = NormalizationSettings(method="minmax")
+    row = Parameters("min-max", "image", "a", True, (1.0,), (2.0,), ("C0",)).to_columns()
+    assert row["normalization_parameters_version"] == "2"
+    if version is None:
+        del row["normalization_parameters_version"]
+        message = "has no normalization_parameters_version column, so it was written by"
+    else:
+        row["normalization_parameters_version"] = version
+        message = "parameter columns (has|of version 2 only)"
+    with pytest.raises(ValueError, match=message):
+        Parameters.from_columns(row, settings)
 
 
 @pytest.mark.parametrize(

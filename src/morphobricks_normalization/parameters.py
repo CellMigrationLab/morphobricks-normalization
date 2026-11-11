@@ -5,6 +5,11 @@ by its canonical channel ID; :func:`~morphobricks_normalization.fitting.fit` mak
 are stored as one ``Normalization_Offset_<ID>`` and ``Normalization_Scale_<ID>`` pair per
 channel (contract §8.1, N41, N46, N47 with the channel token amended by HV2); for RGB the
 shared value is written for R, G and B. ``from_columns(to_columns(p)) == p`` exactly.
+
+The columns carry their own version, ``normalization_parameters_version`` (contract §8.1):
+the version-4 columns ``Normalization_Offset_C0`` would otherwise read as channel ``C0`` (a
+legal channel ID), so a row without the version, or of another version, is refused and never
+converted (ADR 0002 AR10).
 """
 
 from __future__ import annotations
@@ -23,6 +28,10 @@ from .parameter_checks import check_offset_scale, check_scope
 from .rgb import RGB_CHANNELS, apply_rgb, check_rgb_channels, check_rgb_selection
 from .settings import SCOPES, NormalizationSettings
 
+# Version of the parameter columns (contract §8.1). Version 1, the C-index columns of
+# normalization 0.4 and earlier, had no version column.
+PARAMETERS_VERSION = 2
+VERSION_COLUMN = "normalization_parameters_version"
 # Columns written once per row; the per-channel pairs follow (offset_column,
 # scale_column).
 COLUMNS = (
@@ -30,6 +39,7 @@ COLUMNS = (
     "normalization_scope",
     "normalization_group",
     "normalization_exact",
+    VERSION_COLUMN,
 )
 OFFSET_COLUMN_PREFIX = "Normalization_Offset"
 SCALE_COLUMN_PREFIX = "Normalization_Scale"
@@ -239,7 +249,8 @@ class Parameters:
     def to_columns(self) -> dict[str, str]:
         """Return the columns of contract §8.1 as text, numbers in full.
 
-        The four ``normalization_*`` columns, then ``Normalization_Offset_<ID>``
+        The five ``normalization_*`` columns (the last the columns' version, ``2``),
+        then ``Normalization_Offset_<ID>``
         and ``Normalization_Scale_<ID>`` for each channel ID of :attr:`channels`,
         grouped by channel in sorted order. Columns of other channels are not
         returned; a table holding rows of other channels leaves them blank.
@@ -249,6 +260,7 @@ class Parameters:
             "normalization_scope": self.scope,
             "normalization_group": self.group or "",
             "normalization_exact": "true" if self.exact else "false",
+            VERSION_COLUMN: str(PARAMETERS_VERSION),
         }
         for channel, offset, scale in zip(self.channels, self.offset, self.scale, strict=True):
             columns[offset_column(channel)] = repr(offset)
@@ -264,7 +276,7 @@ class Parameters:
         Parameters
         ----------
         columns
-            A row with the four ``normalization_*`` columns and the
+            A row with the five ``normalization_*`` columns (version 2) and the
             ``Normalization_Offset_<ID>`` and ``Normalization_Scale_<ID>`` pair of at
             least one channel ID; other columns are ignored. Values may be text or
             numbers. A channel whose two columns are both blank or absent is not part
@@ -282,8 +294,11 @@ class Parameters:
         ValueError
             Naming the column that is missing or cannot be read, whose method
             or scope differs from the settings, or whose scope is unknown; also
-            for a channel with only one of its two columns.
+            for a channel with only one of its two columns, and for a row of another
+            version of the columns (without ``normalization_parameters_version``: the
+            C-index columns of normalization 0.4 and earlier, never read as channel IDs).
         """
+        _check_version(columns)
         missing = [name for name in COLUMNS if name not in columns]
         if missing:
             raise ValueError(
@@ -342,6 +357,32 @@ class Parameters:
             scale=tuple(scale),
             channels=tuple(channels),
         )
+
+
+def _check_version(columns: Mapping[str, Any]) -> None:
+    """Refuse a row whose parameter columns are not of :data:`PARAMETERS_VERSION`.
+
+    The version is text as written, or the number a table reader gives (``2``, or ``2.0`` in
+    a column with blanks).
+    """
+    value = columns.get(VERSION_COLUMN)
+    number = isinstance(value, int | float | np.integer | np.floating) and not isinstance(
+        value, bool | np.bool_
+    )
+    if (number and value == PARAMETERS_VERSION) or _text(value) == str(PARAMETERS_VERSION):
+        return
+    text = _text(value).strip()
+    found = (
+        f"has {VERSION_COLUMN} {text!r}"
+        if text
+        else f"has no {VERSION_COLUMN} column, so it was written by normalization 0.4 or "
+        "earlier, with channels named by their index in the image (Normalization_Offset_C0)"
+    )
+    raise ValueError(
+        f"This row of parameter columns {found}. This version reads parameter columns of "
+        f"version {PARAMETERS_VERSION} only, with channels named by canonical channel ID; old "
+        "parameters are not converted. Fit the parameters again with this version."
+    )
 
 
 def _check_rgb_columns(channels: list[str], offset: list[float], scale: list[float]) -> None:

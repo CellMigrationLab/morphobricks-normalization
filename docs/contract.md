@@ -219,6 +219,12 @@ Every method is an offset and a scale; applying it computes `(pixels − offset)
 
 A zero or non-finite scale is an error with a plain-language message.
 
+`NormalizationParameters.apply(pixels, clip=None, dtype=float32)` returns float32 or float64
+only and clips, when asked, to two finite limits with `low < high`; any other result type
+(integer, bool, complex, object, float16) and reversed, equal, non-finite or malformed clip
+limits are refused with `ValueError` naming the value (issue #39), before any pixel is
+normalized.
+
 `normalization_exact` (§8) is `true` for histogram-based parameters exactly when every
 pooled histogram has `max_representative_error == 0`, so never when a histogram has tails
 (§1.4).
@@ -752,6 +758,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Rows or images with different numbers of channels (N43) | `CsvFormatError` (table), `ValueError` (pixels) | Names the images and their channel counts, and says that every image of an experiment must have the same channels |
 | `from_columns` with a missing or unreadable column, an unknown `normalization_scope`, or a channel without both its offset and scale | `ValueError` | Names the column |
 | `from_columns` with a `normalization_method` or `normalization_scope` other than the settings' | `ValueError` | Names the column, the row's value and the settings' value, and asks to read the parameters with the settings of the run that wrote them |
+| `NormalizationParameters.apply` with a result type other than float32 or float64, or clip limits that are not two finite numbers with `low < high` | `ValueError` | Names the type ("dtype must be float32 or float64; got 'uint8'") or the limits ("clip must be (low, high) with low < high; got low=1.0, high=0.0") |
 | `Parameters` or `NormalizationParameters` with a non-finite offset, or a scale that is not finite and above 0; a channel index that is not a whole number 0 or above | `ValueError` | Names the channel (or method) and the value |
 
 Tables of schema versions 1 to 3 are recognised by the `schema_version` value of their rows alone and

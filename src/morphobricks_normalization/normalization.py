@@ -61,14 +61,56 @@ class NormalizationParameters:
             Values to normalize; the input is never modified.
         clip
             Optional ``(low, high)`` limits applied after normalizing, for
-            example ``(0, 1)`` for min-max scaling.
+            example ``(0, 1)`` for min-max scaling: two finite numbers with
+            ``low < high`` (equal limits would make every pixel the same value).
         dtype
-            Floating-point type of the result.
+            Type of the result: float32 (default) or float64.
+
+        Raises
+        ------
+        ValueError
+            For clip limits that are not two finite numbers with ``low < high``,
+            or another result type (issue #39): an integer type would truncate
+            and wrap the normalized values.
         """
+        result_dtype = _result_dtype(dtype)
+        limits = None if clip is None else _clip_limits(clip)
         result = (np.asarray(pixels, dtype=np.float64) - self.offset) / self.scale
-        if clip is not None:
-            np.clip(result, clip[0], clip[1], out=result)
-        return result.astype(dtype, copy=False)
+        if limits is not None:
+            np.clip(result, *limits, out=result)
+        return result.astype(result_dtype, copy=False)
+
+
+def _result_dtype(dtype: np.dtype | type | str) -> np.dtype:
+    """Return ``dtype`` if it is float32 or float64; refuse every other type by name."""
+    try:
+        result = np.dtype(dtype)
+    except TypeError:
+        raise ValueError(f"dtype must be float32 or float64; got {dtype!r}.") from None
+    if result not in (np.dtype(np.float32), np.dtype(np.float64)):
+        raise ValueError(
+            f"dtype must be float32 or float64; got {result.name!r}. Normalized values are "
+            "real numbers: another type would round, truncate or wrap them."
+        )
+    return result
+
+
+def _clip_limits(clip: tuple[float, float]) -> tuple[float, float]:
+    """Return ``clip`` as two finite floats with ``low < high``, or refuse it by name."""
+    try:
+        if isinstance(clip, str | bytes):
+            raise TypeError
+        low, high = (float(limit) for limit in clip)
+    except (TypeError, ValueError):
+        raise ValueError(f"clip must be two numbers, (low, high); got {clip!r}.") from None
+    if not (np.isfinite(low) and np.isfinite(high)):
+        raise ValueError(f"clip limits must be finite numbers; got {(low, high)!r}.")
+    if not low < high:
+        raise ValueError(
+            f"clip must be (low, high) with low < high; got low={low}, high={high}. Reversed "
+            "or equal limits would give every pixel the same value."
+        )
+    return low, high
 
 
 def min_max(pooled: PooledHistogram) -> NormalizationParameters:

@@ -71,6 +71,12 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   'percentile 1-99.8', but the settings use 'percentile 1.000001-99.8'"); fit the parameters
   again (the owner's ruling of 10 November 2026: no backward compatibility before the first
   pipeline release). Fitted offsets and scales do not change, and no dump output changes.
+- **Clip limits and result type of `NormalizationParameters.apply` (#39).** Reversed clip
+  limits (`clip=(1, 0)`) gave every pixel the same value, and an integer `dtype` truncated
+  and wrapped the normalized values, without a word. `apply` now refuses, with a
+  `ValueError` naming the value, clip limits that are not two finite numbers with
+  `low < high` (equal limits too), and every result type but float32 and float64. Valid
+  calls give bit-identical results; no dump output changes.
 
 ## v0.4.0 (2026-11-10)
 

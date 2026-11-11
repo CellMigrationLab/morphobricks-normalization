@@ -32,7 +32,7 @@ out of scope for now.
 Pre-alpha; the latest release is v0.4.0. The library offers:
 
 - supported pixel types, bin counts and per-plane histograms (`dtypes`, `histogram`), with a robust range and a range check;
-- plane records, `plane_histograms.csv` reading and writing (schema version 4) and pooling of group statistics (`records`, `csv_io`, `pooling`);
+- plane records, `plane_histograms.csv` reading and writing and pooling of group statistics (`records`, `csv_io`, `pooling`): schema version 4 in v0.4.0; on `main` after the Stage 3 pull request, schema version 5 with channels named by canonical channel ID (ADR 0003, see CHANGELOG "Unreleased");
 - settings, scopes, repeat groups and `fit`, with `Parameters` (`apply`, `to_columns`, `from_columns`), for fluorescence and RGB images;
 - per-image summaries and intensity checks, returned as `Issue` warnings.
 
@@ -50,7 +50,7 @@ records = read_plane_histograms("plane_histograms.csv")
 groups, group_warnings = scope_groups(records, settings, repeat_groups=None)
 for key, rows in groups.items():
     parameters = fit(rows, settings, group=group_name(key))
-    columns = parameters.to_columns()  # normalization_* and Normalization_*_C<i> columns
+    columns = parameters.to_columns()  # normalization_* and Normalization_*_<channel ID> columns
 ```
 
 ## Installation

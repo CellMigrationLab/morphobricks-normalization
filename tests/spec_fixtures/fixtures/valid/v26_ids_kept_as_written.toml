@@ -1,0 +1,71 @@
+# Fixture v26_ids_kept_as_written
+# Expected: PASS
+# Source: Owner decisions of 6 Nov 2026 (A2); LabChronicle audit B1, B2, B11
+# IDs are opaque text with no width, prefix, case or number rule: cl001 (lower case), CL1000 (four digits after a three-digit width), R999 and R1000 are all valid and a reader or writer MUST keep each exactly as written, never padding, re-casing or renumbering it.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.cl001]
+source_folder = "cl001"
+display_name = "Control"
+
+[conditions.CL1000]
+source_folder = "CL1000"
+display_name = "Drug A"
+reference = "cl001"
+target = "SRC"
+treatment_key = "saracatinib"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.R999]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.R999.members.cl001]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.R999.members.cl001.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.R999.members.CL1000]
+source_repeat = "rep1"
+image_count = 11
+
+[repeats.R999.members.CL1000.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.R1000]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.R1000.members.cl001]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.R1000.members.cl001.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.R1000.members.CL1000]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.R1000.members.CL1000.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CL1000", "cl001"]
+channels = ["ACTIN", "DNA"]
+repeats = ["R1000", "R999"]
+technical_repeats = ["single"]

@@ -1,0 +1,46 @@
+# Fixture i130_repeat_id_from_forbidden_folder
+# Expected: E_FORBIDDEN_FIELD
+# Source: Matrix audit 2026-11-07 (case F16)
+# The biological-repeat folders `z` kept as the default repeat ID `z`: a forbidden name as an ID key (4.7). No proposal is made for such a folder (4.6a): the user names the repeat ID, and the folders are describable under another ID (v36).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.ACTIN]
+header_names = ["Actin"]
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[repeats.z]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.z.members.CTRL]
+source_repeat = "z"
+image_count = 2
+
+[repeats.z.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.z.members.DrugA]
+source_repeat = "z"
+image_count = 2
+
+[repeats.z.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["z"]
+technical_repeats = ["single"]

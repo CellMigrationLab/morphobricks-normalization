@@ -6,6 +6,67 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
 
 ## Unreleased
 
+Stage 3 S3.2 (MorphoBricks-Spec roadmap; ADR 0003, plan N61–N64). Breaking: `plane_histograms.csv`
+schema version 5 and channels named by canonical channel ID everywhere. Version not bumped yet.
+
+- **`plane_histograms.csv` schema version 5** (HV1, HV2): one row per plane; the presence column
+  `channels` (the plane's IDs in source order, `;`-separated) after the 15 plane columns; the
+  per-channel columns of every channel ID of the experiment, sorted, named
+  `<Category>_<Feature>_<ID>` (`Histogram_Count_DNA_00042`). An absent channel is blank and a value
+  there is refused. `write_plane_histograms(records, path, *, channel_ids, failures=())` needs the
+  experiment's channel IDs; new `read_plane_histogram_table` (header IDs and records),
+  `table_header`, `header_channels`.
+- **Failed measurements** (HV3): `ChannelMeasurementFailure`, `ChannelMeasurementError`,
+  `check_measurements`; the writer writes nothing when given a failure, and removes a table an
+  earlier run left at the path (`ChannelMeasurementError.removed` names it), so no out-of-date
+  table looks current.
+- **Version 4 is refused** (HV4) with a message naming version 5 and how to recompute; no converter.
+- **Channels by ID**: `PlaneRecord(..., *, position_id, channels)` (required), `channel_histogram(id)`,
+  `has_channel`; `PooledHistogram(..., channel=id)`; `fit(..., channels=)` (rows: which IDs, default
+  all; pixels: the ID of each entry, required except RGB); `Parameters.channels` are sorted IDs
+  (required), `select(ids)`, `apply(..., channels=)`, columns `Normalization_Offset_<ID>` /
+  `Normalization_Scale_<ID>`; `ImageSummary.channels`, `summary_columns(channel_ids)`;
+  `range_check_issues` takes channel IDs; `Issue.channel` is an ID. RGB uses the IDs `R`, `G`, `B`.
+  An index where an ID is expected is refused.
+- **Heterogeneous images** (N43 replaced): rows may have different channels, and each channel is
+  pooled by its ID. A fitted group in which only some planes have a channel is refused with the
+  new `ChannelScopeIncompleteError` (the Spec's `A_SCOPE_INCOMPLETE`, "present in k of n
+  planes"), unless the user selects those planes with the new setting
+  `NormalizationSettings(partial_channels="planes_with_channel")`, stored by `to_dict` when
+  chosen and reported per fit by the new warning `channel_partially_present`. Planes of one image
+  with different channel lists are refused.
+- **Centred tail moments** (owner decision of 11 November 2026, plan N65; #91's question): the
+  underflow and overflow columns are `Histogram_UnderflowCount_<ID>`,
+  `Histogram_UnderflowMean_<ID>`, `Histogram_UnderflowStd_<ID>` (and `Overflow`), replacing the
+  raw `...Sum_<ID>` and `...SumOfSquares_<ID>`. `HistogramTail(count, mean, std)` replaces
+  `HistogramTail(count, sum, sum_of_squares)`. The new module `tail_moments.py` accumulates every
+  tail pixel exactly (significand times a power of two, or the integer itself), so the mean and
+  the standard deviation are each the float64 nearest the exact value: no cancellation for large
+  values with a small spread, no overflow for finite pixels (no scale column needed), and the
+  same bits whole or in blocks (they could differ in the last bits before). Pooling adds
+  `count · std²` and `count · (mean − pooled mean)²`, and a pooled mean whose tail products
+  overflow is redone with exact power-of-two scaling. This supersedes #91's refusal of an
+  infinite tail sum of squares and of opposite infinite tail sums below: those tails now give
+  their finite mean and standard deviation. Numbers without tails (the default min-max range)
+  do not change; with tails, means, standard deviations and percentiles move by at most
+  about `1.4e-14` relative in the `tools/dump_outputs.py` cases, and every tail mean of the
+  `--corpus` is unchanged.
+- **Parameter columns are versioned**: `to_columns` adds `normalization_parameters_version` =
+  `2` (appended to `COLUMNS`), and `from_columns` refuses a row without it (the
+  `Normalization_Offset_C<i>` columns of 0.4, which would otherwise read as channel `C0`) or of
+  another version: fit again.
+- `Parameters` moved to the new module `parameters.py` (re-exported by `fitting` and the package).
+- Tests: the Spec's test material is vendored at `cc9820f` (`tests/spec_fixtures`, pin test and CI
+  check); described-tree tests for the owner's extra-stain case and fixtures v04, v05, v06, v13,
+  v17, v22.
+
+Numbers: for planes whose channels are all present, histograms and fits are bit-identical to
+schema version 4 (v0.4.0 and the #91/#92 fixes below) for the same pixels: a one-off comparison
+of 3600 fitted channels on `v13` trees, the 400 golden fits, and `tools/dump_outputs.py
+--corpus` unchanged. `tools/dump_outputs.py` changes only in the table digests (new format), the
+added `normalization_parameters_version` column, and `Issue.channel` and messages naming channel
+`C0` instead of index `0`.
+
 Numerical-correctness fixes. Each says which outputs change; every other output is
 bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden fits).
 
@@ -16,7 +77,7 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   integers and the float64 standing in for them, rounded up, so a histogram is exact only
   when every representative equals its value: `[2**53 + 1]` is no longer reported exact with
   error 0 (its representative is `2**53`; error 1), and `normalization_exact` and
-  `Histogram_Exact_C<i>` are false for it. Only int64 and uint64 planes with such values
+  `Histogram_Exact_<ID>` are false for it. Only int64 and uint64 planes with such values
   change; bin counts and limits never do.
 
   **Who is affected, and by how much.** Only int64 and uint64 images with a pixel of
@@ -29,7 +90,7 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
     cannot hold it grows from 0 to at most half a float64 step (for example 1 for
     `[2**53 + 1]`, 170 and 341 for the constant planes `3074457345618258602` and
     `6148914691236517205`), so `is_exact`, `normalization_exact` and
-    `Histogram_Exact_C<i>` change from true to false; for wider bins it changes in its last
+    `Histogram_Exact_<ID>` change from true to false; for wider bins it changes in its last
     bits only;
   - pooled means, standard deviations and percentiles, and fitted offsets and scales, move by
     at most about `3e-14` relative in the `tools/dump_outputs.py` cases (a zscore offset

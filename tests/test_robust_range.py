@@ -7,6 +7,7 @@ relative tolerance, never bit for bit.
 """
 
 import csv
+from fractions import Fraction
 
 import numpy as np
 import pytest
@@ -25,7 +26,9 @@ from morphobricks_normalization import (
     percentile_range,
     range_check_issues,
     read_plane_histograms,
-    write_plane_histograms,
+)
+from morphobricks_normalization import (
+    write_plane_histograms as write_table,
 )
 from morphobricks_normalization.csv_io import CsvFormatError
 from morphobricks_normalization.histogram import estimate_histogram_memory
@@ -33,6 +36,13 @@ from morphobricks_normalization.settings import NormalizationSettings
 
 ROBUST = HistogramSettings(histogram_range="robust")
 ZERO_SPREAD = "intensity spread is zero"
+
+C0 = ("C0",)  # a channel named C0: a legal channel ID (ADR 0003), so the columns keep their names
+
+
+def write_plane_histograms(records, path):
+    ids = sorted({c for r in records for c in r.channels})
+    return write_table(records, path, channel_ids=ids)
 
 
 def whole(plane):
@@ -75,7 +85,7 @@ def issue_planes(seed=0):
     return clean, hot
 
 
-def assert_same_histogram(a, b, sums_exact=True):
+def assert_same_histogram(a, b):
     assert a.dtype == b.dtype and a.bin_count == b.bin_count
     assert (a.binning_min, a.binning_max) == (b.binning_min, b.binning_max)
     assert (a.pixel_min, a.pixel_max) == (b.pixel_min, b.pixel_max)
@@ -83,12 +93,8 @@ def assert_same_histogram(a, b, sums_exact=True):
     np.testing.assert_array_equal(a.counts, b.counts)
     for ta, tb in ((a.underflow, b.underflow), (a.overflow, b.overflow)):
         assert ta.count == tb.count
-        if sums_exact:
-            assert (ta.sum, ta.sum_of_squares) == (tb.sum, tb.sum_of_squares)
-        else:
-            np.testing.assert_allclose(
-                [ta.sum, ta.sum_of_squares], [tb.sum, tb.sum_of_squares], rtol=1e-12
-            )
+        # Mean and std are rounded once from exact moments: equal whole or in blocks.
+        assert (ta.mean, ta.std) == (tb.mean, tb.std)
 
 
 # --- The reproduction of issue #12 -------------------------------------------------------------
@@ -104,7 +110,7 @@ def test_minmax_keeps_todays_result_and_the_check_flags_it():
     # ...and the same zero-spread error (fit gives no new warning, N57).
     with pytest.raises(ValueError, match=ZERO_SPREAD):
         percentile_range(PooledHistogram([histogram]), 1, 99.8)
-    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram, position_id="p")
+    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram, position_id="p", channels=C0)
     with pytest.raises(ValueError, match=ZERO_SPREAD):
         fit([record], NormalizationSettings())
     # The check sees the collapsed central range and what the robust range would give.
@@ -113,8 +119,8 @@ def test_minmax_keeps_todays_result_and_the_check_flags_it():
     assert check.robust_limits == (quantile(hot, 0.01), quantile(hot, 99.99))
     assert check.outside_robust_count == 52  # 26 pixels below and 26 above
     assert check.robust_central_bins > 5000
-    (issue,) = range_check_issues([(record.plane_id, 0, check)])
-    assert issue.code == "narrow_histogram_range" and issue.channel == 0
+    (issue,) = range_check_issues([(record.plane_id, "C0", check)])
+    assert issue.code == "narrow_histogram_range" and issue.channel == "C0"
     assert issue.items == ("c/img.tif::z=0,t=0",)
     assert "fewer than 100 of the histogram's bins (as few as 1)" in issue.message
     assert "robust histogram range" in issue.action
@@ -141,7 +147,7 @@ def test_robust_range_gives_percentiles_close_to_the_clean_planes():
     assert parameters.offset == pytest.approx(exact[0], abs=0.01)
     # Pixels in the tails are represented by their mean, so the bound covers them.
     assert pooled.max_representative_error > 1e5
-    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram, position_id="p")
+    record = PlaneRecord("c/img.tif", "c", "r", "t", histogram, position_id="p", channels=C0)
     parameters = fit([record], NormalizationSettings())
     assert not parameters.exact
     assert [i.code for i in parameters.issues] == ["approximate_parameters"]
@@ -231,11 +237,11 @@ def test_blockwise_equals_whole_in_minmax_mode(dtype):
 
 @pytest.mark.parametrize("dtype", DTYPES)
 def test_blockwise_gives_the_same_robust_limits_and_counts(dtype):
-    # Only the tails' float sums may differ in the last bits (summation order).
+    # The tails too: their moments are exact, so block order cannot change a bit.
     plane = mixed_plane(dtype, np.random.default_rng(6))
     expected, check = histogram_with_range_check(whole(plane), dtype, settings=ROBUST)
     histogram, block_check = histogram_with_range_check(in_blocks(plane), dtype, settings=ROBUST)
-    assert_same_histogram(histogram, expected, sums_exact=False)
+    assert_same_histogram(histogram, expected)
     assert block_check == check
 
 
@@ -278,7 +284,8 @@ def test_small_integers_with_fewer_bins_than_values_use_the_robust_range():
         quantile(plane, 99.99),
     )
     assert histogram.overflow.count >= 6 and histogram.pixel_max == 65535
-    assert histogram.overflow.sum == float(plane[plane > histogram.binning_max].sum())
+    above = plane[plane > histogram.binning_max].astype(np.int64)
+    assert histogram.overflow.mean == float(Fraction(int(above.sum()), above.size))
     minmax, minmax_check = histogram_with_range_check(in_blocks(plane), plane.dtype, 256)
     assert_same_histogram(minmax, compute_plane_histogram(plane, 256))
     assert minmax_check.robust_limits == check.robust_limits
@@ -313,7 +320,7 @@ def test_nan_and_infinite_pixels_are_left_out():
     histogram = compute_plane_histogram(plane, settings=ROBUST)
     assert (histogram.valid_pixel_count, histogram.non_finite_pixel_count) == (2487, 13)
     assert histogram.binning_min == quantile(plane, 0.01)
-    assert np.isfinite([histogram.overflow.sum, histogram.underflow.sum]).all()
+    assert np.isfinite([histogram.overflow.mean, histogram.underflow.mean]).all()
 
 
 def test_coinciding_robust_limits():
@@ -323,7 +330,8 @@ def test_coinciding_robust_limits():
     histogram = compute_plane_histogram(plane, settings=ROBUST)
     assert (histogram.binning_min, histogram.binning_max) == (0.0, 0.0)
     assert histogram.counts[0] == 39998 and histogram.counts[1:].sum() == 0
-    assert (histogram.underflow.sum, histogram.overflow.sum) == (-5.0, 7.0)
+    assert (histogram.underflow.mean, histogram.overflow.mean) == (-5.0, 7.0)
+    assert histogram.underflow.std == histogram.overflow.std == 0.0
     pooled = PooledHistogram([histogram])
     assert pooled.percentile(0.001) == -5.0 and pooled.percentile(100) == 7.0
     assert pooled.median == 0.0
@@ -395,6 +403,7 @@ def test_zscore_from_a_robust_table_uses_the_exact_sums():
             "t",
             compute_plane_histogram(p, 1000, settings=ROBUST),
             position_id="p",
+            channels=C0,
         )
         for i, p in enumerate(planes)
     ]
@@ -405,7 +414,7 @@ def test_zscore_from_a_robust_table_uses_the_exact_sums():
     assert not parameters.exact
 
 
-# --- Statistics file, schema version 4 ---------------------------------------------------------
+# --- Statistics file, schema version 5 ---------------------------------------------------------
 
 
 def robust_records():
@@ -421,6 +430,7 @@ def robust_records():
             [compute_plane_histogram(p, 500, settings=ROBUST), compute_plane_histogram(p, 500)],
             t=i,
             position_id="p",
+            channels=("C0", "C1"),
         )
         for i, p in enumerate(float_planes)
     ], [
@@ -431,12 +441,13 @@ def robust_records():
             "t",
             compute_plane_histogram(p, settings=ROBUST),
             position_id="p",
+            channels=C0,
         )
         for i, p in enumerate(int_planes)
     ]
 
 
-def test_schema_4_round_trip(tmp_path):
+def test_schema_5_round_trip_keeps_the_tails(tmp_path):
     for k, records in enumerate(robust_records()):
         path = write_plane_histograms(records, tmp_path / f"t{k}.csv")
         back = read_plane_histograms(path)
@@ -448,65 +459,10 @@ def test_schema_4_round_trip(tmp_path):
                 assert ha.max_representative_error == hb.max_representative_error
         with open(path, newline="", encoding="utf-8") as fh:
             row = next(csv.DictReader(fh))
-        assert row["schema_version"] == "4"
+        assert row["schema_version"] == "5"
         assert int(row["Histogram_UnderflowCount_C0"]) == records[0].histograms[0].underflow.count
-        assert float(row["Histogram_OverflowSum_C0"]) == records[0].histograms[0].overflow.sum
-
-
-def as_version_3(path):
-    """Rewrite a version-4 table as version 3: no tail columns, schema_version 3."""
-    with open(path, newline="", encoding="utf-8") as fh:
-        header, *rows = list(csv.reader(fh))
-    keep = [i for i, name in enumerate(header) if "flow" not in name]
-    version = header.index("schema_version")
-    for row in rows:
-        row[version] = "3"
-    with open(path, "w", newline="", encoding="utf-8") as fh:
-        csv.writer(fh).writerows([[r[i] for i in keep] for r in [header, *rows]])
-    return path
-
-
-def test_version_3_is_refused(tmp_path):
-    records = [
-        PlaneRecord(
-            "c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)), position_id="p"
-        )
-    ]
-    path = as_version_3(write_plane_histograms(records, tmp_path / "plane_histograms.csv"))
-    with pytest.raises(CsvFormatError) as error:
-        read_plane_histograms(path)
-    assert str(error.value) == (
-        f"{path}: This plane_histograms.csv was written with schema version 3, without the "
-        "underflow and overflow columns. Run the preprocessing brick again on this experiment: "
-        "it rewrites the table with these columns (schema version 4)."
-    )
-
-
-def test_a_version_3_header_without_rows_is_refused_by_its_columns(tmp_path):
-    # No row, so no schema_version value to read: the missing tail columns refuse it.
-    records = [
-        PlaneRecord(
-            "c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)), position_id="p"
-        )
-    ]
-    path = as_version_3(write_plane_histograms(records, tmp_path / "plane_histograms.csv"))
-    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
-    path.write_text(lines[0], encoding="utf-8")
-    with pytest.raises(CsvFormatError, match="unexpected per-channel column names"):
-        read_plane_histograms(path)
-
-
-def test_a_row_of_version_3_in_a_version_4_table_is_refused(tmp_path):
-    records = [
-        PlaneRecord(
-            "c/a.tif", "c", "r", "t", compute_plane_histogram(np.arange(6)), position_id="p"
-        )
-    ]
-    path = write_plane_histograms(records, tmp_path / "t.csv")
-    text = path.read_text(encoding="utf-8").replace(",4,", ",3,", 1)
-    path.write_text(text, encoding="utf-8")
-    with pytest.raises(CsvFormatError, match="schema version 3, without the underflow"):
-        read_plane_histograms(path)
+        assert float(row["Histogram_OverflowMean_C0"]) == records[0].histograms[0].overflow.mean
+        assert float(row["Histogram_OverflowStd_C0"]) == records[0].histograms[0].overflow.std
 
 
 @pytest.mark.parametrize(
@@ -514,7 +470,9 @@ def test_a_row_of_version_3_in_a_version_4_table_is_refused(tmp_path):
     [
         ("Histogram_UnderflowCount_C0", "0"),  # counts no longer add up
         ("Histogram_BinningMin_C0", None),  # limit at the extremum, yet a tail below it
-        ("Histogram_OverflowSum_C1", "3.0"),  # sums of an empty tail
+        ("Histogram_OverflowMean_C1", "3.0"),  # moments of an empty tail
+        ("Histogram_OverflowStd_C0", "-1.0"),  # a negative spread
+        ("Histogram_OverflowStd_C0", "1e300"),  # more than half the tail's range
     ],
 )
 def test_inconsistent_tails_are_rejected(tmp_path, column, value):
@@ -559,20 +517,20 @@ def test_range_check_issues_one_per_channel():
 
     issues = range_check_issues(
         [
-            ("a::z=0,t=0", 1, check(5)),
-            ("a::z=0,t=0", 0, check(500)),  # wide enough
-            ("b::z=0,t=0", 1, check(20, outside=4)),
-            ("b::z=0,t=0", 0, None),  # exact histogram
-            ("c::z=0,t=0", 0, check(99)),
+            ("a::z=0,t=0", "DNA", check(5)),
+            ("a::z=0,t=0", "ACTIN", check(500)),  # wide enough
+            ("b::z=0,t=0", "DNA", check(20, outside=4)),
+            ("b::z=0,t=0", "ACTIN", None),  # exact histogram
+            ("c::z=0,t=0", "ACTIN", check(99)),
         ]
     )
     assert [(i.channel, i.items) for i in issues] == [
-        (0, ("c::z=0,t=0",)),
-        (1, ("a::z=0,t=0", "b::z=0,t=0")),
+        ("ACTIN", ("c::z=0,t=0",)),
+        ("DNA", ("a::z=0,t=0", "b::z=0,t=0")),
     ]
     assert "In 2 plane(s)" in issues[1].message and "as few as 5" in issues[1].message
     assert "7 pixel(s)" in issues[1].message and "at least 900 bins" in issues[1].message
-    assert range_check_issues([("a", 0, check(100))]) == []
+    assert range_check_issues([("a", "DNA", check(100))]) == []
 
 
 def test_saturated_fraction_is_blank_when_the_maximum_is_in_the_overflow():
@@ -582,7 +540,7 @@ def test_saturated_fraction_is_blank_when_the_maximum_is_in_the_overflow():
     histogram = compute_plane_histogram(plane, 1000, settings=ROBUST)
     assert histogram.overflow.count >= 3
     (summary,) = image_summaries(
-        [PlaneRecord("c/a.tif", "c", "r", "t", histogram, position_id="p")]
+        [PlaneRecord("c/a.tif", "c", "r", "t", histogram, position_id="p", channels=C0)]
     )
     assert summary.saturated_fraction == (None,)
     assert summary.exact == (False,)

@@ -1,0 +1,58 @@
+# Fixture i129_source_repeat_single_not_alone
+# Expected: E_SINGLE_MISUSE
+# Source: Matrix audit 2026-11-07 (case F17 variant)
+# CTRL has the member `single` (no biological-repeat folder) and also the member `rep2`: a member with `source_repeat = "single"` must be the only member of its condition (3.2).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.ACTIN]
+header_names = ["Actin"]
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 2
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.single]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.single.members.CTRL]
+source_repeat = "single"
+image_count = 2
+
+[repeats.single.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.single.members.DrugA]
+source_repeat = "single"
+image_count = 2
+
+[repeats.single.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep2", "single"]
+technical_repeats = ["single"]

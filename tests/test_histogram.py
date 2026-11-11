@@ -386,7 +386,7 @@ def test_adjacent_64_bit_integers_sharing_a_float_are_not_exact():
     assert not hist.is_exact and hist.max_representative_error == 1.0
     pooled = PooledHistogram([hist])
     assert pooled.counts.tolist() == [3] and pooled.max_representative_error == 1.0
-    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a")
+    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a", channels=["DNA"])
     settings = NormalizationSettings(method="minmax", scope="image")
     with pytest.raises(ValueError, match="zero"):  # 2**53 + 1 - 2**53 rounds to 0 in float64
         fit([record], settings, group="a.tif")
@@ -394,7 +394,13 @@ def test_adjacent_64_bit_integers_sharing_a_float_are_not_exact():
     parameters = fit(
         [
             PlaneRecord(
-                "a.tif", "c", "r", "t", [compute_plane_histogram(plane, 256)], position_id="a"
+                "a.tif",
+                "c",
+                "r",
+                "t",
+                [compute_plane_histogram(plane, 256)],
+                position_id="a",
+                channels=["DNA"],
             )
         ],
         settings,
@@ -426,8 +432,10 @@ def test_wide_64_bit_bound_covers_every_pixel_exactly(dtype, bins):
 def test_64_bit_bound_survives_the_statistics_file(tmp_path):
     plane = np.array([[2**53 + 1, 2**53 + 3, 2**53 + 4]], dtype=np.uint64)
     hist = compute_plane_histogram(plane, 256)
-    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a")
-    (back,) = read_plane_histograms(write_plane_histograms([record], tmp_path / "p.csv"))
+    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a", channels=["DNA"])
+    (back,) = read_plane_histograms(
+        write_plane_histograms([record], tmp_path / "p.csv", channel_ids=["DNA"])
+    )
     read = back.histograms[0]
     assert read.pixel_min == 2**53 + 1 and read.pixel_max == 2**53 + 4
     assert read.max_representative_error == hist.max_representative_error == 1.0

@@ -1,0 +1,96 @@
+# Fixture v10_reference_chain
+# Expected: PASS
+# Source: RFC case 11
+# Reference chains VEC_SiCol6a1 -> VEC_SiNC -> VEC and THBS5_SiCol6a1 -> THBS5_SiNC -> THBS5; shared treatment_key across backgrounds.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.VEC]
+source_folder = "VEC"
+
+[conditions.VEC_SiNC]
+source_folder = "VEC_SiNC"
+reference = "VEC"
+
+[conditions.VEC_SiCol6a1]
+source_folder = "VEC_SiCol6a1"
+reference = "VEC_SiNC"
+target = "COL6A1"
+treatment_key = "siCol6a1"
+
+[conditions.THBS5]
+source_folder = "THBS5"
+
+[conditions.THBS5_SiNC]
+source_folder = "THBS5_SiNC"
+reference = "THBS5"
+
+[conditions.THBS5_SiCol6a1]
+source_folder = "THBS5_SiCol6a1"
+reference = "THBS5_SiNC"
+target = "COL6A1"
+treatment_key = "siCol6a1"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.THBS5]
+source_repeat = "rep1"
+image_count = 6
+
+[repeats.rep1.members.THBS5.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.THBS5_SiCol6a1]
+source_repeat = "rep1"
+image_count = 6
+
+[repeats.rep1.members.THBS5_SiCol6a1.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.THBS5_SiNC]
+source_repeat = "rep1"
+image_count = 6
+
+[repeats.rep1.members.THBS5_SiNC.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.VEC]
+source_repeat = "rep1"
+image_count = 6
+
+[repeats.rep1.members.VEC.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.VEC_SiCol6a1]
+source_repeat = "rep1"
+image_count = 6
+
+[repeats.rep1.members.VEC_SiCol6a1.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.VEC_SiNC]
+source_repeat = "rep1"
+image_count = 6
+
+[repeats.rep1.members.VEC_SiNC.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["THBS5", "THBS5_SiCol6a1", "THBS5_SiNC", "VEC", "VEC_SiCol6a1", "VEC_SiNC"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

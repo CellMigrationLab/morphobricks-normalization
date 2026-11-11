@@ -39,7 +39,9 @@ def _records(settings: HistogramSettings | None = None) -> list[PlaneRecord]:
         plane = rng.gamma(2.0, 300.0 + 7 * i, size=(64, 64))
         hist = compute_plane_histogram(plane, 256, settings=settings)
         records.append(
-            PlaneRecord(f"c/r/img{i}.tif", "c", f"r{i % 2}", "t", [hist], position_id="p")
+            PlaneRecord(
+                f"c/r/img{i}.tif", "c", f"r{i % 2}", "t", [hist], position_id="p", channels=("DNA",)
+            )
         )
     return records
 
@@ -133,7 +135,7 @@ def test_huge_planes_are_refused_by_name_not_by_fsum() -> None:
     for plane in (np.array([[big, -big], [big, -big]]), np.array([[big, big * 0.9], [1.0, 2.0]])):
         with np.errstate(over="ignore", invalid="ignore"):
             try:
-                fit(plane, NormalizationSettings(method="zscore"))
+                fit(plane, NormalizationSettings(method="zscore"), channels=["DNA"])
             except ValueError as error:
                 assert "z-score normalization cannot be used" in str(error)
             else:

@@ -1,0 +1,51 @@
+# Fixture v17_partial_channel_presence
+# Expected: PASS
+# Source: Adversarial 9; addendum §3
+# PHASE exists only in CTRL/R002/acquisition_1. For a PHASE request R002 is partially represented and R001 unavailable: the analysis layer must refuse (A_SCOPE_INCOMPLETE) or record a user-selected subset, never drop or re-weight silently.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[channels.PHASE]
+
+[repeats.R001]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.R001.members.CTRL]
+source_repeat = "rep1"
+image_count = 5
+
+[repeats.R001.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.R002]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.R002.members.CTRL]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.R002.members.CTRL.technical_repeats.acquisition_1]
+source_folder = "acquisition_1"
+channels = ["DNA", "ACTIN", "PHASE"]
+
+[repeats.R002.members.CTRL.technical_repeats.acquisition_2]
+source_folder = "acquisition_2"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL"]
+channels = ["ACTIN", "DNA", "PHASE"]
+repeats = ["R001", "R002"]
+technical_repeats = ["acquisition_1", "acquisition_2", "single"]

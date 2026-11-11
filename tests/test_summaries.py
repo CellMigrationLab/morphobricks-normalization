@@ -18,15 +18,20 @@ from morphobricks_normalization import (
     summary_columns,
     write_plane_histograms,
 )
-from simulation import cached_design, simulate_plane
+from simulation import cached_design, channel_ids, simulate_plane
 
-CHANNEL_COLUMN = re.compile(r"^[A-Z][A-Za-z]*_[A-Z][A-Za-z]*_C(0|[1-9][0-9]*)$")
+CHANNEL_COLUMN = re.compile(
+    r"^[A-Z][A-Za-z]*_[A-Z][A-Za-z]*_[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)*$"
+)
 
 
-def record(path, planes, z=0, t=0, bin_count=None, labels=("control", "rep1", SINGLE)):
-    """One XYC plane of ``path``; ``planes`` holds one array per channel."""
+def record(path, planes, z=0, t=0, bin_count=None, labels=("control", "rep1", SINGLE), ids=None):
+    """One XYC plane of ``path``; ``planes`` holds one array per channel (``ch0``, ``ch1``...)."""
     histograms = [compute_plane_histogram(p, bin_count) for p in planes]
-    return PlaneRecord(path, *labels, histograms=histograms, z=z, t=t, position_id="p")
+    ids = channel_ids(len(planes)) if ids is None else ids
+    return PlaneRecord(
+        path, *labels, histograms=histograms, z=z, t=t, position_id="p", channels=ids
+    )
 
 
 def direct(pixels, low=1.0, high=99.8):
@@ -171,51 +176,78 @@ def test_a_channel_without_finite_pixels_is_blank():
     assert (summary.median[1], summary.p_low[1], summary.p_high[1]) == (None, None, None)
     assert summary.saturated_fraction == (None, None)
     row = summary.to_row()
-    assert row["Intensity_MedianIntensity_C1"] is None
+    assert row["Intensity_MedianIntensity_ch1"] is None
 
 
-def test_different_channel_counts_are_refused():
+def test_images_with_different_channels_are_summarized_by_channel_id():
+    # ADR 0003 replaces N43: each summary holds its image's channels, by ID.
     rng = np.random.default_rng(7)
     plane = simulate_plane(rng, np.uint16, (8, 8))
-    records = [record("a.tif", [plane]), record("b.tif", [plane, plane])]
-    with pytest.raises(ValueError, match="different numbers of channels.*a.tif.*b.tif"):
+    other = simulate_plane(rng, np.uint16, (8, 8))
+    records = [
+        record("a.tif", [plane], ids=("DNA",)),
+        record("b.tif", [other, plane], ids=("PHASE", "DNA")),
+    ]
+    a, b = image_summaries(records)
+    assert (a.channels, b.channels) == (("DNA",), ("DNA", "PHASE"))
+    assert a.median == (b.median[0],)  # DNA is the same pixels in both, whatever its index
+    assert b.median[1] == image_summaries([record("c.tif", [other], ids=("PHASE",))])[0].median[0]
+    assert "Intensity_MedianIntensity_PHASE" not in a.to_row()  # absent: no value, not zero
+    columns = summary_columns(["PHASE", "DNA"])
+    assert [c for c in columns if c.startswith("Intensity_MedianIntensity")] == [
+        "Intensity_MedianIntensity_DNA",
+        "Intensity_MedianIntensity_PHASE",
+    ]
+
+
+def test_planes_of_one_image_with_different_channels_are_refused():
+    plane = simulate_plane(np.random.default_rng(8), np.uint16, (8, 8))
+    records = [
+        record("a.tif", [plane], ids=("DNA",)),
+        record("a.tif", [plane], z=1, ids=("PHASE",)),
+    ]
+    with pytest.raises(ValueError, match="planes list different channels"):
         image_summaries(records)
+    with pytest.raises(ValueError, match="planes list different channels"):
+        list(iter_image_summaries(records))
 
 
 def test_rows_have_the_contract_columns():
     _, records = cached_design(seed=10, n_times=2)
     summaries = image_summaries(records)
-    columns = summary_columns(2)
+    columns = summary_columns(channel_ids(2))
     assert columns == [
         "source_relative_path",
         "condition",
         "biological_repeat",
         "technical_repeat",
         "image_file",
-        "Intensity_MedianIntensity_C0",
-        "Intensity_LowPercentile_C0",
-        "Intensity_HighPercentile_C0",
-        "Intensity_SaturatedFraction_C0",
-        "Histogram_Exact_C0",
-        "Intensity_MedianIntensity_C1",
-        "Intensity_LowPercentile_C1",
-        "Intensity_HighPercentile_C1",
-        "Intensity_SaturatedFraction_C1",
-        "Histogram_Exact_C1",
+        "Intensity_MedianIntensity_ch0",
+        "Intensity_LowPercentile_ch0",
+        "Intensity_HighPercentile_ch0",
+        "Intensity_SaturatedFraction_ch0",
+        "Histogram_Exact_ch0",
+        "Intensity_MedianIntensity_ch1",
+        "Intensity_LowPercentile_ch1",
+        "Intensity_HighPercentile_ch1",
+        "Intensity_SaturatedFraction_ch1",
+        "Histogram_Exact_ch1",
     ]
     assert all(CHANNEL_COLUMN.match(name) for name in columns[5:])
     summary = summaries[0]
     row = summary.to_row()
     assert list(row) == columns
     assert row["image_file"] == summary.image_file
-    assert row["Intensity_MedianIntensity_C1"] == summary.median[1]
-    assert row["Intensity_HighPercentile_C0"] == summary.p_high[0]
-    assert row["Histogram_Exact_C1"] is True
+    assert row["Intensity_MedianIntensity_ch1"] == summary.median[1]
+    assert row["Intensity_HighPercentile_ch0"] == summary.p_high[0]
+    assert row["Histogram_Exact_ch1"] is True
 
 
 def test_summaries_from_the_written_table_equal_those_from_the_records(tmp_path):
     _, records = cached_design(seed=10, n_times=2)
-    path = write_plane_histograms(records, tmp_path / "plane_histograms.csv")
+    path = write_plane_histograms(
+        records, tmp_path / "plane_histograms.csv", channel_ids=channel_ids(2)
+    )
     assert image_summaries(read_plane_histograms(path)) == image_summaries(records)
 
 
@@ -311,7 +343,7 @@ def test_streaming_refuses_a_file_under_two_label_sets():
         list(iter_image_summaries(rows))
 
 
-def test_streaming_refuses_repeated_planes_and_different_channel_counts():
+def test_streaming_refuses_repeated_planes_and_accepts_different_channels_per_image():
     rows = grouped_records(n_images=1)
     with pytest.raises(ValueError, match="more than once"):
         list(iter_image_summaries([*rows, rows[0]]))
@@ -319,8 +351,7 @@ def test_streaming_refuses_repeated_planes_and_different_channel_counts():
     two = [
         r for r in grouped_records(n_images=2, channels=2) if r.source_relative_path == "img1.tif"
     ]
-    with pytest.raises(ValueError, match="different numbers of channels"):
-        list(iter_image_summaries([*one, *two]))
+    assert list(iter_image_summaries([*one, *two])) == image_summaries([*one, *two])
 
 
 def test_streaming_validates_percentiles_at_the_call():

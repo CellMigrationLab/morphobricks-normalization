@@ -1,0 +1,78 @@
+# Fixture i102_rgb_unit_wrong_order
+# Expected: E_RGB_UNIT_CHANNELS
+# Source: Owner decision AQ6
+# An RGB unit lists R, B, G: the order is fixed (R, G, B).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels.R]
+display_name = "Red"
+
+[channels.G]
+display_name = "Green"
+
+[channels.B]
+display_name = "Blue"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "B", "G"]
+image_type = "rgb"
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["R", "G", "B"]
+image_type = "rgb"
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["B", "G", "R"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

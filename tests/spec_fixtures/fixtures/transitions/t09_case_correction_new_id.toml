@@ -1,0 +1,71 @@
+# Fixture t09_case_correction_new_id
+# Expected: R_CONFIRMED_ID_CHANGED (against predecessor valid/v01, accepted only with a recorded re-confirmation)
+# Source: Owner decision AQ2
+# How a case-only mistake is corrected. v01's channel ACTIN was meant to be Actin; the corrected spelling cannot be used (it collides with the retired ACTIN, see t02 and i95), so the channel gets the new, non-colliding ID ActinStain at the same positions with the same header evidence, and `display_name` "Actin" carries the appearance. ACTIN stays listed in `used_ids`. The set is exactly {R_CONFIRMED_ID_CHANGED}: no R_USED_ID_DROPPED, no R_USED_ID_REUSED, no E_* code.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+target = "SRC"
+treatment_key = "saracatinib"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ActinStain]
+display_name = "Actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ActinStain"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 11
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ActinStain"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ActinStain"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ActinStain"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "ActinStain", "DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

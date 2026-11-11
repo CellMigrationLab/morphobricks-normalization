@@ -6,7 +6,7 @@ Read it, and the documents below, before changing anything.
 
 | File | What it fixes |
 |---|---|
-| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N60 (§12) and what is still to be measured (§13) |
+| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N64 (§12) and what is still to be measured (§13) |
 | `docs/contract.md` | Rules other bricks rely on: methods and formulas, interface, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | `CHANGELOG.md` | Release notes and migration notes |
 | `docs/archive/` | Historical record: the two done follow-ups for the calling bricks |
@@ -38,14 +38,17 @@ src/morphobricks_normalization/
                     their exact bound for 64-bit values float64 cannot hold (#28)
   ranges.py         HistogramSettings, RangeCheck, range_check_issues (Milestone 5)
   integrity.py      invariants every PlaneHistogram and HistogramTail checks when made
-                    (counts, limits, tail sums) and the pixel type of every block
+                    (counts, limits, tail moments) and the pixel type of every block
+  tail_moments.py   exact centred moments of a tail (count, mean, std; schema version 5)
+  channels.py       canonical channel IDs (the Spec's Token rule): check_channel_id(s)
   records.py        PlaneRecord (one plane_histograms.csv row: an XYC plane, one
-                    histogram per channel; position_id required), plane_id, group_records
-  csv_io.py         write/read plane_histograms.csv schema version 4, channels in
-                    CellProfiler-style columns, underflow/overflow columns (atomic write,
-                    labels always text)
+                    histogram per channel; position_id and channels (IDs) required),
+                    plane_id, group_records; ChannelMeasurementFailure/Error (HV3)
+  csv_io.py         write/read plane_histograms.csv schema version 5 (ADR 0003): channels
+                    in CellProfiler-style columns named by channel ID, presence column
+                    `channels`, underflow/overflow columns (atomic write, labels always text)
   pooling.py        PooledHistogram: pooled counts, never mean-of-means, tails by
-                    their means for percentiles and by their sums for mean and std;
+                    their means for percentiles and by their moments for mean and std;
                     WeightedHistogram: histograms added with a weight each (Milestone 2);
                     linear_percentile: NumPy's linear interpolation (Milestone 3)
   normalization.py  NormalizationParameters (offset, scale) and the four linear methods
@@ -53,8 +56,9 @@ src/morphobricks_normalization/
   scopes.py         group_key, group_name, scope_groups: groups at each scope, repeat groups
   rgb.py            StarDist's percentile normalization: rgb_percentile, apply_rgb
                     (CSBDeep's float32 arithmetic), check_rgb
-  fitting.py        fit, Parameters (apply, select, to_columns, from_columns with
-                    Normalization_Offset_C<i> and Normalization_Scale_C<i>)
+  fitting.py        fit, by channel ID
+  parameters.py     Parameters (apply, select, to_columns, from_columns with
+                    Normalization_Offset_<ID> and Normalization_Scale_<ID>)
   summaries.py      ImageSummary, image_summaries, summary_columns: one row per image,
                     Z and T pooled, from plane_histograms.csv rows (Milestone 4)
   checks.py         IntensityCheckSettings, intensity_checks: the four intensity warnings;
@@ -115,7 +119,7 @@ range check.
 ## 3. How we work
 
 1. **Read first:** the plan, the contract and the modules you touch.
-2. **Ask before deciding.** Decisions N1–N60 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
+2. **Ask before deciding.** Decisions N1–N64 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
 3. **Outputs stay bit-identical** unless a change says otherwise. `tests/test_fit_goldens.py` keeps the fitted

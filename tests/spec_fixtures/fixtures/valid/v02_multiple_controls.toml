@@ -1,0 +1,92 @@
+# Fixture v02_multiple_controls
+# Expected: PASS
+# Source: RFC case 2
+# Two controls (DMSO, WT), each referenced by two conditions.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.DMSO]
+source_folder = "DMSO"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "DMSO"
+
+[conditions.DrugB]
+source_folder = "DrugB"
+reference = "DMSO"
+
+[conditions.WT]
+source_folder = "WT"
+
+[conditions.KO1]
+source_folder = "KO1"
+reference = "WT"
+
+[conditions.KO2]
+source_folder = "KO2"
+reference = "WT"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.DMSO]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.DMSO.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugB]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.KO1]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.KO1.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.KO2]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.KO2.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.WT]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.WT.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["DMSO", "DrugA", "DrugB", "KO1", "KO2", "WT"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

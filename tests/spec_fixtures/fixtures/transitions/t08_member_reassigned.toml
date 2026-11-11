@@ -1,0 +1,69 @@
+# Fixture t08_member_reassigned
+# Expected: R_CONFIRMED_ID_CHANGED (against predecessor valid/v03, without a recorded confirmation)
+# Source: Owner decision AQ1
+# Reassigning is a change of entity. DrugA/experiment_23 was a member of Day1 in v03 and is now the member of a new repeat Day3, so Day1 lost a member it held. Accepted only with the recorded user confirmation of experiment-v1 4.6. Day3 is a new ID listed in `used_ids`. Valid alone with W_REPEAT_MISSING_CONDITIONS.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.Day1]
+confirmed = true
+confirmed_on = "2026-11-07"
+
+[repeats.Day1.members.CTRL]
+source_repeat = "rep1"
+image_count = 9
+
+[repeats.Day1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.Day2.members.CTRL]
+source_repeat = "rep2"
+image_count = 9
+
+[repeats.Day2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day2.members.DrugA]
+source_repeat = "rep2_drug"
+image_count = 8
+
+[repeats.Day2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day3]
+confirmed = true
+confirmed_on = "2026-11-07"
+
+[repeats.Day3.members.DrugA]
+source_repeat = "experiment_23"
+image_count = 7
+
+[repeats.Day3.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["Day1", "Day2", "Day3"]
+technical_repeats = ["single"]

@@ -44,6 +44,8 @@ addopts = "-ra"
 line-length = 100
 target-version = "py311"
 src = ["src", "tests", "tools"]
+# The vendored Spec files are byte-exact copies (tests/spec_fixtures/README.md).
+extend-exclude = ["tests/spec_fixtures"]
 
 [tool.ruff.lint]
 select = [
@@ -97,6 +99,7 @@ baseline = "tools/code_rules_baseline.json"
 # others together. normalization is a pure library except the reader and writer of the file.
 "morphobricks_normalization" = "orchestration"
 "morphobricks_normalization._version" = "pure"
+"morphobricks_normalization.channels" = "pure"
 "morphobricks_normalization.checks" = "pure"
 "morphobricks_normalization.csv_io" = "io"
 "morphobricks_normalization.dtypes" = "pure"
@@ -107,6 +110,7 @@ baseline = "tools/code_rules_baseline.json"
 "morphobricks_normalization.issues" = "pure"
 "morphobricks_normalization.normalization" = "pure"
 "morphobricks_normalization.parameter_checks" = "pure"
+"morphobricks_normalization.parameters" = "pure"
 "morphobricks_normalization.pooling" = "pure"
 "morphobricks_normalization.ranges" = "pure"
 "morphobricks_normalization.records" = "pure"
@@ -116,4 +120,5 @@ baseline = "tools/code_rules_baseline.json"
 "morphobricks_normalization.summaries" = "pure"
 "morphobricks_normalization.bin_centres" = "pure"
 "morphobricks_normalization.bin_reachability" = "pure"
+"morphobricks_normalization.tail_moments" = "pure"
 "morphobricks_normalization.sums" = "pure"

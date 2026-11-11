@@ -1,0 +1,108 @@
+# Fixture v27_descriptive_keys_collide
+# Expected: PASS
+# Source: Owner decisions of 6 Nov 2026 (Q4)
+# target and treatment_key are descriptive only. DrugA and DrugC carry identical values, DrugB the same values in another case: no collision, no warning, no grouping. A consumer MUST NOT group, join, pair or key a cache on them.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+target = "SRC"
+treatment_key = "AZD0530"
+
+[conditions.DrugB]
+source_folder = "DrugB"
+reference = "CTRL"
+target = "src"
+treatment_key = "azd0530"
+
+[conditions.DrugC]
+source_folder = "DrugC"
+reference = "CTRL"
+target = "SRC"
+treatment_key = "AZD0530"
+
+[channels.DNA]
+header_names = ["DAPI"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 5
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 5
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[repeats.rep1.members.DrugB]
+source_repeat = "rep1"
+image_count = 5
+
+[repeats.rep1.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[repeats.rep1.members.DrugC]
+source_repeat = "rep1"
+image_count = 5
+
+[repeats.rep1.members.DrugC.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 5
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 5
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[repeats.rep2.members.DrugB]
+source_repeat = "rep2"
+image_count = 5
+
+[repeats.rep2.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[repeats.rep2.members.DrugC]
+source_repeat = "rep2"
+image_count = 5
+
+[repeats.rep2.members.DrugC.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA", "DrugB", "DrugC"]
+channels = ["DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

@@ -19,6 +19,19 @@ jobs:
       # baseline (Ruff's own findings of v0.3.3 are in it, so plain `ruff check .` is not run).
       - run: python tools/check.py --rules
 
+  # The vendored Spec files (tests/spec_fixtures) must be byte for byte the Spec at the pinned
+  # commit (MorphoBricks-Spec docs/vendoring.md); tests/test_spec_pin.py checks the copy offline.
+  spec-pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { repository: CellMigrationLab/MorphoBricks-Spec, path: spec, fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python spec/tools/vendor.py --into . --check
+
   test:
     runs-on: ${{ matrix.os }}
     strategy:

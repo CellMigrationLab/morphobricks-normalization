@@ -33,21 +33,28 @@ def _narrow(**changes):
     ],
 )
 def test_range_check_issues_refuse_mixed_settings_in_either_order(change):
-    pair = [("A", 0, _narrow()), ("B", 0, _narrow(**change))]
+    pair = [("A", "DNA", _narrow()), ("B", "DNA", _narrow(**change))]
     for order in (pair, pair[::-1]):
-        with pytest.raises(ValueError, match="channel C0.*A.*B|channel C0.*B.*A") as refused:
+        with pytest.raises(ValueError, match="channel DNA.*A.*B|channel DNA.*B.*A") as refused:
             range_check_issues(order)
         assert type(refused.value).__name__ == "IncompatibleRangeChecksError"
     # the same settings in another channel are not mixed
-    assert len(range_check_issues([("A", 0, _narrow()), ("B", 1, _narrow(**change))])) == 2
+    pairs = [("A", "DNA", _narrow()), ("B", "ACTIN", _narrow(**change))]
+    assert [i.channel for i in range_check_issues(pairs)] == ["ACTIN", "DNA"]
 
 
-@pytest.mark.parametrize("channel", [True, 1.0, 1.5, "1", -1, None])
-def test_range_check_issues_refuse_malformed_channels(channel):
-    with pytest.raises(ValueError, match="whole number counted from 0"):
+@pytest.mark.parametrize("channel", [True, 1.0, 1.5, 0, np.int64(2), None])
+def test_range_check_issues_refuse_channel_indices(channel):
+    with pytest.raises(ValueError, match="never by its position"):
         range_check_issues([("A", channel, _narrow())])
 
 
-def test_range_check_issues_accept_numpy_integer_channels():
-    (issue,) = range_check_issues([("A", np.int64(2), _narrow())])
-    assert issue.channel == 2 and type(issue.channel) is int
+@pytest.mark.parametrize("channel", ["1", "", "DNA "])
+def test_range_check_issues_refuse_text_that_is_not_an_id(channel):
+    with pytest.raises(ValueError, match="is not a canonical channel ID"):
+        range_check_issues([("A", channel, _narrow())])
+
+
+def test_range_check_issues_name_the_channel_id():
+    (issue,) = range_check_issues([("A", "PAX_488", _narrow())])
+    assert issue.channel == "PAX_488" and "channel PAX_488 " in issue.message

@@ -27,6 +27,10 @@ FLUORESCENCE_METHODS = ("minmax", "percentile", "zscore", "robust_zscore")
 RGB_METHODS = ("percentile",)
 SCOPES = ("biological_repeat", "image", "patch")
 POOLING_WEIGHTS = ("pixels", "conditions")
+# What a fit does with a channel that only some planes of its group have (ADR 0003; Spec
+# experiment-v1 §8, A_SCOPE_INCOMPLETE): refuse (default), or pool the planes that have it,
+# the user's recorded choice of that subset.
+PARTIAL_CHANNELS = ("refuse", "planes_with_channel")
 DEFAULT_PERCENTILE = (1.0, 99.8)
 
 # Written names of the methods without options (contract §3.1); the same names
@@ -42,6 +46,7 @@ _KEYS = (
     "scope",
     "pooling",
     "per_time_point",
+    "partial_channels",
 )
 
 
@@ -80,6 +85,14 @@ class NormalizationSettings:
         (default, each pixel once) or ``"conditions"`` (each condition equally).
     per_time_point
         Whether each time point is a group of its own (default False: time points pooled).
+    partial_channels
+        What :func:`~morphobricks_normalization.fitting.fit` does with a channel that only
+        some planes of the group have: ``"refuse"`` (default; the Spec's
+        ``A_SCOPE_INCOMPLETE``, never a fit over part of a group without the user's choice)
+        or ``"planes_with_channel"`` (the user selects that subset: the channel is pooled
+        over the planes that have it, the others are named in a
+        ``channel_partially_present`` warning, and the choice is stored with the settings).
+        Fluorescence only: RGB rows always hold R, G and B.
 
     Raises
     ------
@@ -97,6 +110,7 @@ class NormalizationSettings:
     scope: str = "image"
     pooling: str = "pixels"
     per_time_point: bool = False
+    partial_channels: str = "refuse"
 
     def __post_init__(self) -> None:
         if self.image_type not in IMAGE_TYPES:
@@ -122,6 +136,12 @@ class NormalizationSettings:
                 f"Pooling {self.pooling!r} does not exist. Choose 'pixels' (each pixel counts "
                 "once) or 'conditions' (each condition weighs the same)."
             )
+        if self.partial_channels not in PARTIAL_CHANNELS:
+            raise ValueError(
+                f"partial_channels {self.partial_channels!r} does not exist. Choose 'refuse' "
+                "(a channel some planes of a group lack is refused) or 'planes_with_channel' "
+                "(it is fitted from the planes that have it, and the others are reported)."
+            )
         if not isinstance(self.per_time_point, bool):
             raise ValueError(f"per_time_point must be true or false; got {self.per_time_point!r}.")
         percentile = DEFAULT_PERCENTILE
@@ -134,6 +154,8 @@ class NormalizationSettings:
         object.__setattr__(self, "consistency", consistency)
         if self.scope != "biological_repeat":
             object.__setattr__(self, "pooling", "pixels")
+        if self.image_type == "rgb":  # RGB rows always hold R, G and B: no partial channel
+            object.__setattr__(self, "partial_channels", "refuse")
 
     @property
     def method_name(self) -> str:
@@ -162,6 +184,8 @@ class NormalizationSettings:
         if self.scope == "biological_repeat":
             data["pooling"] = self.pooling
         data["per_time_point"] = self.per_time_point
+        if self.partial_channels != "refuse":  # the user's recorded choice of a subset
+            data["partial_channels"] = self.partial_channels
         return data
 
     @classmethod

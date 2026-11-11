@@ -33,6 +33,8 @@ EPSILON = 1e-20
 RGB_CHANNEL_COUNT = 3
 # The pixel types of RGB images: 8- and 16-bit integers, every value exact in float32 (#23).
 RGB_DTYPES = frozenset(np.dtype(name) for name in ("uint8", "uint16", "int8", "int16"))
+# The fixed channel IDs of an RGB imaging unit, in source order (experiment-v1 §4.4b).
+RGB_CHANNELS = ("R", "G", "B")
 
 
 def rgb_percentile(
@@ -111,6 +113,31 @@ def check_rgb(channel_count: int, dtypes: Iterable[np.dtype]) -> None:
         )
 
 
+def check_rgb_channels(channels: Iterable[str], where: str) -> None:
+    """Refuse RGB channels that are not ``R``, ``G`` and ``B`` in this order (§4.4b).
+
+    Parameters
+    ----------
+    channels
+        The channel IDs, in source order.
+    where
+        Starts the message, e.g. ``"Plane a.tif::z=0,t=0"``.
+
+    Raises
+    ------
+    ValueError
+        Naming the IDs found.
+    """
+    channels = tuple(channels)
+    if channels != RGB_CHANNELS:
+        raise ValueError(
+            f"{where}: RGB normalization needs the channels R, G and B of an RGB imaging unit, "
+            f"in this order (experiment-v1 §4.4b), but it has {', '.join(map(str, channels))}. "
+            "Declare the unit as image type 'rgb' in the experiment description, or choose "
+            "image type 'fluorescence'."
+        )
+
+
 def check_rgb_pixels(pixels: np.ndarray, channel_axis: int | None) -> None:
     """Refuse a pixel array that is not three 8- or 16-bit channels, before any work (#52, #23).
 
@@ -144,6 +171,8 @@ def check_rgb_records(records: list[PlaneRecord], group: str | None) -> None:
     or converted; the message names the images of each pixel type.
     """
     check_rgb(records[0].channel_count, [h.dtype for r in records for h in r.histograms])
+    for record in records:
+        check_rgb_channels(record.channels, f"Plane {record.plane_id}")
     by_dtype: dict[str, list[str]] = {}
     for record in records:
         files = by_dtype.setdefault(record.histograms[0].dtype.name, [])
@@ -160,7 +189,7 @@ def check_rgb_records(records: list[PlaneRecord], group: str | None) -> None:
         )
 
 
-def check_rgb_selection(wanted: list[int], channels: tuple[int, ...]) -> None:
+def check_rgb_selection(wanted: list[str], channels: tuple[str, ...]) -> None:
     """Refuse a strict subset of R, G and B: RGB parameters keep the channels together (#50).
 
     A subset would serialize as a single channel that ``from_columns`` reads back as

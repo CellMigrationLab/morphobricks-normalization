@@ -22,7 +22,14 @@ def record(condition, repeat, technical=SINGLE, image="img.tif", t=0):
     path = f"{condition}/{repeat}/{technical}/{image}"
     histogram = compute_plane_histogram(np.arange(4, dtype=np.uint8))
     return PlaneRecord(
-        path, condition, repeat, technical, (histogram, histogram), t=t, position_id="p"
+        path,
+        condition,
+        repeat,
+        technical,
+        (histogram, histogram),
+        t=t,
+        position_id="p",
+        channels=("DNA", "ACTIN"),
     )
 
 
@@ -62,6 +69,7 @@ def test_pairing_differently_named_repeats_changes_only_the_grouping():
             r.histograms,
             t=r.t,
             position_id="p",
+            channels=r.channels,
         )
         for r in matching
     ]

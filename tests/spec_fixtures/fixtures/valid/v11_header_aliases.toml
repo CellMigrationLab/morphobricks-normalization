@@ -1,0 +1,38 @@
+# Fixture v11_header_aliases
+# Expected: PASS
+# Source: Adversarial 5
+# Canonical DNA confirmed with header evidence DAPI and Hoechst 33342; canonical ACTIN with an exact-match header name that still had to be confirmed. A header name outside these lists is R_HEADER_CONTRADICTION.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[channels.DNA]
+display_name = "Nuclei stain"
+header_names = ["DAPI", "Hoechst 33342"]
+
+[channels.ACTIN]
+header_names = ["ACTIN"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 4
+
+[repeats.rep1.members.CTRL.technical_repeats.acquisition_1]
+source_folder = "acquisition_1"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.CTRL.technical_repeats.acquisition_2]
+source_folder = "acquisition_2"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1"]
+technical_repeats = ["acquisition_1", "acquisition_2"]

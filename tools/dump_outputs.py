@@ -61,6 +61,11 @@ SMALLEST_SUBNORMAL = 5e-324
 SMALLEST_NORMAL = float(np.finfo(np.float64).tiny)
 FLOAT64_MAX = float(np.finfo(np.float64).max)
 METHODS = ("minmax", "percentile", "zscore", "robust_zscore")
+# The one channel of the dumped records. Since plane_histograms.csv schema version 5 a channel
+# is named by its canonical ID (ADR 0003); "C0" is a legal ID, so the parameter and summary
+# columns keep the names of earlier dumps and a diff against a version-4 base shows only what
+# the format changed (the table's digest and Issue.channel).
+DUMP_CHANNELS = ("C0",)
 
 
 def text(value: object) -> str:
@@ -110,13 +115,24 @@ def histogram_text(hist: PlaneHistogram) -> str:
         hist.valid_pixel_count,
         hist.pixel_min,
         hist.pixel_max,
-        (hist.underflow.count, hist.underflow.sum, hist.underflow.sum_of_squares),
-        (hist.overflow.count, hist.overflow.sum, hist.overflow.sum_of_squares),
+        tail_fields(hist.underflow),
+        tail_fields(hist.overflow),
         hist.representatives,
         hist.max_representative_error,
         hist.is_exact,
     )
     return text(fields)
+
+
+def tail_fields(tail: object) -> tuple:
+    """Return a tail's stored fields: count, mean and std (schema version 5).
+
+    Commits before the centred tail moments stored count, sum and sum of squares; those
+    are dumped instead, so the corpus still runs on them (``PYTHONPATH=<base>/src``).
+    """
+    if hasattr(tail, "std"):
+        return tail.count, tail.mean, tail.std
+    return tail.count, tail.sum, tail.sum_of_squares
 
 
 def planes() -> Iterator[tuple[str, np.ndarray]]:
@@ -255,10 +271,11 @@ def experiment_lines(dtype: str, hists: list[PlaneHistogram], folder: Path) -> I
             [h],
             t=i % 2,
             position_id=f"img{i}",
+            channels=DUMP_CHANNELS,
         )
         for i, h in enumerate(hists)
     ]
-    path = write_plane_histograms(records, folder / f"{dtype}.csv")
+    path = write_plane_histograms(records, folder / f"{dtype}.csv", channel_ids=DUMP_CHANNELS)
     yield f"csv {dtype} sha256 {hashlib.sha256(path.read_bytes()).hexdigest()}"
     back = read_plane_histograms(path)
     for record in back:

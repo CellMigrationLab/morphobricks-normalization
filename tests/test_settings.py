@@ -47,6 +47,7 @@ def all_settings():
             per_time_point=per_time_point,
         )
     yield NormalizationSettings(image_type="rgb")
+    yield NormalizationSettings(scope="biological_repeat", partial_channels="planes_with_channel")
 
 
 def test_defaults_are_those_of_the_contract():
@@ -61,6 +62,7 @@ def test_defaults_are_those_of_the_contract():
     }
     assert settings.consistency == NORMAL_CONSISTENCY == 1.482602218505602
     assert settings.pooling == "pixels"
+    assert settings.partial_channels == "refuse"  # A_SCOPE_INCOMPLETE unless chosen
 
 
 @pytest.mark.parametrize("settings", list(all_settings()), ids=repr)
@@ -83,6 +85,21 @@ def test_keys_that_do_not_apply_are_omitted_and_their_options_reset():
     repeat = NormalizationSettings(scope="biological_repeat", pooling="conditions")
     assert repeat.to_dict()["pooling"] == "conditions"
     assert NormalizationSettings(percentile=[2, 98]).percentile == (2.0, 98.0)
+
+
+def test_the_choice_of_planes_with_a_channel_is_recorded_and_refusal_is_the_default():
+    chosen = NormalizationSettings(
+        scope="biological_repeat", partial_channels="planes_with_channel"
+    )
+    assert chosen.to_dict()["partial_channels"] == "planes_with_channel"
+    assert "partial_channels" not in NormalizationSettings().to_dict()  # the default: refuse
+    assert NormalizationSettings.from_dict({"partial_channels": "refuse"}).partial_channels == (
+        "refuse"
+    )
+    rgb = NormalizationSettings(image_type="rgb", partial_channels="planes_with_channel")
+    assert rgb.partial_channels == "refuse"  # RGB rows always hold R, G and B
+    with pytest.raises(ValueError, match="partial_channels 'pool' does not exist"):
+        NormalizationSettings(partial_channels="pool")
 
 
 @pytest.mark.parametrize("scope", ["condition", "technical_repeat", "experiment", "batch", ""])

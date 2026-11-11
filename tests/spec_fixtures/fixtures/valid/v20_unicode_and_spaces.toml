@@ -1,0 +1,46 @@
+# Fixture v20_unicode_and_spaces
+# Expected: PASS
+# Source: Extra: identities
+# Condition folder labels with spaces and non-ASCII text are valid labels (quoted keys); channel and mask IDs stay tokens.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions."Wild type"]
+source_folder = "Wild type"
+display_name = "Wild type (WT)"
+
+[conditions."Knock-out β1"]
+source_folder = "Knock-out β1"
+reference = "Wild type"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats."Réplica_1"]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats."Réplica_1".members."Wild type"]
+source_repeat = "Réplica_1"
+image_count = 4
+
+[repeats."Réplica_1".members."Wild type".technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats."Réplica_1".members."Knock-out β1"]
+source_repeat = "Réplica_1"
+image_count = 4
+
+[repeats."Réplica_1".members."Knock-out β1".technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["Knock-out \u03b21", "Wild type"]
+channels = ["ACTIN", "DNA"]
+repeats = ["R\u00e9plica_1"]
+technical_repeats = ["single"]

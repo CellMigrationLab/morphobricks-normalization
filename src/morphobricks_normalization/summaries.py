@@ -13,8 +13,11 @@ whose maximum stays below the type's maximum has no saturated pixel whatever its
 binning. Otherwise the fraction is blank (None).
 
 :meth:`ImageSummary.to_row` gives the columns of contract §7.1, channels in
-CellProfiler-style columns (N41, N42), for the calling brick to show or write;
-the library writes no file (N50).
+CellProfiler-style columns named by canonical channel ID (N41, N42 as amended by
+ADR 0003 HV2), for the calling brick to show or write; the library writes no file
+(N50). Images of one experiment may have different channels; each summary holds
+the channels of its image, and a channel the image does not have has no value
+(blank in a table), never zero.
 """
 
 from __future__ import annotations
@@ -26,10 +29,11 @@ from typing import Any
 
 import numpy as np
 
+from .channels import check_channel_ids
 from .csv_io import channel_column
 from .dtypes import is_integer
 from .pooling import NoValidPixelsError, PooledHistogram
-from .records import PlaneRecord, different_channel_counts, duplicate_planes
+from .records import PlaneRecord, duplicate_planes, same_channels_per_image
 from .settings import DEFAULT_PERCENTILE
 
 SHARED_COLUMNS = (
@@ -53,8 +57,9 @@ SUMMARY_FEATURES = (
 class IncompatibleSummariesError(ValueError):
     """Raised for image summaries that cannot be compared or pooled with each other.
 
-    Different numbers of channels, percentile definitions or pixel types make the
-    values measure different things; nothing is converted or guessed.
+    Different percentile definitions or pixel types make the values measure different
+    things, and per-channel values without one value per channel describe no channel;
+    nothing is converted or guessed.
     """
 
 
@@ -70,9 +75,11 @@ class ImageSummary:
         Pixel type of the image.
     percentile
         ``(low, high)`` in percent: the percentiles held by ``p_low`` and ``p_high``.
+    channels
+        The canonical channel IDs of the image, sorted; the per-channel values below
+        follow this order.
     median, p_low, p_high
-        One value per channel, channel 0 first; None for a channel without
-        finite pixels.
+        One value per channel; None for a channel without finite pixels.
     saturated_fraction
         Per channel, the pixels equal to the pixel type's maximum over the valid
         pixels; None for float images, for a maximum that shares its bin with
@@ -89,6 +96,7 @@ class ImageSummary:
     technical_repeat: str
     dtype: np.dtype
     percentile: tuple[float, float]
+    channels: tuple[str, ...]
     median: tuple[float | None, ...]
     p_low: tuple[float | None, ...]
     p_high: tuple[float | None, ...]
@@ -97,17 +105,24 @@ class ImageSummary:
 
     def __post_init__(self) -> None:
         """Refuse per-channel tuples of different lengths, or none (issue #56)."""
+        channels = check_channel_ids(self.channels, f"Image {self.source_relative_path}")
+        if list(channels) != sorted(channels):
+            raise IncompatibleSummariesError(
+                f"Image {self.source_relative_path}: its channels {list(channels)} are not in "
+                "sorted order. Build the summary with image_summaries()."
+            )
+        object.__setattr__(self, "channels", channels)
         lengths = {
             name: len(getattr(self, name))
-            for name in ("median", "p_low", "p_high", "saturated_fraction", "exact")
+            for name in ("channels", "median", "p_low", "p_high", "saturated_fraction", "exact")
         }
         if len(set(lengths.values())) > 1 or lengths["median"] == 0:
             found = ", ".join(f"{name}: {n}" for name, n in lengths.items())
             raise IncompatibleSummariesError(
                 f"Image {self.source_relative_path}: its per-channel values do not have one "
                 f"entry per channel ({found}), so the channels of the image are not defined. "
-                "Give median, p_low, p_high, saturated_fraction and exact the same, non-zero "
-                "length, or build the summary with image_summaries()."
+                "Give channels, median, p_low, p_high, saturated_fraction and exact the same, "
+                "non-zero length, or build the summary with image_summaries()."
             )
 
     @property
@@ -123,11 +138,13 @@ class ImageSummary:
     def to_row(self) -> dict[str, Any]:
         """Return the columns of contract §7.1, in order.
 
-        The shared columns as text, then for each channel the median, low and
-        high percentiles and saturated fraction as floats (None for a blank) and
-        ``Histogram_Exact_C<i>`` as a bool (None for a channel without finite
-        pixels). A list of rows can be passed to ``pandas.DataFrame`` or
-        ``csv.DictWriter`` (with :func:`summary_columns`).
+        The shared columns as text, then for each channel of the image, in sorted ID
+        order, the median, low and high percentiles and saturated fraction as floats
+        (None for a blank) and ``Histogram_Exact_<ID>`` as a bool (None for a channel
+        without finite pixels). Channels the image does not have are not in the row; a
+        table of the experiment (:func:`summary_columns`) leaves them blank, for
+        example ``csv.DictWriter(..., restval="")``. A list of rows can be passed to
+        ``pandas.DataFrame`` or ``csv.DictWriter``.
         """
         row: dict[str, Any] = {
             "source_relative_path": self.source_relative_path,
@@ -136,28 +153,29 @@ class ImageSummary:
             "technical_repeat": self.technical_repeat,
             "image_file": self.image_file,
         }
-        for channel in range(self.channel_count):
+        for k, channel in enumerate(self.channels):
             values = (
-                self.median[channel],
-                self.p_low[channel],
-                self.p_high[channel],
-                self.saturated_fraction[channel],
-                self.exact[channel],
+                self.median[k],
+                self.p_low[k],
+                self.p_high[k],
+                self.saturated_fraction[k],
+                self.exact[k],
             )
             for feature, value in zip(SUMMARY_FEATURES, values, strict=True):
                 row[channel_column(feature, channel)] = value
         return row
 
 
-def summary_columns(channel_count: int) -> list[str]:
-    """Column names of :meth:`ImageSummary.to_row` for images with ``channel_count`` channels."""
+def summary_columns(channel_ids: Iterable[str]) -> list[str]:
+    """Column names of a table of :meth:`ImageSummary.to_row` rows of these channels.
+
+    ``channel_ids`` are the experiment's channel IDs (sorted here), as for the header
+    of ``plane_histograms.csv``.
+    """
+    ids = sorted(check_channel_ids(channel_ids, "summary_columns"))
     return [
         *SHARED_COLUMNS,
-        *(
-            channel_column(feature, channel)
-            for channel in range(channel_count)
-            for feature in SUMMARY_FEATURES
-        ),
+        *(channel_column(feature, channel) for channel in ids for feature in SUMMARY_FEATURES),
     ]
 
 
@@ -183,20 +201,15 @@ def image_summaries(
     Raises
     ------
     ValueError
-        For invalid percentiles, rows that repeat a ``plane_id``, or images with
-        different numbers of channels (N43).
+        For invalid percentiles, rows that repeat a ``plane_id``, or an image whose
+        planes list different channels.
     IncompatibleSummariesError
         For an image whose Z or T planes have different pixel types (issue #54).
     """
     low, high = _check_percentile(percentile)
     records = list(records)
     duplicate_planes(records, "These rows")
-    if len({r.channel_count for r in records}) > 1:
-        raise ValueError(
-            different_channel_counts(
-                [(r.source_relative_path, r.channel_count) for r in records], "These images"
-            )
-        )
+    same_channels_per_image(records, "These rows")
     images: dict[tuple[str, ...], list[PlaneRecord]] = {}
     for record in records:
         images.setdefault(record.group_key("image"), []).append(record)
@@ -242,13 +255,13 @@ def iter_image_summaries(
     ValueError
         At the call, for invalid percentiles. While iterating: for an image whose rows are not
         contiguous, a source file listed under two sets of labels, rows that repeat a
-        ``plane_id``, or images with different numbers of channels (N43).
+        ``plane_id``, or an image whose planes list different channels.
     IncompatibleSummariesError
         For an image whose Z or T planes have different pixel types (issue #54).
 
     Notes
     -----
-    Whether all images have the same number of channels is only known as they are read, so an
+    Whether the rows are valid is only known as they are read, so an
     error can come after earlier summaries were emitted. Those summaries are valid on their
     own, but a run that ended with an error is incomplete: discard its output; do not publish
     it as the result for the experiment. :func:`image_summaries` validates every row before
@@ -264,7 +277,6 @@ def _stream_summaries(
     """Group rows by adjacent image, check each group and yield its summary."""
     seen_keys: set[tuple[str, ...]] = set()
     labels_of_path: dict[str, tuple[str, ...]] = {}
-    first_channels: tuple[str, int] | None = None
     for key, group in groupby(records, key=lambda r: r.group_key("image")):
         planes = list(group)
         path = key[-1]
@@ -283,18 +295,7 @@ def _stream_summaries(
                 "the preprocessing brick again on this experiment."
             )
         duplicate_planes(planes, "These rows")
-        counts = {r.channel_count for r in planes}
-        if first_channels is None:
-            first_channels = (path, planes[0].channel_count)
-        counts.add(first_channels[1])
-        if len(counts) > 1:
-            raise ValueError(
-                different_channel_counts(
-                    [(first_channels[0], first_channels[1])]
-                    + [(r.source_relative_path, r.channel_count) for r in planes],
-                    "These images",
-                )
-            )
+        same_channels_per_image(planes, "These rows")
         yield _summary(planes, percentile)
         del planes
 
@@ -315,11 +316,12 @@ def _check_one_dtype(planes: list[PlaneRecord]) -> None:
 
 
 def _summary(planes: list[PlaneRecord], percentile: tuple[float, float]) -> ImageSummary:
-    """Pool the planes of one image, channel by channel."""
+    """Pool the planes of one image, channel by channel ID."""
     _check_one_dtype(planes)
     first = planes[0]
+    channels = tuple(sorted(first.channels))
     median, p_low, p_high, saturated, exact = [], [], [], [], []
-    for channel in range(first.channel_count):
+    for channel in channels:
         histograms = [plane.channel_histogram(channel) for plane in planes]
         try:
             pooled = PooledHistogram(histograms)
@@ -341,6 +343,7 @@ def _summary(planes: list[PlaneRecord], percentile: tuple[float, float]) -> Imag
         technical_repeat=first.technical_repeat,
         dtype=first.histograms[0].dtype,
         percentile=percentile,
+        channels=channels,
         median=tuple(median),
         p_low=tuple(p_low),
         p_high=tuple(p_high),

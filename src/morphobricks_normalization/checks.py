@@ -20,7 +20,12 @@ of the values compared with, around their median; a zero robust deviation
 (identical values) skips the comparison instead of firing. A comparison with
 fewer than ``min_images`` values is skipped (N53). Each finding is one
 :class:`~morphobricks_normalization.issues.Issue` naming the image or repeat,
-the channel (also in ``Issue.channel``), the value and the group value (N52).
+the channel by its canonical ID (also in ``Issue.channel``), the value and the
+group value (N52).
+
+Images may have different channels (ADR 0003): a channel is compared only among
+the images that have it, by channel ID, never by position in the image, and an
+image without the channel is neither compared nor counted.
 """
 
 from __future__ import annotations
@@ -43,7 +48,6 @@ from .issues import (
     Issue,
 )
 from .normalization import NORMAL_CONSISTENCY
-from .records import different_channel_counts
 from .summaries import ImageSummary, IncompatibleSummariesError
 
 _KEYS = ("library_version", "outlier_limit", "saturation_limit", "min_images")
@@ -179,7 +183,6 @@ def intensity_checks(
     """
     settings = IntensityCheckSettings() if settings is None else settings
     summaries = sorted(summaries, key=_order)
-    _check_comparable(summaries)
     _check_same_percentiles(summaries)
     return [
         *_image_outliers(summaries, settings),
@@ -214,14 +217,14 @@ def unchecked_channels(summaries: Iterable[ImageSummary]) -> list[Issue]:
         Issue(
             WARNING,
             CHANNEL_WITHOUT_FINITE_PIXELS,
-            f"Image {summary.source_relative_path}, channel C{channel}: it has no finite pixels "
+            f"Image {summary.source_relative_path}, channel {channel}: it has no finite pixels "
             "(every value is NaN or infinite), so its intensities were not checked.",
             items=(summary.source_relative_path,),
             action=_UNASSESSED_ACTION,
             channel=channel,
         )
         for summary in sorted(summaries, key=_order)
-        for channel, median in enumerate(summary.median)
+        for channel, median in zip(summary.channels, summary.median, strict=True)
         if median is None
     ]
 
@@ -233,14 +236,14 @@ def _image_outliers(summaries: list[ImageSummary], settings: IntensityCheckSetti
     found = []
     for (condition, repeat), members in groups.items():
         high = f"{_ordinal(members[0].percentile[1])} percentile"
-        for channel in range(members[0].channel_count):
+        for channel in _channel_ids(members):
             for order, (statistic, name) in enumerate(
                 (("median", "median intensity"), ("p_high", high))
             ):
                 present = [
-                    (s, getattr(s, statistic)[channel])
+                    (s, value)
                     for s in members
-                    if getattr(s, statistic)[channel] is not None
+                    if (value := _value(s, statistic, channel)) is not None
                 ]
                 if len(present) < settings.min_images:
                     continue
@@ -251,7 +254,7 @@ def _image_outliers(summaries: list[ImageSummary], settings: IntensityCheckSetti
                         continue
                     reference, deviation, distance = comparison
                     message = (
-                        f"Image {summary.source_relative_path}, channel C{channel}: its {name} "
+                        f"Image {summary.source_relative_path}, channel {channel}: its {name} "
                         f"{_text(value)} is {distance:.3g} robust deviations from "
                         f"{_text(reference)}, the median of the other {len(others)} images of "
                         f"condition '{condition}', biological repeat '{repeat}' (robust "
@@ -273,6 +276,10 @@ def _image_outliers(summaries: list[ImageSummary], settings: IntensityCheckSetti
 
 
 def _repeat_shifts(summaries: list[ImageSummary], settings: IntensityCheckSettings) -> list[Issue]:
+    """Return a ``repeat_intensity_shift`` warning per repeat and channel ID far from the rest.
+
+    Per condition, each channel is compared among the images that have it.
+    """
     conditions: dict[str, dict[str, list[ImageSummary]]] = {}
     for summary in summaries:
         repeats = conditions.setdefault(summary.condition, {})
@@ -282,9 +289,13 @@ def _repeat_shifts(summaries: list[ImageSummary], settings: IntensityCheckSettin
         if len(repeats) < 2:
             continue
         for repeat in repeats:
-            for channel in range(summaries[0].channel_count):
+            for channel in _channel_ids([s for members in repeats.values() for s in members]):
                 medians = {
-                    label: [s.median[channel] for s in members if s.median[channel] is not None]
+                    label: [
+                        value
+                        for s in members
+                        if (value := _value(s, "median", channel)) is not None
+                    ]
                     for label, members in repeats.items()
                 }
                 own = medians[repeat]
@@ -298,7 +309,7 @@ def _repeat_shifts(summaries: list[ImageSummary], settings: IntensityCheckSettin
                 reference, deviation, distance = comparison
                 message = (
                     f"Biological repeat '{repeat}' of condition '{condition}', channel "
-                    f"C{channel}: the median of its {len(own)} image medians, {_text(value)}, is "
+                    f"{channel}: the median of its {len(own)} image medians, {_text(value)}, is "
                     f"{distance:.3g} robust deviations from {_text(reference)}, the median of "
                     f"the {len(others)} image medians of the other biological repeats of "
                     f"'{condition}' (robust deviation {_text(deviation)}; limit "
@@ -322,12 +333,12 @@ def _saturated_images(
 ) -> list[Issue]:
     issues = []
     for summary in summaries:
-        for channel, fraction in enumerate(summary.saturated_fraction):
+        for channel, fraction in zip(summary.channels, summary.saturated_fraction, strict=True):
             if fraction is None or not fraction > settings.saturation_limit:
                 continue
             top = np.iinfo(summary.dtype).max
             message = (
-                f"Image {summary.source_relative_path}, channel C{channel}: {100 * fraction:.3g} % "
+                f"Image {summary.source_relative_path}, channel {channel}: {100 * fraction:.3g} % "
                 f"of its pixels are at the maximum of its pixel type, {top} ({summary.dtype}), "
                 f"above the limit of {100 * settings.saturation_limit:g} %."
             )
@@ -345,14 +356,17 @@ def _saturated_images(
 
 
 def _no_spread(summaries: list[ImageSummary]) -> list[Issue]:
+    """Return a ``no_intensity_spread`` warning per image channel whose percentiles are equal."""
     issues = []
     for summary in summaries:
         low, high = (_ordinal(q) for q in summary.percentile)
-        for channel, (p_low, p_high) in enumerate(zip(summary.p_low, summary.p_high, strict=True)):
+        for channel, p_low, p_high in zip(
+            summary.channels, summary.p_low, summary.p_high, strict=True
+        ):
             if p_low is None or p_low != p_high:
                 continue
             message = (
-                f"Image {summary.source_relative_path}, channel C{channel}: its {low} and {high} "
+                f"Image {summary.source_relative_path}, channel {channel}: its {low} and {high} "
                 f"percentiles are both {_text(p_low)}, so this channel has no intensity spread "
                 "and cannot be normalized at the image scope with a percentile method."
             )
@@ -386,14 +400,16 @@ def _compare(value: float, others: list[float], limit: float) -> tuple[float, fl
     return (reference, deviation, distance) if distance > limit else None
 
 
-def _check_comparable(summaries: list[ImageSummary]) -> None:
-    """Refuse summaries that do not describe the same channels (issue #56)."""
-    if len({s.channel_count for s in summaries}) > 1:
-        raise IncompatibleSummariesError(
-            different_channel_counts(
-                [(s.source_relative_path, s.channel_count) for s in summaries], "These images"
-            )
-        )
+def _channel_ids(summaries: list[ImageSummary]) -> list[str]:
+    """Every channel ID of ``summaries``, sorted."""
+    return sorted({channel for s in summaries for channel in s.channels})
+
+
+def _value(summary: ImageSummary, statistic: str, channel: str) -> float | None:
+    """``summary``'s value of ``statistic`` for ``channel``; None when absent or blank."""
+    if channel not in summary.channels:
+        return None
+    return getattr(summary, statistic)[summary.channels.index(channel)]
 
 
 def _check_same_percentiles(summaries: list[ImageSummary]) -> None:

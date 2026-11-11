@@ -1,0 +1,81 @@
+# Fixture v34_technical_repeat_folder_on_forbidden_list
+# Expected: PASS
+# Source: Owner decision of 6 Nov 2026 (fourth round: folder labels never restricted)
+# Repeat rep1 has two technical-repeat folders, `files` and `overrides`, both forbidden names (experiment-v1 4.7). They are the `source_folder` values; the confirmed IDs are `acq1` and `acq2`, and the same ID carries the same folder in both members. rep2 has no technical-repeat folder level (`single`). Homogeneous.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+target = "SRC"
+treatment_key = "saracatinib"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.acq1]
+source_folder = "files"
+display_name = "files"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.CTRL.technical_repeats.acq2]
+source_folder = "overrides"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 11
+
+[repeats.rep1.members.DrugA.technical_repeats.acq1]
+source_folder = "files"
+display_name = "files"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA.technical_repeats.acq2]
+source_folder = "overrides"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["acq1", "acq2", "single"]

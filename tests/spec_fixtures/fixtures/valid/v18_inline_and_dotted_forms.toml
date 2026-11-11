@@ -1,0 +1,37 @@
+# Fixture v18_inline_and_dotted_forms
+# Expected: PASS
+# Source: Extra: round trip
+# Same model as v01 written with inline tables, dotted keys and quoted keys; parse(v18) must equal parse(v01).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+conditions.CTRL = { source_folder = "CTRL", display_name = "Control" }
+conditions."DrugA" = { source_folder = "DrugA", display_name = "Drug A", reference = "CTRL", target = "SRC", treatment_key = "saracatinib" }
+
+[channels]
+DNA = { display_name = "DAPI", header_names = ["DAPI"] }
+ACTIN = { display_name = "F-actin", header_names = ["Phalloidin-488"] }
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+members.CTRL = { source_repeat = "rep2", image_count = 10, technical_repeats = { single = { source_folder = "single", channels = ["DNA", "ACTIN"] } } }
+members.DrugA = { source_repeat = "rep2", image_count = 10, technical_repeats.single.source_folder = "single", technical_repeats.single.channels = ["DNA", "ACTIN"] }
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+members.DrugA.source_repeat = "rep1"
+members.DrugA.image_count = 11
+members.DrugA.technical_repeats.single.source_folder = "single"
+members.DrugA.technical_repeats.single.channels = ["DNA", "ACTIN"]
+members.CTRL.source_repeat = "rep1"
+members.CTRL.image_count = 12
+members.CTRL.technical_repeats.single.source_folder = "single"
+members.CTRL.technical_repeats.single.channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

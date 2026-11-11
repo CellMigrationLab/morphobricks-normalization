@@ -14,6 +14,20 @@ import numpy as np
 
 from morphobricks_normalization import SINGLE, PlaneRecord, compute_plane_histogram
 
+# Channel IDs of the simulated images, by source index. Sorted they keep the index order, so a
+# fit's channels (sorted IDs) line up with the simulated channel indices.
+RGB = ("R", "G", "B")
+
+
+def channel_id(c):
+    """The canonical channel ID of simulated source channel ``c``."""
+    return f"ch{c}"
+
+
+def channel_ids(n):
+    """The channel IDs of an image with ``n`` simulated channels, in source order."""
+    return tuple(channel_id(c) for c in range(n))
+
 
 def simulate_plane(rng, dtype, shape=(64, 64), brightness=1.0, n_cells=6):
     yy, xx = np.mgrid[0 : shape[0], 0 : shape[1]]
@@ -58,7 +72,11 @@ def make_records(planes, bin_count=None):
     """One single-channel record per plane of :func:`simulate_experiment`."""
     return [
         PlaneRecord(
-            path, *labels, histograms=compute_plane_histogram(pixels, bin_count), position_id="p"
+            path,
+            *labels,
+            histograms=compute_plane_histogram(pixels, bin_count),
+            position_id="p",
+            channels=channel_ids(1),
         )
         for labels, path, pixels in planes
     ]
@@ -127,7 +145,12 @@ def make_design_records(planes, bin_count=None):
         channels[c] = compute_plane_histogram(pixels, bin_count)
     return [
         PlaneRecord(
-            path, *labels, histograms=[channels[c] for c in sorted(channels)], t=t, position_id="p"
+            path,
+            *labels,
+            histograms=[channels[c] for c in sorted(channels)],
+            t=t,
+            position_id="p",
+            channels=channel_ids(len(channels)),
         )
         for (path, t), (labels, channels) in by_plane.items()
     ]
@@ -197,6 +220,7 @@ def make_rgb_records(images, bin_count=None):
             histograms=[compute_plane_histogram(pixels[..., c], bin_count) for c in range(3)],
             t=t,
             position_id="p",
+            channels=RGB,
         )
         for labels, path, t, pixels in images
     ]

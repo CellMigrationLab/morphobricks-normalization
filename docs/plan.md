@@ -163,7 +163,7 @@ The preprocessing notebook shows the warnings and draws the plots (follow-up P5)
 
 ## 7. Statistics
 
-`plane_histograms.csv`, schema version 4 (N41, N56): one row per XYC plane, that is per
+`plane_histograms.csv`, schema version 5 (N41, N56, N61–N64; version 4 until Stage 3): one row per XYC plane, that is per
 image, Z and T, with every channel's exact extrema, pixel counts and binned counts side by
 side in per-channel columns named as in CellProfiler (`Histogram_Count_C0_00000`, …, N42).
 The histograms themselves are those of schema version 2; version 3 changed the layout and
@@ -262,6 +262,11 @@ their formula is implemented here.
   `csv_io` (version 3 refused); tails in `pooling`. Tested on the issue's reproduction, against
   `np.quantile(method="inverted_cdf")` for every wide pixel type, whole and in blocks.
   The preprocessing brick adds the setting and the warning (follow-up P6).*
+- **Stage 3 S3.2 — channels by canonical channel ID (ADR 0003):** `plane_histograms.csv`
+  schema version 5, `PlaneRecord.channels`, fits, parameters, summaries and checks by channel
+  ID (N61–N64). *Pull request #90 (10 November 2026; rebased on #91 and #92 and finished on
+  11 November 2026, the owner having decided to start Stage 3 now), not merged; see CHANGELOG
+  "Unreleased".*
 - **Release `v0.3.1`**, pinned by the other bricks. *Released (28 October 2026): Milestone 5.
   The tag `v0.3.0` points at the same code but its package reports version 0.2.0, because
   `pyproject.toml` was not updated before tagging; `v0.3.1` corrects the version and nothing
@@ -490,6 +495,57 @@ Added with the project owner on 28 October 2026, for Milestone 5 (issue #12):
 54. **N60** `range_check_issues` gives one `narrow_histogram_range` `Issue` per channel,
     listing the affected planes in `items`, with `Issue.channel` set; the `RangeCheck`
     objects keep the per-plane numbers for tables or plots.
+
+Added with the project owner on 10 November 2026, for Stage 3 (MorphoBricks-Spec ADR 0003,
+decisions HV1-HV4, taken on the S3.1 benchmark; implemented in S3.2):
+
+55. **N61** (HV1) `plane_histograms.csv` schema version 5 is wide: one row per XYC plane,
+    per-channel columns by canonical channel ID, one presence column `channels` (the plane's IDs
+    in source order, `;`-separated) and no `failed_channels` column; the header lists every
+    channel ID of the experiment, taken from the description, sorted. An absent channel's cells
+    are blank, never a zero or NaN histogram, and a reader refuses a value there; absent is not
+    failed.
+56. **N62** (HV2) N41 is kept; N42's channel token is the canonical channel ID instead of the C
+    index, for every per-channel table: this table, the N46/N47 parameter columns
+    (`Normalization_Offset_<ID>`), CellPatcher's patch columns and the summary columns. Names are
+    not split on `_`: the IDs come from `Histogram_ValidPixelCount_<ID>`, a bin index from the
+    last `_NNNNN`. N43 is replaced by per-row presence.
+57. **N63** (HV3) A failed channel measurement fails the whole `plane_histograms.csv`: it is
+    not written and the run reports the plane and channel. The table has no failed state.
+58. **N64** (HV4) Version 4 is a hard cut: the version 5 reader refuses it, naming version 5
+    and how to recompute; there is no converter (ADR 0002 AR10).
+
+Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull request #90):
+
+59. **N65** Schema version 5 stores each tail's **centred moments**: count, mean and
+    population standard deviation (`Histogram_UnderflowMean_<ID>`, `Histogram_UnderflowStd_<ID>`
+    and the same for `Overflow`), each the float64 nearest its exact value, instead of the raw
+    sum and sum of squares, which cancel for large values with a small spread and overflow
+    beyond about `1.3e154` (#91's question). Pooling adds `count · std²` and
+    `count · (mean − pooled mean)²` (contract §1.4).
+60. **N66** A channel that only some planes of a fitted group have is **refused by default**
+    (`ChannelScopeIncompleteError`, the Spec's `A_SCOPE_INCOMPLETE`); the user may select the
+    planes that have it with `partial_channels="planes_with_channel"`, stored with the settings
+    and reported per fit (the notebook asks explicitly) (contract §1.5, §8.3).
+
+Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
+pull request #90), each taken on the side the Spec states or the safer one, and listed in that
+pull request for the owner's review (not numbered decisions until the owner confirms them):
+
+- **Header IDs** are the description's declared channels (`[channels]`), never
+  `used_ids.channels` (retired IDs); the calling brick passes them (contract §6.1).
+- **Sort order** is code point order; the `channels` column is the last plane column, before
+  every per-channel column (contract §6.1, §6.2).
+- **Partial presence inside one fitted group**: confirmed by the owner, now N66.
+- **Parameter columns have their own version**, `normalization_parameters_version` = `2`; a row
+  without it (the C-index columns of 0.4) is refused, never read as channel `C0` (contract
+  §8.1).
+- **A failed measurement removes an earlier table** at the output path, so no out-of-date table
+  looks current (contract §6.2).
+- **Summary columns** are named by ID already in S3.2, since records are by ID (HV2).
+- **RGB parameter order** follows the one rule of every per-channel table, sorted IDs (`B`, `G`,
+  `R`); source order `R`, `G`, `B` is kept where order means position: a plane's `channels`
+  cell, pixel arrays and `apply` (contract §8.1).
 
 ## 13. Still to measure
 

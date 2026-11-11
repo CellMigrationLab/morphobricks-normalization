@@ -1,0 +1,71 @@
+# Fixture t02_channel_id_changed
+# Expected: R_CONFIRMED_ID_CHANGED, R_USED_ID_DROPPED (against predecessor valid/v01, without a recorded re-confirmation)
+# Source: Owner refinement (6 Nov 2026)
+# Valid on its own, but channel ACTIN of v01 (same header evidence, same unit positions) is now `Actin`. Confirmed channel IDs are immutable; only display_name may change. ACTIN is also no longer listed in used_ids (R_USED_ID_DROPPED); keeping it listed beside `Actin` would make the file itself invalid (E_ID_CASE_COLLISION, experiment-v1 4.9), so a case-only change of a confirmed ID can never be published.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+target = "SRC"
+treatment_key = "saracatinib"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.Actin]
+display_name = "F-actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "Actin"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 11
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "Actin"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "Actin"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "Actin"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["Actin", "DNA"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

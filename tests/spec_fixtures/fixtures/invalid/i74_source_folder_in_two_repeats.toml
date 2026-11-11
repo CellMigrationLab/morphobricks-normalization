@@ -1,0 +1,77 @@
+# Fixture i74_source_folder_in_two_repeats
+# Expected: E_SOURCE_REPEAT_REUSED
+# Source: Extra: repeat pairing
+# Source folder CTRL/exp7 belongs to repeats Day2 and Day3.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 10
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+source_channels = ["DNA"]
+
+[repeats.Day2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.Day2.members.CTRL]
+source_repeat = "exp7"
+image_count = 6
+
+[repeats.Day2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day3]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.Day3.members.CTRL]
+source_repeat = "exp7"
+image_count = 6
+
+[repeats.Day3.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["Day2", "Day3", "rep1"]
+technical_repeats = ["single"]

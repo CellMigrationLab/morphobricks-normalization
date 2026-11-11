@@ -1,0 +1,65 @@
+# Fixture v03_paired_different_folder_names
+# Expected: PASS
+# Source: RFC case 3; adversarial 8
+# Source folders rep1 (CTRL) and experiment_23 (DrugA) paired by the user into canonical repeat Day1; rep2/rep2_drug into Day2. MorphoCoverage must see Day1 and Day2 as the biological repeats.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.ACTIN]
+display_name = "F-actin"
+
+[repeats.Day1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.Day1.members.CTRL]
+source_repeat = "rep1"
+image_count = 9
+
+[repeats.Day1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day1.members.DrugA]
+source_repeat = "experiment_23"
+image_count = 7
+
+[repeats.Day1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.Day2.members.CTRL]
+source_repeat = "rep2"
+image_count = 9
+
+[repeats.Day2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.Day2.members.DrugA]
+source_repeat = "rep2_drug"
+image_count = 8
+
+[repeats.Day2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["ACTIN", "DNA"]
+repeats = ["Day1", "Day2"]
+technical_repeats = ["single"]

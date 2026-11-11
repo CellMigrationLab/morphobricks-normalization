@@ -7,18 +7,17 @@ brick or read from ``plane_histograms.csv`` obeys the same ones. A statistic
 that breaks a rule is refused with a ``ValueError``; nothing is clipped,
 rounded or filled in.
 
-The sums of a tail are float64 accumulations of the tail's pixel values, so
-the checks that compare them allow a relative rounding slack of
-``MOMENT_TOLERANCE``. A float64 plane whose values exceed about ``1e154`` can
-overflow its sum of squares to infinity (and its sum beyond ``1.8e308``); such
-an overflow is accepted only where the tail's range makes it possible.
+A tail holds its pixels' count, mean and population standard deviation, each the
+float64 nearest its exact value (:mod:`~morphobricks_normalization.tail_moments`), so
+both are finite for finite pixels: the mean lies between the tail's extremum and its
+binning limit, and the standard deviation is at most half that range (with a rounding
+slack of ``MOMENT_TOLERANCE`` relative and one float64 step).
 """
 
 from __future__ import annotations
 
 import math
 import numbers
-import sys
 from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING
 
@@ -28,8 +27,8 @@ if TYPE_CHECKING:  # the histogram module imports this one
     from .histogram import HistogramTail, PlaneHistogram
 
 INT64_MAX = 2**63 - 1
-# Relative rounding slack of the float64 tail sums: summing N values in float64
-# loses at most about N * 2.2e-16 relative, far below this for any plane.
+# Relative rounding slack of a tail's half range against its standard deviation, each
+# rounded once from exact values (a few 2.2e-16 relative at most).
 MOMENT_TOLERANCE = 1e-9
 # Below this float64 estimate, the int64 sum of non-negative counts cannot have
 # wrapped (its rounding is far smaller than the 2**62 left before 2**63).
@@ -97,39 +96,29 @@ def exact_total(counts: np.ndarray) -> int:
     return sum(counts.tolist())
 
 
-def check_tail(count: object, total: object, squares: object) -> tuple[int, float, float]:
-    """Check one tail's count and sums on their own; return them as int and floats.
+def check_tail(count: object, mean: object, std: object) -> tuple[int, float, float]:
+    """Check one tail's count, mean and standard deviation; return them as int and floats.
 
     Raises
     ------
     ValueError
-        For a count that is not a whole number of pixels, sums of an empty tail
-        that are not zero, a NaN sum, a negative sum of squares, an infinite sum
-        with a finite sum of squares, or sums no set of values can have
-        (``count * sum_of_squares < sum**2``).
+        For a count that is not a whole number of pixels, an empty tail whose mean or
+        standard deviation is not zero, or a populated tail whose mean is not finite or
+        whose standard deviation is not a finite number 0 or above.
     """
     count = pixel_count(count, "pixel count of an underflow or overflow")
-    total, squares = float(total), float(squares)
+    mean, std = float(mean), float(std)
     if count == 0:
-        if total != 0 or squares != 0:
-            raise ValueError("an empty underflow or overflow must have zero sums.")
-        return count, total, squares
-    if math.isnan(total) or not squares >= 0:
+        if mean != 0 or std != 0:
+            raise ValueError("an empty underflow or overflow must have mean and std 0.")
+        return count, mean, std
+    if not (math.isfinite(mean) and math.isfinite(std) and std >= 0):
         raise ValueError(
-            f"an underflow or overflow of {count} pixel(s) has sum {total!r} and sum of squares "
-            f"{squares!r}; the sum must be a number and the sum of squares 0 or more."
+            f"an underflow or overflow of {count} pixel(s) has mean {mean!r} and standard "
+            f"deviation {std!r}; the mean must be finite and the standard deviation a finite "
+            "number 0 or above."
         )
-    if math.isinf(total) and math.isfinite(squares):
-        raise ValueError(
-            f"an underflow or overflow has an infinite sum {total!r} but a finite sum of "
-            f"squares {squares!r}."
-        )
-    if math.isfinite(squares) and count * squares < total * total * (1 - MOMENT_TOLERANCE):
-        raise ValueError(
-            f"an underflow or overflow of {count} pixel(s) has sum {total!r} and sum of squares "
-            f"{squares!r}, which no {count} values can have (their variance would be negative)."
-        )
-    return count, total, squares
+    return count, mean, std
 
 
 def check_histogram(histogram: PlaneHistogram) -> None:
@@ -217,27 +206,13 @@ def _check_range(
 
 
 def _check_tail_range(name: str, tail: HistogramTail, low: float, high: float) -> None:
-    """Check that a tail's mean and sum of squares are possible for values in ``[low, high]``."""
-    slack = MOMENT_TOLERANCE * max(abs(low), abs(high))
-    largest = max(low * low, high * high)
-    smallest = 0.0 if low <= 0 <= high else min(low * low, high * high)
-    if math.isinf(tail.sum):
-        possible = (
-            tail.count * max(abs(low), abs(high)) * (1 + MOMENT_TOLERANCE) >= sys.float_info.max
-        )
-    else:
-        possible = low - slack <= tail.sum / tail.count <= high + slack
-    if math.isinf(tail.sum_of_squares):
-        possible = possible and tail.count * largest * (1 + MOMENT_TOLERANCE) >= sys.float_info.max
-    else:
-        possible = possible and (
-            tail.count * smallest * (1 - MOMENT_TOLERANCE)
-            <= tail.sum_of_squares
-            <= tail.count * largest * (1 + MOMENT_TOLERANCE)
-        )
-    if not possible:
+    """Check that a tail's mean and spread are possible for values in ``[low, high]``."""
+    # Values in [low, high] have a mean in it and a standard deviation of at most half of it.
+    largest = 0.5 * high - 0.5 * low
+    slack = math.ulp(max(abs(low), abs(high)))
+    if not (low <= tail.mean <= high and tail.std <= largest * (1 + MOMENT_TOLERANCE) + slack):
         raise ValueError(
-            f"The {name} of {tail.count} pixel(s) between {low!r} and {high!r} has sum "
-            f"{tail.sum!r} and sum of squares {tail.sum_of_squares!r}, which values in that "
-            "range cannot have."
+            f"The {name} of {tail.count} pixel(s) between {low!r} and {high!r} has mean "
+            f"{tail.mean!r} and standard deviation {tail.std!r}, which values in that range "
+            "cannot have."
         )

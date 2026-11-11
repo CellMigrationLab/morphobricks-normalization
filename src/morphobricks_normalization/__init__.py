@@ -8,10 +8,18 @@ modifies source images.
 """
 
 from ._version import __version__
+from .channels import check_channel_id, check_channel_ids
 from .checks import IntensityCheckSettings, intensity_checks, unchecked_channels
-from .csv_io import OUTPUT_FILENAME, read_plane_histograms, write_plane_histograms
+from .csv_io import (
+    OUTPUT_FILENAME,
+    CsvFormatError,
+    PlaneHistogramTable,
+    read_plane_histogram_table,
+    read_plane_histograms,
+    write_plane_histograms,
+)
 from .dtypes import UnsupportedDtypeError, default_bin_count
-from .fitting import Parameters, fit
+from .fitting import ChannelScopeIncompleteError, Parameters, fit
 from .histogram import (
     HistogramTail,
     PlaneHistogram,
@@ -40,7 +48,15 @@ from .ranges import (
     RangeCheck,
     range_check_issues,
 )
-from .records import SINGLE, PlaneRecord, group_records, make_plane_id
+from .records import (
+    SINGLE,
+    ChannelMeasurementError,
+    ChannelMeasurementFailure,
+    PlaneRecord,
+    check_measurements,
+    group_records,
+    make_plane_id,
+)
 from .rgb import apply_rgb, rgb_percentile
 from .scopes import group_key, group_name, scope_groups
 from .settings import MethodNotAllowedError, NormalizationSettings, check_settings
@@ -55,6 +71,10 @@ from .summaries import (
 __all__ = [
     "OUTPUT_FILENAME",
     "SINGLE",
+    "ChannelMeasurementError",
+    "ChannelMeasurementFailure",
+    "ChannelScopeIncompleteError",
+    "CsvFormatError",
     "HistogramSettings",
     "HistogramTail",
     "ImageSummary",
@@ -68,6 +88,7 @@ __all__ = [
     "NormalizationSettings",
     "Parameters",
     "PlaneHistogram",
+    "PlaneHistogramTable",
     "PlaneRecord",
     "PooledHistogram",
     "PooledStatistics",
@@ -76,6 +97,9 @@ __all__ = [
     "WeightedHistogram",
     "__version__",
     "apply_rgb",
+    "check_channel_id",
+    "check_channel_ids",
+    "check_measurements",
     "check_settings",
     "compute_block_histogram",
     "compute_plane_histogram",
@@ -93,6 +117,7 @@ __all__ = [
     "percentile_range",
     "pooled_statistics",
     "range_check_issues",
+    "read_plane_histogram_table",
     "read_plane_histograms",
     "rgb_percentile",
     "robust_z_score",

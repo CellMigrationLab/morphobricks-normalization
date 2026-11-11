@@ -1,0 +1,104 @@
+# Fixture t06_member_added
+# Expected: no R_* code: accepted (against predecessor valid/v01)
+# Source: Owner decision AQ1
+# Adding is not a change of entity. Against v01: a new condition DrugB joins the existing repeats rep1 and rep2 as a member, and a new folder CTRL/rep3 (new repeat rep3) joins the existing condition CTRL. Every member folder, position and alias of v01 is still there. The confirmation of rep1 and rep2 is reopened by the new member (grouping change, experiment-v1 10) and re-confirmed on 2026-11-07, so the changed `confirmed_on` is not R_CONFIRMED_ON_CHANGED. DrugB and rep3 are new IDs, listed in `used_ids`. Valid alone with W_REPEAT_MISSING_CONDITIONS (rep3).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+target = "SRC"
+treatment_key = "saracatinib"
+
+[conditions.DrugB]
+source_folder = "DrugB"
+display_name = "Drug B"
+reference = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[channels.ACTIN]
+display_name = "F-actin"
+header_names = ["Phalloidin-488"]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-07"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 12
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 11
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep1.members.DrugB]
+source_repeat = "rep1_b"
+image_count = 9
+
+[repeats.rep1.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-07"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 10
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep2.members.DrugB]
+source_repeat = "rep2_b"
+image_count = 8
+
+[repeats.rep2.members.DrugB.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[repeats.rep3]
+confirmed = true
+confirmed_on = "2026-11-07"
+
+[repeats.rep3.members.CTRL]
+source_repeat = "rep3"
+image_count = 10
+
+[repeats.rep3.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["CTRL", "DrugA", "DrugB"]
+channels = ["ACTIN", "DNA"]
+repeats = ["rep1", "rep2", "rep3"]
+technical_repeats = ["single"]

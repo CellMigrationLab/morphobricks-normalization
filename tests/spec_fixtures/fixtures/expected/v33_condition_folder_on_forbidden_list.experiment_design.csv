@@ -1,0 +1,5 @@
+condition,biological_repeat,repeat_group,control,image_count,technical_repeat_count,confirmed,confirmed_on,schema_version
+DrugA,rep1,rep1,false,11,0,true,2026-11-06,1
+DrugA,rep2,rep2,false,10,0,true,2026-11-06,1
+control,rep1,rep1,true,12,0,true,2026-11-06,1
+control,rep2,rep2,true,10,0,true,2026-11-06,1

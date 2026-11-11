@@ -1,0 +1,34 @@
+# Fixture v35_flat_experiment
+# Expected: PASS
+# Source: Matrix audit 2026-11-07 (case F01)
+# An experiment folder that is itself the leaf: no condition, biological-repeat or technical-repeat folder. Preprocessing labels all three levels `single` (contract 1). The condition `single` has `source_folder = "single"` ("no condition folder level", 3.2, 4.2, 4.6a) and is the only condition; see i131-i133 for the refused misuses (owner decision SQ6, matrix audit MS-1).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.single]
+source_folder = "single"
+
+[channels.ACTIN]
+header_names = ["Actin"]
+
+[channels.DNA]
+display_name = "DAPI"
+header_names = ["DAPI"]
+
+[repeats.single]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.single.members.single]
+source_repeat = "single"
+image_count = 4
+
+[repeats.single.members.single.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "ACTIN"]
+
+[used_ids]
+conditions = ["single"]
+channels = ["ACTIN", "DNA"]
+repeats = ["single"]
+technical_repeats = ["single"]

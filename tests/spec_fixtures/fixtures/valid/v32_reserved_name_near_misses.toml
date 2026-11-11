@@ -1,0 +1,43 @@
+# Fixture v32_reserved_name_near_misses
+# Expected: PASS
+# Source: Owner decision AQ4
+# Names next to the reserved list (experiment-v1 3.2) are valid: channels c1, t0, z2 and label, masks Patches and Labels. Only the exact names, compared case-folded, are reserved (t, z0, label_id, patch_id, ...).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[channels.c1]
+
+[channels.t0]
+
+[channels.z2]
+
+[channels.label]
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 4
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["c1", "t0", "z2", "label"]
+
+[masks.Patches]
+source_type = "patches"
+representation = "instances"
+
+[masks.Labels]
+source_type = "labels"
+representation = "binary"
+
+[used_ids]
+conditions = ["CTRL"]
+channels = ["c1", "label", "t0", "z2"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

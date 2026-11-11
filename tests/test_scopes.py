@@ -184,3 +184,42 @@ def test_existing_label_groups_keep_their_meaning():
         ("control", "r1"),
         ("treated", "r1"),
     ]
+
+
+REPEAT_PER_T = NormalizationSettings(scope="biological_repeat", per_time_point=True)
+
+
+def missing_items(records, settings, pairing=None):
+    _, issues = scope_groups(records, settings, pairing)
+    return [item for issue in issues for item in issue.items]
+
+
+def test_per_time_point_repeat_groups_are_checked_at_each_time_point():
+    # Issue #41: each condition only at one time point of r1, so both fitted groups lack one.
+    records = [record("control", "r1", t=0), record("treated", "r1", t=1)]
+    groups, issues = scope_groups(records, REPEAT_PER_T)
+    assert list(groups) == [("r1", 0), ("r1", 1)]
+    (issue,) = issues
+    assert (issue.code, issue.items) == ("repeat_missing_conditions", ("r1::t=0", "r1::t=1"))
+    assert "r1::t=0: no images from treated" in issue.message
+    assert "r1::t=1: no images from control" in issue.message
+    # Pooled over time the same rows form one complete group: no warning, as before.
+    assert missing_items(records, REPEAT) == []
+
+
+def test_per_time_point_completeness_controls():
+    complete = [record(c, "r1", t=t) for c in ("control", "treated") for t in (0, 1)]
+    assert missing_items(complete, REPEAT_PER_T) == []
+    # A condition with no images at all at one time point, in every repeat.
+    staggered = [r for r in complete if (r.condition, r.t) != ("treated", 1)]
+    staggered += [record("control", "r2", t=0), record("treated", "r2", t=0)]
+    staggered.append(record("control", "r2", t=1))
+    assert missing_items(staggered, REPEAT_PER_T) == ["r1::t=1", "r2::t=1"]
+    assert missing_items(staggered, REPEAT) == []
+    # Renamed pairs are checked under the label of the pairing.
+    pairing = {("control", "r1"): "A", ("treated", "r1"): "A"}
+    pairing |= {("control", "r2"): "B", ("treated", "r2"): "B"}
+    assert missing_items(staggered, REPEAT_PER_T, pairing) == ["A::t=1", "B::t=1"]
+    # The image scope has no repeat check, with or without time points.
+    per_t_image = NormalizationSettings(scope="image", per_time_point=True)
+    assert missing_items(staggered, per_t_image) == []

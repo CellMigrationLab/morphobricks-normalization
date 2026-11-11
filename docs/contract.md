@@ -120,8 +120,14 @@ Notation in this section: `n` = `bin_count`, `lo` = `binning_min`, `hi` = `binni
 - If `W > n`: bin `i` holds the values `lo + ceil(i·W/n)` to `lo + ceil((i+1)·W/n) − 1`.
   Limits are whole numbers, consecutive bins touch without gaps or overlaps, and widths
   are `floor(W/n)` or `ceil(W/n)` values.
-- Representative value of a bin: `(first value + last value) / 2`.
+- Representative value of a bin: `(first value + last value) / 2`, the float64 nearest it.
 - Bound: every pixel is within `(widest bin − 1) / 2` of its representative.
+- Planes with a value of magnitude `2**51` or more (64-bit types, #28): float64 cannot hold
+  every value there (`2**53 + 1` is stored as `2**53`), so the bound is the exact largest
+  distance between a bin's (or tail's) integers and the float64 standing in for them, rounded
+  up. A bin is exact only when its representative equals its value, so `normalization_exact`
+  is false for a group with such a value. Counts and bin limits stay exact integers. Below
+  `2**51` representatives and bound are exact float64 arithmetic, unchanged.
 
 ##### Float planes
 
@@ -192,7 +198,7 @@ tail's mean and its count.
 | Statistic | Definition | Accuracy |
 |---|---|---|
 | min, max | Smallest `pixel_min`, largest `pixel_max` | Exact |
-| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares. The weighted sums are correctly rounded sums of the products (`math.fsum`), so they never depend on the CPU thread count or BLAS library (#67) | Exact for exact histograms; otherwise very close (errors cancel) |
+| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares. The weighted sums are correctly rounded sums of the products (`math.fsum`), so they never depend on the CPU thread count or BLAS library (#67). When the squares overflow float64 although every value is finite (`[-1e200, 1e200]`), the std is computed with the values divided by a power of two, exactly, so a finite spread is never reported as infinite (#33) | Exact for exact histograms; otherwise very close (errors cancel) |
 | percentile q | Smallest representative with cumulative count ≥ ceil(q/100 · N) (numpy `inverted_cdf`) | Within the group's largest per-plane bound |
 | median | 50th percentile | As percentiles |
 | MAD | Median of \|representative − median\| | Within twice the bound |
@@ -254,6 +260,10 @@ pixels keeps its extrema as limits; a 512 × 512 plane has 26 pixels in each tai
 - Percentiles, median and MAD: each non-empty tail stands as one value, its mean, with its
   count.
 - Mean and standard deviation use the tails' sums: as exact as without tails.
+- A tail whose sum of squares is not finite (its pixels' squares overflowed float64 when the
+  file was written, values beyond about `1.3e154`) has no known spread: the standard
+  deviation, and so `zscore`, is refused with a message naming the tail (#33). Mean,
+  percentiles, median and MAD do not use it.
 - Min-max parameters use the exact extrema (`pixel_min`, `pixel_max`).
 - `max_representative_error` is the larger of the bins' bound and, for each non-empty tail,
   the larger distance from the tail's mean to its two ends (`max(mean − pixel_min,
@@ -456,7 +466,9 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
   forms a group with the other conditions' `single` rows, or with the repeat it is paired
   with.
 - **Incomplete groups:** a repeat group without rows from every condition of the statistics
-  gives the warning `repeat_missing_conditions` (§9.2) and is still used.
+  gives the warning `repeat_missing_conditions` (§9.2) and is still used. With
+  `per_time_point=true` each time point's group is checked on its own and named in the
+  warning as `<label>::t=<t>` (#41).
 
 ### 4.3 Pooling weights
 

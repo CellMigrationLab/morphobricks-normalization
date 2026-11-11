@@ -2,13 +2,23 @@ import numpy as np
 import pytest
 
 from morphobricks_normalization import (
+    NormalizationSettings,
     NoValidPixelsError,
+    PlaneRecord,
     PooledHistogram,
     compute_plane_histogram,
+    fit,
     group_records,
     pooled_statistics,
+    read_plane_histograms,
+    write_plane_histograms,
+    z_score,
 )
-from morphobricks_normalization.pooling import DEFAULT_PERCENTILES, _linear_percentile
+from morphobricks_normalization.pooling import (
+    DEFAULT_PERCENTILES,
+    WeightedHistogram,
+    _linear_percentile,
+)
 from morphobricks_normalization.ranges import HistogramSettings
 from simulation import direct_stats, make_records, simulate_experiment
 
@@ -142,3 +152,88 @@ def test_percentiles_from_pixels_near_float64_limits_are_finite_and_exact(q, lim
     assert np.isfinite(result)
     assert abs(Fraction(result) - expected) <= abs(expected) * Fraction(1, 10**14)
     assert np.isfinite(pooled.percentile(q))
+
+
+# Standard deviations of large finite values (#33) -------------------------------------
+
+
+def exact_std(values, weights, tails=()):
+    """Population standard deviation of weighted values and (count, sum, squares) tails.
+
+    Every float is taken at its exact value (Fraction) and the square root in 40 digits, so
+    nothing here can overflow or round like the package's float64 arithmetic.
+    """
+    from decimal import Decimal, localcontext
+    from fractions import Fraction
+
+    values = [Fraction(v) for v in np.asarray(values, dtype=float).tolist()]
+    weights = [Fraction(w) for w in np.asarray(weights, dtype=float).tolist()]
+    tails = [tuple(Fraction(x) for x in tail) for tail in tails]
+    total = sum(weights) + sum(c for c, _, _ in tails)
+    mean = (
+        sum(w * v for w, v in zip(weights, values, strict=True)) + sum(s for _, s, _ in tails)
+    ) / total
+    squares = sum(w * (v - mean) ** 2 for w, v in zip(weights, values, strict=True))
+    squares += sum(s2 - s * s / c + c * (s / c - mean) ** 2 for c, s, s2 in tails)
+    variance = squares / total
+    with localcontext() as context:
+        context.prec = 40
+        return float((Decimal(variance.numerator) / Decimal(variance.denominator)).sqrt())
+
+
+LARGE_PLANES = {
+    "opposite 1e200": [-1e200, 1e200],
+    "1e200 +- 1e185": [1e200 - 1e185, 1e200, 1e200 + 1e185],
+    "opposite 1e308": [-1e308, 0.0, 1e308],
+    "constant 1e200": [1e200] * 5,
+}
+
+
+@pytest.mark.parametrize("name", LARGE_PLANES)
+def test_std_of_large_finite_values_is_finite_and_exact(name):
+    hist = compute_plane_histogram(np.array(LARGE_PLANES[name]), 64)
+    pooled = PooledHistogram([hist])
+    expected = exact_std(pooled.values, pooled.counts)
+    assert np.isfinite(expected)
+    assert pooled.std == pytest.approx(expected, rel=1e-14, abs=0)
+    if name != "constant 1e200":
+        parameters = z_score(pooled)
+        assert parameters.scale == pooled.std and np.isfinite(parameters.offset)
+
+
+def test_weighted_std_of_large_finite_values_is_finite_and_exact():
+    parts = [
+        PooledHistogram([compute_plane_histogram(np.array(LARGE_PLANES[name]), 64)])
+        for name in ("opposite 1e200", "1e200 +- 1e185")
+    ]
+    weighted = WeightedHistogram(parts, [0.5, 2.0])
+    expected = exact_std(weighted.values, weighted.weights)
+    assert weighted.std == pytest.approx(expected, rel=1e-14, abs=0)
+
+
+def test_std_with_large_tails_is_found_by_scaling():
+    plane = np.random.default_rng(7).normal(0, 1, 10000) * 1e153
+    settings = HistogramSettings(histogram_range="robust", robust_quantiles=(0.05, 99.95))
+    hist = compute_plane_histogram(plane, 256, settings=settings)
+    assert hist.has_tails and np.isfinite(hist.overflow.sum_of_squares)
+    pooled = PooledHistogram([hist])
+    expected = exact_std(pooled.bin_values, pooled.bin_counts, pooled.tails)
+    assert pooled.std == pytest.approx(expected, rel=1e-12, abs=0)
+    assert pooled.std == pytest.approx(np.std(plane / 1e153) * 1e153, rel=1e-4)
+
+
+def test_tail_whose_squares_overflowed_is_a_named_refusal(tmp_path):
+    plane = np.random.default_rng(1).normal(0, 1, 10000) * 1e150
+    plane[:5] = (1e200, 2e200, -1e200, 3e200, -2e200)
+    with np.errstate(over="ignore"):  # the tail's squares overflow as the file is written
+        hist = compute_plane_histogram(plane, 256, settings=ROBUST)
+    assert hist.overflow.sum_of_squares == np.inf
+    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a")
+    (back,) = read_plane_histograms(write_plane_histograms([record], tmp_path / "p.csv"))
+    pooled = PooledHistogram([back.histograms[0]])
+    assert np.isfinite(pooled.mean) and np.isfinite(pooled.percentile(50))
+    message = "pooled: tail 1 of 2 has sum of squares inf, tail 2 of 2 has sum of squares inf"
+    with pytest.raises(ValueError, match=message):
+        pooled.summary()  # the standard deviation; mean and percentiles stay available
+    with pytest.raises(ValueError, match="percentile or robust z-score"):
+        fit([back], NormalizationSettings(method="zscore", scope="image"), group="a.tif")

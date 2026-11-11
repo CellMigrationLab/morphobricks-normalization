@@ -167,9 +167,7 @@ class PooledHistogram:
             return _std_with_tails(
                 self.bin_values, self.bin_counts, self.tails, self.pixel_count, self.mean
             )
-        deviations = self.values - self.mean
-        squares = weighted_sum(self.counts, deviations * deviations)
-        return float(np.sqrt(squares / self.pixel_count))
+        return _std_with_tails(self.values, self.counts, [], self.pixel_count, self.mean)
 
     def percentile(self, q: float) -> float:
         """Inverse-CDF percentile, ``q`` in percent (0-100)."""
@@ -307,9 +305,7 @@ class WeightedHistogram:
             return _std_with_tails(
                 self.bin_values, self.bin_weights, self.tails, self.total_weight, self.mean
             )
-        deviations = self.values - self.mean
-        squares = weighted_sum(self.weights, deviations * deviations)
-        return float(np.sqrt(squares / self.total_weight))
+        return _std_with_tails(self.values, self.weights, [], self.total_weight, self.mean)
 
     def percentile(self, q: float) -> float:
         """Weighted inverse-CDF percentile, ``q`` in percent (0-100)."""
@@ -393,14 +389,67 @@ def _std_with_tails(
     total: float,
     mean: float,
 ) -> float:
-    deviations = values - mean
+    """Return the population standard deviation of the bins (and tails) around ``mean`` (#33).
+
+    The squares are first summed as they are, which keeps every finite result bit for
+    bit. When that overflows although the mean and every value are finite (``[-1e200,
+    1e200]`` has standard deviation ``1e200`` but squares of ``1e400``), the sum is redone
+    with every value divided by a power of two near the largest, which is exact, so the finite
+    spread is found. A tail whose stored sum of squares is not finite is refused by name.
+    """
+    squares = [s2 for _, _, s2 in tails]
+    if not all(math.isfinite(s2) for s2 in squares):
+        raise ValueError(_non_finite_squares_message(squares))
+    try:
+        with np.errstate(over="ignore", invalid="ignore"):  # an overflow is redone below
+            std = _std_scaled(values, weights, tails, total, mean, 1.0)
+    except OverflowError:  # float ** 2 raises where NumPy gives inf
+        std = math.inf
+    if math.isfinite(std) or not (math.isfinite(mean) and np.isfinite(values).all()):
+        return std
+    largest = max(float(np.max(np.abs(values), initial=0.0)), abs(mean))
+    largest = max([largest] + [abs(s / count) for count, s, _ in tails])
+    # Values divided by 2**(exponent - 1) are below 2 in magnitude, and the scale is finite.
+    return _std_scaled(
+        values, weights, tails, total, mean, math.ldexp(1.0, math.frexp(largest)[1] - 1)
+    )
+
+
+def _std_scaled(
+    values: np.ndarray,
+    weights: np.ndarray,
+    tails: list[tuple[float, float, float]],
+    total: float,
+    mean: float,
+    scale: float,
+) -> float:
+    """Return the standard deviation computed in units of ``scale``, a power of two (1: as is)."""
+    mean = mean / scale
+    deviations = values / scale - mean
     squares = weighted_sum(weights, deviations * deviations)
     for count, s, s2 in tails:
         # Each tail adds its spread around its own mean and its mean's distance
         # from the overall mean; the spread never goes negative through rounding.
+        s, s2 = s / scale, s2 / scale / scale
         tail_mean = s / count
         squares += max(s2 - s * tail_mean, 0.0) + count * (tail_mean - mean) ** 2
-    return float(np.sqrt(squares / total))
+    return float(np.sqrt(squares / total)) * scale
+
+
+def _non_finite_squares_message(squares: list[float]) -> str:
+    """Refusal text for tails whose sum of squares overflowed float64 when it was computed."""
+    bad = ", ".join(
+        f"tail {number} of {len(squares)} has sum of squares {s2!r}"
+        for number, s2 in enumerate(squares, 1)
+        if not math.isfinite(s2)
+    )
+    return (
+        f"The standard deviation cannot be pooled: {bad}. The squares of pixels outside the "
+        "robust range overflowed float64 when the statistics file was written (pixel values "
+        "beyond about 1.3e154), so their spread is not known, although it may be finite. Use "
+        "a method that does not need the standard deviation (percentile or robust z-score), "
+        "or the min-max range."
+    )
 
 
 def _channel_histogram(record: PlaneRecord, channel: int | None) -> PlaneHistogram:

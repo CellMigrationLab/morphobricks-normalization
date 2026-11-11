@@ -34,6 +34,8 @@ src/morphobricks_normalization/
   bin_centres.py    float_bin_centres: bin centres that do not overflow near the float64 limits
   bin_reachability.py  float_bin_indices, reachable_float_bins, centres_map_back: which float
                     bins a value can fall in and whether centres map back (#86)
+  integer_representatives.py  integer bin representatives (nearest float64 midpoint) and
+                    their exact bound for 64-bit values float64 cannot hold (#28)
   ranges.py         HistogramSettings, RangeCheck, range_check_issues (Milestone 5)
   integrity.py      invariants every PlaneHistogram and HistogramTail checks when made
                     (counts, limits, tail sums) and the pixel type of every block

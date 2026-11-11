@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from morphobricks_normalization import (
+    ChannelScopeIncompleteError,
     MethodNotAllowedError,
     NormalizationParameters,
     NormalizationSettings,
@@ -401,7 +402,10 @@ def test_fit_pools_each_channel_over_the_rows_that_have_it():
         ),
         PlaneRecord("c/r/b.tif", "c", "r", "single", (a,), position_id="p", channels=("DNA",)),
     ]
-    parameters = fit(rows, NormalizationSettings(method="minmax"), group="r")
+    with pytest.raises(ChannelScopeIncompleteError, match="channel PHASE is present in 1 of 2"):
+        fit(rows, NormalizationSettings(method="minmax"), group="r")  # refused by default
+    subset = NormalizationSettings(method="minmax", partial_channels="planes_with_channel")
+    parameters = fit(rows, subset, group="r")
     assert parameters.channels == ("DNA", "PHASE")
     assert (parameters.offset, parameters.scale) == ((0.0, 100.0), (9.0, 9.0))
     (issue,) = [i for i in parameters.issues if i.code == "channel_partially_present"]

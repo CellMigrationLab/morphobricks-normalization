@@ -22,6 +22,7 @@ from described import FIXTURES, fixture, images, parse, pixels_of, record, recor
 from morphobricks_normalization import (
     ChannelMeasurementError,
     ChannelMeasurementFailure,
+    ChannelScopeIncompleteError,
     NormalizationSettings,
     Parameters,
     PooledHistogram,
@@ -81,6 +82,7 @@ technical_repeats = ["single"]
 """
 )
 SHARED = ("ACTIN", "DNA", "TUBULIN")
+SUBSET = {"partial_channels": "planes_with_channel"}  # the user's recorded choice
 METHODS = ("minmax", "percentile", "zscore", "robust_zscore")
 
 
@@ -153,8 +155,19 @@ def test_owner_case_table_lists_every_id_and_leaves_the_extra_stain_blank_elsewh
 @pytest.mark.parametrize("method", METHODS)
 def test_owner_case_shared_stains_pool_across_repeats_extra_only_within_its_repeat(owner, method):
     description, _, rows = owner
-    settings = NormalizationSettings(method=method, scope="biological_repeat")
-    pooled = fit(rows, settings, group="all")  # every repeat pooled (a global fit)
+    refused = NormalizationSettings(method=method, scope="biological_repeat")
+    with pytest.raises(
+        ChannelScopeIncompleteError, match="channel EXTRA_STAIN is present in 8 of 24"
+    ) as e:
+        fit(rows, refused, group="all")  # by default a channel some planes lack is refused
+    assert list(e.value.channels) == ["EXTRA_STAIN"]
+    assert {p.split("/")[1] for p in e.value.channels["EXTRA_STAIN"]} == {
+        "Biological_repeat_1",
+        "Biological_repeat_3",
+    }
+    assert fit(rows, refused, group="all", channels=SHARED).channels == SHARED
+    settings = NormalizationSettings(method=method, scope="biological_repeat", **SUBSET)
+    pooled = fit(rows, settings, group="all")  # every repeat pooled (a global fit), opted in
     assert pooled.channels == ("ACTIN", "DNA", "EXTRA_STAIN", "TUBULIN")
     for channel in SHARED:
         assert_direct(pooled, channel, pixels_of(description, channel), method)
@@ -263,10 +276,26 @@ def _unswapped_v04_text():
 # --- v17: partial channel presence -------------------------------------------------------------
 
 
-def test_v17_partial_presence_is_fitted_where_present_and_reported(tmp_path):
+def test_v17_partial_presence_is_refused_by_default(tmp_path):
+    description = fixture("v17_partial_channel_presence")
+    _, read = table(tmp_path, description, records(description))
+    settings = NormalizationSettings(scope="biological_repeat")
+    groups, _ = scope_groups(read.records, settings, description.repeat_groups())
+    assert fit(groups[("R001",)], settings, group="R001").channels == ("ACTIN", "DNA")
+    with pytest.raises(
+        ChannelScopeIncompleteError,
+        match="A_SCOPE_INCOMPLETE: in group 'R002', channel PHASE is present in",
+    ) as e:
+        fit(groups[("R002",)], settings, group="R002")
+    assert {item.split("/")[2] for item in e.value.channels["PHASE"]} == {"acquisition_2"}
+    fitted = fit(groups[("R002",)], settings, group="R002", channels=["ACTIN", "DNA"])
+    assert fitted.channels == ("ACTIN", "DNA") and fitted.issues == ()
+
+
+def test_v17_partial_presence_is_fitted_where_present_when_selected_and_reported(tmp_path):
     description = fixture("v17_partial_channel_presence")
     path, read = table(tmp_path, description, records(description))
-    fits = repeat_fits(description, read.records)
+    fits = repeat_fits(description, read.records, **SUBSET)
     assert fits["R001"].channels == ("ACTIN", "DNA") and fits["R001"].issues == ()
     assert fits["R002"].channels == ("ACTIN", "DNA", "PHASE")
     (warning,) = fits["R002"].issues
@@ -277,7 +306,7 @@ def test_v17_partial_presence_is_fitted_where_present_and_reported(tmp_path):
         return unit.technical_repeat == "acquisition_1"
 
     assert_direct(fits["R002"], "PHASE", pixels_of(description, "PHASE", where), "percentile")
-    settings = NormalizationSettings(scope="biological_repeat")
+    settings = NormalizationSettings(scope="biological_repeat", **SUBSET)
     groups, _ = scope_groups(read.records, settings, description.repeat_groups())
     with pytest.raises(ValueError, match="No plane of group 'R001' has channel\\(s\\) PHASE"):
         fit(groups[("R001",)], settings, group="R001", channels=["PHASE"])
@@ -309,7 +338,9 @@ def test_heterogeneous_layouts_keep_one_row_per_plane_and_one_group_per_repeat(t
     rows = records(description)
     _, read = table(tmp_path, description, rows)
     assert len(read.records) == len(rows)  # N41: the row is the plane
-    fits = repeat_fits(description, read.records)
+    with pytest.raises(ChannelScopeIncompleteError):  # PHASE in part of a repeat: refused
+        repeat_fits(description, read.records)
+    fits = repeat_fits(description, read.records, **SUBSET)
     assert sorted(fits) == sorted({u.repeat for u in description.units})  # never per acquisition
     for group, parameters in fits.items():
         for channel in parameters.channels:
@@ -325,7 +356,7 @@ def test_a_channel_id_with_an_underscore_names_its_columns(tmp_path):
     assert (
         "Histogram_ValidPixelCount_PAX_488" in header and "Histogram_Count_PAX_488_00255" in header
     )
-    parameters = repeat_fits(description, read.records)["R001"]
+    parameters = repeat_fits(description, read.records, **SUBSET)["R001"]
     assert "Normalization_Scale_PAX_488" in parameters.to_columns()
 
 
@@ -339,7 +370,9 @@ def test_a_single_field_of_view_without_a_channel_is_named_and_never_zero_filled
         odd = path == "DrugA/rep2/img_1.tif"  # acquired without ACTIN
         rows.append(record(unit, path, t, pixels[:1] if odd else pixels, ("DNA",) if odd else None))
     _, read = table(tmp_path, description, rows)
-    fits = repeat_fits(description, read.records)
+    with pytest.raises(ChannelScopeIncompleteError, match="channel ACTIN is present in 10 of 12"):
+        repeat_fits(description, read.records)
+    fits = repeat_fits(description, read.records, **SUBSET)
     (warning,) = fits["rep2"].issues
     assert warning.channel == "ACTIN"
     assert warning.items == ("DrugA/rep2/img_1.tif::z=0,t=0", "DrugA/rep2/img_1.tif::z=0,t=1")

@@ -19,7 +19,7 @@ from .csv_io import (
     write_plane_histograms,
 )
 from .dtypes import UnsupportedDtypeError, default_bin_count
-from .fitting import Parameters, fit
+from .fitting import ChannelScopeIncompleteError, Parameters, fit
 from .histogram import (
     HistogramTail,
     PlaneHistogram,
@@ -73,6 +73,7 @@ __all__ = [
     "SINGLE",
     "ChannelMeasurementError",
     "ChannelMeasurementFailure",
+    "ChannelScopeIncompleteError",
     "CsvFormatError",
     "HistogramSettings",
     "HistogramTail",

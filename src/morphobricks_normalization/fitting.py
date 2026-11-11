@@ -16,8 +16,10 @@ separately. The RGB method is StarDist's percentile normalization of
 and share one offset and scale.
 
 Channels are addressed by canonical channel ID, never by their index in the image
-(ADR 0003 HV2): rows of one group may have different channels, and a channel is
-pooled over the rows that have it. Parameters are stored as one
+(ADR 0003 HV2). Rows of one group may have different channels; a channel that only some
+rows of the group have is refused (:class:`ChannelScopeIncompleteError`, the Spec's
+``A_SCOPE_INCOMPLETE``) unless the settings record the user's choice to pool it over the
+rows that have it (``partial_channels="planes_with_channel"``). Parameters are stored as one
 ``Normalization_Offset_<ID>`` and ``Normalization_Scale_<ID>`` pair per channel
 (contract §8.1, N41, N42 as amended); for RGB the shared value is written for R, G
 and B.
@@ -59,8 +61,28 @@ from .rgb import (
 from .settings import NormalizationSettings, check_settings
 
 # Re-exported: the parameter columns are part of this module's interface (contract §1.3).
-__all__ = ["COLUMNS", "Parameters", "fit", "offset_column", "scale_column"]
+__all__ = [
+    "COLUMNS",
+    "ChannelScopeIncompleteError",
+    "Parameters",
+    "fit",
+    "offset_column",
+    "scale_column",
+]
 _MAX_LISTED = 5
+
+
+class ChannelScopeIncompleteError(ValueError):
+    """A channel to fit is absent from some planes of the group (Spec ``A_SCOPE_INCOMPLETE``).
+
+    Raised by :func:`fit` unless the settings select the planes that have the channel
+    (``partial_channels="planes_with_channel"``). ``channels`` maps each such channel ID to
+    the ``plane_id`` of every plane of the group that lacks it.
+    """
+
+    def __init__(self, message: str, channels: dict[str, tuple[str, ...]]) -> None:
+        super().__init__(message)
+        self.channels = channels
 
 
 def fit(
@@ -78,9 +100,10 @@ def fit(
     statistics
         The ``plane_histograms.csv`` rows of one group (each row an XYC plane), or a
         pixel array of one image or patch (image and patch scopes only). Rows may
-        have different channels (ADR 0003): a channel is pooled over the rows that
-        have it, by its canonical channel ID, never by its position in the image;
-        for RGB the R, G and B values of every row are pooled together.
+        have different channels (ADR 0003): a channel is pooled by its canonical channel
+        ID, never by its position in the image. A channel only some rows have is refused
+        unless ``settings.partial_channels`` is ``"planes_with_channel"``; for RGB the R,
+        G and B values of every row are pooled together.
     settings
         The run's settings.
     group
@@ -91,9 +114,10 @@ def fit(
         channel.
     channels
         For rows: the channel IDs to fit; default every channel some row of the
-        group has. For a pixel array (required): the channel ID of each entry along
-        ``channel_axis``, in order, or the one ID of an array without a channel
-        axis.
+        group has (so a channel some rows lack is refused by default: leave it out by
+        listing the others, or opt in with ``partial_channels``). For a pixel array
+        (required): the channel ID of each entry along ``channel_axis``, in order, or
+        the one ID of an array without a channel axis.
 
     Returns
     -------
@@ -107,6 +131,10 @@ def fit(
     MethodNotAllowedError
         As :func:`~morphobricks_normalization.settings.check_settings`; also
         for the biological-repeat scope with pixels instead of rows.
+    ChannelScopeIncompleteError
+        If a channel to fit is absent from some rows of the group and
+        ``settings.partial_channels`` is ``"refuse"`` (default); names every such channel
+        and the planes that lack it ("present in k of n planes").
     NoValidPixelsError
         If a channel of the group has no finite pixel.
     ValueError
@@ -123,7 +151,7 @@ def fit(
     else:
         if channel_axis is not None:
             raise ValueError("channel_axis applies to pixel arrays only, not to histogram rows.")
-        items, wanted, issues = _record_items(statistics, channels, group, rgb)
+        items, wanted, issues = _record_items(statistics, channels, group, settings)
     # Contract §3.3: R, G and B pooled together give one shared offset and scale.
     channel_sets = [RGB_CHANNELS] if rgb else [(channel,) for channel in wanted]
     offset, scale, exact = [], [], True
@@ -174,9 +202,13 @@ def _pixel_items(
 
 
 def _record_items(
-    statistics: Iterable[PlaneRecord], channels: Iterable[str] | None, group: str | None, rgb: bool
+    statistics: Iterable[PlaneRecord],
+    channels: Iterable[str] | None,
+    group: str | None,
+    settings: NormalizationSettings,
 ) -> tuple[list[PlaneRecord], tuple[str, ...], tuple[list[Issue], list[str]]]:
     """Return the rows, the IDs to fit, partial-presence warnings and planes left out."""
+    rgb = settings.image_type == "rgb"
     items = _records(statistics, group)
     if rgb:  # refuse before the rows are pooled
         check_rgb_records(items, group)
@@ -189,8 +221,10 @@ def _record_items(
         for channel, histogram in zip(record.channels, record.histograms, strict=True)
         if channel in wanted and histogram.is_empty
     ]
-    partial = [] if rgb else _partial_presence(items, wanted, group)
-    return items, wanted, (partial, excluded)
+    lacking = {} if rgb else _lacking_planes(items, wanted)
+    if lacking and settings.partial_channels == "refuse":
+        raise _scope_incomplete(lacking, len(items), group)
+    return items, wanted, (_partial_presence(lacking, len(items), group), excluded)
 
 
 def _where(group: str | None, channels: tuple[str, ...], rgb: bool) -> str:
@@ -232,34 +266,65 @@ def _wanted_channels(
     return tuple(sorted(wanted))
 
 
-def _partial_presence(
-    records: list[PlaneRecord], wanted: tuple[str, ...], group: str | None
-) -> list[Issue]:
-    """One warning per channel that only some rows of the group have (never silent)."""
-    issues = []
+def _lacking_planes(
+    records: list[PlaneRecord], wanted: tuple[str, ...]
+) -> dict[str, tuple[str, ...]]:
+    """Map each wanted channel some rows lack to the ``plane_id`` of those rows."""
+    lacking = {
+        channel: tuple(record.plane_id for record in records if not record.has_channel(channel))
+        for channel in wanted
+    }
+    return {channel: planes for channel, planes in lacking.items() if planes}
+
+
+def _listed(planes: tuple[str, ...]) -> str:
+    """Return the first planes of a list, then how many more."""
+    shown = ", ".join(planes[:_MAX_LISTED])
+    more = f" and {len(planes) - _MAX_LISTED} more" if len(planes) > _MAX_LISTED else ""
+    return shown + more
+
+
+def _scope_incomplete(
+    lacking: dict[str, tuple[str, ...]], total: int, group: str | None
+) -> ChannelScopeIncompleteError:
+    """Return the refusal of channels some planes of the group lack (A_SCOPE_INCOMPLETE)."""
     name = f"group '{group}'" if group else "this group"
-    for channel in wanted:
-        lacking = [record.plane_id for record in records if not record.has_channel(channel)]
-        if not lacking:
-            continue
-        shown = ", ".join(lacking[:_MAX_LISTED])
-        more = f" and {len(lacking) - _MAX_LISTED} more" if len(lacking) > _MAX_LISTED else ""
-        issues.append(
-            Issue(
-                WARNING,
-                CHANNEL_PARTIALLY_PRESENT,
-                f"Channel {channel} is absent from {len(lacking)} of the {len(records)} planes "
-                f"of {name} ({shown}{more}); its parameters come from the "
-                f"{len(records) - len(lacking)} planes that have it. Nothing is filled in for "
-                "the others.",
-                items=tuple(lacking),
-                action="Normally no action is needed when these images were acquired without "
-                "this channel. Their channel has no parameters; normalize it only where it was "
-                "acquired.",
-                channel=channel,
-            )
+    parts = "; ".join(
+        f"channel {channel} is present in {total - len(planes)} of {total} planes (absent "
+        f"from {_listed(planes)})"
+        for channel, planes in lacking.items()
+    )
+    return ChannelScopeIncompleteError(
+        f"A_SCOPE_INCOMPLETE: in {name}, {parts}. A channel is not fitted over part of a group "
+        "without your choice, and an absent channel is never filled in. Fit groups whose planes "
+        "all have the channel (for example one biological repeat that acquired it), leave the "
+        "channel out with channels=[...], or select the planes that have it with "
+        "NormalizationSettings(partial_channels='planes_with_channel'), which is stored with "
+        "the run's settings.",
+        lacking,
+    )
+
+
+def _partial_presence(
+    lacking: dict[str, tuple[str, ...]], total: int, group: str | None
+) -> list[Issue]:
+    """One warning per channel fitted from the planes that have it (the user's subset)."""
+    name = f"group '{group}'" if group else "this group"
+    return [
+        Issue(
+            WARNING,
+            CHANNEL_PARTIALLY_PRESENT,
+            f"Channel {channel} is absent from {len(planes)} of the {total} planes of {name} "
+            f"({_listed(planes)}); as selected (partial_channels='planes_with_channel'), its "
+            f"parameters come from the {total - len(planes)} planes that have it. Nothing is "
+            "filled in for the others.",
+            items=planes,
+            action="Check that these images were acquired without this channel. Their "
+            "channel has no parameters; normalize it only where it was acquired.",
+            channel=channel,
         )
-    return issues
+        for channel, planes in lacking.items()
+    ]
 
 
 def _pixel_channel_ids(
@@ -298,7 +363,8 @@ def _channel_histograms(
     items: list[PlaneRecord] | dict[str, PlaneHistogram], channels: tuple[str, ...]
 ) -> list[PlaneHistogram]:
     # The histograms of ``channels`` in every row that has them (only the same channel ID is
-    # pooled; the rows without it are reported by _partial_presence), or of a pixel array.
+    # pooled; rows without it are refused or, as selected, reported by _partial_presence), or
+    # of a pixel array.
     if isinstance(items, dict):
         return [items[c] for c in channels]
     return [

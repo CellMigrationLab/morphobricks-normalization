@@ -4,10 +4,12 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
-## Unreleased
+## v0.5.0 (2026-11-11)
 
-Stage 3 S3.2 (MorphoBricks-Spec roadmap; ADR 0003, plan N61–N64). Breaking: `plane_histograms.csv`
-schema version 5 and channels named by canonical channel ID everywhere. Version not bumped yet.
+Breaking release. Stage 3 S3.2 (MorphoBricks-Spec roadmap; ADR 0003, plan N61–N66, PR #90):
+`plane_histograms.csv` schema version 5 and channels named by canonical channel ID everywhere,
+plus the numerical-correctness and validation fixes of #91 and #92 merged since `v0.4.0`. See
+[Migrating to v0.5.0](#migrating-to-v050).
 
 - **`plane_histograms.csv` schema version 5** (HV1, HV2): one row per plane; the presence column
   `channels` (the plane's IDs in source order, `;`-separated) after the 15 plane columns; the
@@ -110,7 +112,9 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   of squares is infinite (schema version 4 keeps raw sums of squares) is refused by name
   instead of giving `inf`: its spread is not known. No dump output changes. Not changed: the
   raw sums of squares of the file lose precision by cancellation for tails of large values
-  with a small spread; a centred representation needs a new schema version.
+  with a small spread; a centred representation needs a new schema version. (Done in this
+  release by schema version 5's centred tail moments, N65, above; the named refusals of
+  infinite tail sums are superseded by it.)
 - **Missing conditions per time point (#41).** With `scope="biological_repeat"` and
   `per_time_point=True`, `repeat_missing_conditions` checked each repeat group over all its
   time points, not the groups that are fitted, so a group such as `r1::t=0` with control
@@ -147,6 +151,74 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   before, with bit-identical results; no dump output changes. **Not compatible:** RGB
   images of 32- or 64-bit integers that were fitted before are refused; save them as 8- or
   16-bit, or choose image type `fluorescence`.
+
+### Migrating to v0.5.0
+
+For the consuming bricks (preprocessing, CellPatcher, MorphoFeature) and any other caller. Every
+brick should refuse a schema version 5 table explicitly until it is updated. Tables and parameter
+rows written by v0.4.0 are refused, never converted: recompute them.
+
+**All callers**
+
+- `PlaneRecord(..., *, position_id, channels)`: `channels` (the plane's canonical channel IDs, in
+  the source order of its imaging unit's confirmed list) is required. Use
+  `record.channel_histogram(id)` and `record.has_channel(id)`; an index where an ID is expected is
+  refused.
+- `HistogramTail(count, mean, std)` replaces `HistogramTail(count, sum, sum_of_squares)`;
+  `.sum` and `.sum_of_squares` are gone. New module `tail_moments`.
+- `fit(..., channels=)`: for rows, the IDs to fit (default every ID some row has); for a pixel
+  array, the ID of each entry along `channel_axis` (required, except RGB, whose IDs are `R`, `G`,
+  `B`). `PooledHistogram(..., channel=id)` and `pooled_statistics(..., channel=id)`.
+- A channel that only some planes of a fitted group have raises the new
+  `ChannelScopeIncompleteError` (`A_SCOPE_INCOMPLETE`, "present in k of n planes"; `.channels`
+  maps each such ID to the planes that lack it). Fit only the planes with it when the user
+  explicitly chooses `NormalizationSettings(partial_channels="planes_with_channel")`; that choice
+  is stored by `to_dict`, and each fit then reports the `channel_partially_present` warning listing
+  the planes. Offer it only as an explicit user choice.
+- `Parameters.channels` are sorted IDs; `select(ids)`, `apply(..., channels=)`. Parameter columns
+  are `Normalization_Offset_<ID>` / `Normalization_Scale_<ID>` plus
+  `normalization_parameters_version` = `2` (`parameters.COLUMNS` has five entries); `from_columns` refuses a
+  row without it or of another version (the `..._C<i>` columns of v0.4.0): fit again.
+- `Issue.channel` is a channel ID; `summary_columns(channel_ids)`; `range_check_issues` takes
+  channel IDs; `ImageSummary.channels`.
+- New: `ChannelScopeIncompleteError`, `NormalizationSettings.partial_channels`,
+  `ChannelMeasurementFailure`, `ChannelMeasurementError` (with `.failures` and `.removed`),
+  `check_measurements`, `records.check_universe`, `read_plane_histogram_table`,
+  `csv_io.table_header`, `csv_io.header_channels`; `Parameters` lives in the new module `parameters` (re-exported).
+
+**preprocessing**
+
+- Build `PlaneRecord(..., channels=)` from the unit's confirmed channel list.
+- Call `write_plane_histograms(records, path, channel_ids=<the description's declared [channels]
+  IDs>, failures=...)`, giving every parallel shard the same IDs so shards share one header.
+- On `ChannelMeasurementError`, report `.failures` (plane and channel) and `.removed` (an
+  earlier table removed from the path); nothing is written (HV3).
+- In `RunInputs`, read with `read_plane_histogram_table` (header IDs and records). A schema
+  version 4 table is refused with a message naming version 5 and saying to run preprocessing
+  again (HV4).
+- Drop the N43 refusals (images may have different channels); pass channel IDs to
+  `range_check_issues`; show `ChannelScopeIncompleteError` as `A_SCOPE_INCOMPLETE`.
+- The tail columns (`Histogram_{Underflow,Overflow}{Count,Mean,Std}_<ID>`) are written by the
+  library; nothing else changes for them.
+
+**CellPatcher**
+
+- Use `record.channel_histogram(id)`, `fit(..., channels=)`, and `Parameters.apply` / `select` by
+  ID. Patch columns are `Normalization_Offset_<ID>` / `Normalization_Scale_<ID>` plus
+  `normalization_parameters_version`; old tables are refused. Handle
+  `ChannelScopeIncompleteError`.
+
+**MorphoFeature** (`histogram_fit`)
+
+- Map catalogue names to `record.channels`; expect `ChannelScopeIncompleteError` unless the
+  settings opt in with `partial_channels`.
+
+**Numbers.** Planes whose channels are all present give the v0.4.0 histograms and fits bit for
+bit (3600 fitted channels on `v13` trees, the 400 golden fits, `tools/dump_outputs.py --corpus`
+apart from the stored tail fields). With tails (robust range), the stored tail fields change from
+sums to centred moments, and pooled means, standard deviations, percentiles and fits move by at
+most about `1.4e-14` relative; the #28 64-bit representative fix moves int64/uint64 numbers as
+described above.
 
 ## v0.4.0 (2026-11-10)
 

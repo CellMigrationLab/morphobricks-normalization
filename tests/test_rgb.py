@@ -21,7 +21,7 @@ from morphobricks_normalization import (
 )
 from morphobricks_normalization import fitting as fitting_module
 from morphobricks_normalization.fitting import offset_column, scale_column
-from morphobricks_normalization.rgb import EPSILON, apply_rgb
+from morphobricks_normalization.rgb import EPSILON, apply_rgb, check_rgb
 from simulation import cached_rgb_design, make_rgb_records, simulate_rgb_design
 
 RGB_MESSAGE = (
@@ -435,3 +435,36 @@ def test_apply_rgb_allocates_one_array_beyond_its_input():
     finally:
         tracemalloc.stop()
     assert peak < 1.5 * out.nbytes
+
+
+WIDE_INTEGERS = [np.int32, np.uint32, np.int64, np.uint64]
+
+
+@pytest.mark.parametrize("dtype", WIDE_INTEGERS)
+def test_32_and_64_bit_rgb_is_refused_as_the_message_says(dtype):
+    # Issue #23: the message asks for 8- or 16-bit channels, but any integer type was
+    # accepted, and CSBDeep's float32 arithmetic cannot hold every value above 2**24.
+    name = np.dtype(dtype).name
+    with pytest.raises(ValueError) as error:
+        check_rgb(3, [dtype])
+    assert str(error.value) == RGB_MESSAGE.format(3, name)
+    pixels = np.full((6, 6, 3), 2**24 + 1, dtype)
+    pixels[0, 0] = 0
+    with pytest.raises(ValueError) as error:
+        fit(pixels, rgb(scope="patch"), channel_axis=-1)
+    assert str(error.value) == RGB_MESSAGE.format(3, name)
+    rows = make_rgb_records([(("c", "r", "single"), "c/r/a.tif", 0, pixels)])
+    with pytest.raises(ValueError) as error:
+        fit(rows, rgb())
+    assert str(error.value) == RGB_MESSAGE.format(3, name)
+
+
+@pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.int8, np.int16])
+def test_8_and_16_bit_rgb_is_accepted(dtype):
+    check_rgb(3, [dtype])
+    check_rgb(3, [np.dtype(dtype).newbyteorder(">")])
+
+
+def test_a_wide_type_among_8_bit_types_is_named():
+    with pytest.raises(ValueError, match="3 channels of type int64 and uint8"):
+        check_rgb(3, [np.uint8, np.int64])

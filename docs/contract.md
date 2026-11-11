@@ -219,6 +219,12 @@ Every method is an offset and a scale; applying it computes `(pixels − offset)
 
 A zero or non-finite scale is an error with a plain-language message.
 
+`NormalizationParameters.apply(pixels, clip=None, dtype=float32)` returns float32 or float64
+only and clips, when asked, to two finite limits with `low < high`; any other result type
+(integer, bool, complex, object, float16) and reversed, equal, non-finite or malformed clip
+limits are refused with `ValueError` naming the value (issue #39), before any pixel is
+normalized.
+
 `normalization_exact` (§8) is `true` for histogram-based parameters exactly when every
 pooled histogram has `max_representative_error == 0`, so never when a histogram has tails
 (§1.4).
@@ -386,7 +392,12 @@ The method identifier is a setting (`settings.method`); the written name is what
 | `fluorescence` | `minmax`, `percentile` (default), `zscore`, `robust_zscore` | `min-max`, `percentile <low>-<high>` (e.g. `percentile 1-99.8`), `z-score`, `robust z-score` |
 | `rgb` | `percentile` (the only one) | `rgb percentile <low>-<high>` (e.g. `rgb percentile 1-99.8`) |
 
-Percentile values in names are formatted with `:g` (as `percentile_range` does today).
+Each percentile value in a name is the shortest decimal that reads back as exactly the same
+float, never in exponent form (`percentile_name`, used by `percentile_range` and
+`NormalizationSettings.method_name`): `1`, `99.8`, `1.000001`, `0.00001`; `-0.0` is written `0`.
+The name therefore identifies the percentiles exactly, and `from_columns` refuses a row whose
+percentiles differ from the settings' however little (issue #35). Values with at most six
+significant digits and at least `0.0001` are written as `:g` wrote them before.
 
 ### 3.2 Fluorescence
 
@@ -505,7 +516,7 @@ exact. Which scopes a calling brick offers without the file is the calling brick
 | `image_type` | Channels | Pixel types | Methods |
 |---|---|---|---|
 | `fluorescence` (default) | any | every type of §1.2.1 | §3.2 |
-| `rgb` | exactly 3 (R, G, B) | integer types | §3.3 only |
+| `rgb` | exactly 3 (R, G, B) | 8- and 16-bit integer types (`uint8`, `uint16`, `int8`, `int16`); 32- and 64-bit integers are refused (issue #23): CSBDeep's float32 arithmetic (§3.3) cannot hold every value above `2**24` | §3.3 only |
 
 - The type is chosen by the user: in the preprocessing brick, which suggests `rgb` when the
   metadata has an RGB samples axis (TIFF photometric RGB, three samples per pixel) and
@@ -725,7 +736,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | A method other than `percentile` with `rgb` | `MethodNotAllowedError` | "RGB images are normalized with StarDist's percentile method only, which scales the three colour channels together. Use method 'percentile'." |
 | An unknown scope, including the removed `condition`, `technical_repeat` and `experiment` | `ValueError` | "Scope '{scope}' does not exist. Choose 'biological_repeat' (one biological repeat across all conditions), 'image' or 'patch'." |
 | `biological_repeat` without the statistics file | `MethodNotAllowedError` | "The biological-repeat scope needs the preprocessing brick's plane_histograms.csv, which was not given. Run the preprocessing brick on this experiment, or use the image or patch scope." |
-| `rgb` without exactly three channels, or with a float pixel type | `ValueError` | "RGB normalization needs images with exactly three 8- or 16-bit colour channels, but these images have {n} channels of type {dtype}. Check the axis mapping (the samples axis must be the channel axis), or choose image type 'fluorescence'." |
+| `rgb` without exactly three channels, or with a pixel type other than an 8- or 16-bit integer (float, 32- or 64-bit integer) | `ValueError` | "RGB normalization needs images with exactly three 8- or 16-bit colour channels, but these images have {n} channels of type {dtype}. Check the axis mapping (the samples axis must be the channel axis), or choose image type 'fluorescence'." |
 | A `(condition, biological_repeat)` missing from `repeat_groups` | `ValueError` | Names the missing pairs and asks to update the experiment design in the preprocessing brick. |
 | Unsupported pixel type; bin count not allowed (§1.2) | `UnsupportedDtypeError`, `ValueError` | Existing messages |
 | Group without finite pixels | `NoValidPixelsError` | Existing message |
@@ -747,6 +758,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Rows or images with different numbers of channels (N43) | `CsvFormatError` (table), `ValueError` (pixels) | Names the images and their channel counts, and says that every image of an experiment must have the same channels |
 | `from_columns` with a missing or unreadable column, an unknown `normalization_scope`, or a channel without both its offset and scale | `ValueError` | Names the column |
 | `from_columns` with a `normalization_method` or `normalization_scope` other than the settings' | `ValueError` | Names the column, the row's value and the settings' value, and asks to read the parameters with the settings of the run that wrote them |
+| `NormalizationParameters.apply` with a result type other than float32 or float64, or clip limits that are not two finite numbers with `low < high` | `ValueError` | Names the type ("dtype must be float32 or float64; got 'uint8'") or the limits ("clip must be (low, high) with low < high; got low=1.0, high=0.0") |
 | `Parameters` or `NormalizationParameters` with a non-finite offset, or a scale that is not finite and above 0; a channel index that is not a whole number 0 or above | `ValueError` | Names the channel (or method) and the value |
 
 Tables of schema versions 1 to 3 are recognised by the `schema_version` value of their rows alone and

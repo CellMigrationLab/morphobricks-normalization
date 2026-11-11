@@ -61,14 +61,56 @@ class NormalizationParameters:
             Values to normalize; the input is never modified.
         clip
             Optional ``(low, high)`` limits applied after normalizing, for
-            example ``(0, 1)`` for min-max scaling.
+            example ``(0, 1)`` for min-max scaling: two finite numbers with
+            ``low < high`` (equal limits would make every pixel the same value).
         dtype
-            Floating-point type of the result.
+            Type of the result: float32 (default) or float64.
+
+        Raises
+        ------
+        ValueError
+            For clip limits that are not two finite numbers with ``low < high``,
+            or another result type (issue #39): an integer type would truncate
+            and wrap the normalized values.
         """
+        result_dtype = _result_dtype(dtype)
+        limits = None if clip is None else _clip_limits(clip)
         result = (np.asarray(pixels, dtype=np.float64) - self.offset) / self.scale
-        if clip is not None:
-            np.clip(result, clip[0], clip[1], out=result)
-        return result.astype(dtype, copy=False)
+        if limits is not None:
+            np.clip(result, *limits, out=result)
+        return result.astype(result_dtype, copy=False)
+
+
+def _result_dtype(dtype: np.dtype | type | str) -> np.dtype:
+    """Return ``dtype`` if it is float32 or float64; refuse every other type by name."""
+    try:
+        result = np.dtype(dtype)
+    except TypeError:
+        raise ValueError(f"dtype must be float32 or float64; got {dtype!r}.") from None
+    if result.name not in ("float32", "float64"):  # by name: either byte order is allowed
+        raise ValueError(
+            f"dtype must be float32 or float64; got {result.name!r}. Normalized values are "
+            "real numbers: another type would round, truncate or wrap them."
+        )
+    return result
+
+
+def _clip_limits(clip: tuple[float, float]) -> tuple[float, float]:
+    """Return ``clip`` as two finite floats with ``low < high``, or refuse it by name."""
+    try:
+        if isinstance(clip, str | bytes):
+            raise TypeError
+        low, high = (float(limit) for limit in clip)
+    except (TypeError, ValueError):
+        raise ValueError(f"clip must be two numbers, (low, high); got {clip!r}.") from None
+    if not (np.isfinite(low) and np.isfinite(high)):
+        raise ValueError(f"clip limits must be finite numbers; got {(low, high)!r}.")
+    if not low < high:
+        raise ValueError(
+            f"clip must be (low, high) with low < high; got low={low}, high={high}. Reversed "
+            "or equal limits would give every pixel the same value."
+        )
+    return low, high
 
 
 def min_max(pooled: PooledHistogram) -> NormalizationParameters:
@@ -83,7 +125,24 @@ def percentile_range(
     if not 0 <= low < high <= 100:
         raise ValueError(f"Expected 0 <= low < high <= 100; got low={low}, high={high}.")
     lower = pooled.percentile(low)
-    return _parameters(f"percentile {low:g}-{high:g}", lower, pooled.percentile(high) - lower)
+    return _parameters(percentile_name(low, high), lower, pooled.percentile(high) - lower)
+
+
+def percentile_name(low: float, high: float) -> str:
+    """Return the written name of the percentile method, ``percentile <low>-<high>``.
+
+    Each percentile is written as the shortest decimal that reads back as exactly the same
+    float, never in exponent form (``1``, ``99.8``, ``1.000001``, ``0.0000001``), so two
+    settings with different percentiles never share a name (issue #35): ``from_columns``
+    compares this name to refuse parameters fitted with other percentiles. ``-0.0`` is
+    written as ``0``, the same percentile as ``0.0``.
+    """
+    return f"percentile {_exact_decimal(low)}-{_exact_decimal(high)}"
+
+
+def _exact_decimal(value: float) -> str:
+    """Shortest positional decimal that round-trips to ``value`` (``-0.0`` as ``0``)."""
+    return np.format_float_positional(float(value) + 0.0, unique=True, trim="-")
 
 
 def z_score(pooled: PooledHistogram) -> NormalizationParameters:

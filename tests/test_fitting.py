@@ -400,3 +400,29 @@ def test_parameters_from_records_and_existing_parameters_apply_identically():
     pixels = np.random.default_rng(20).integers(0, 5000, (8, 8)).astype(np.uint16)
     np.testing.assert_array_equal(parameters.apply(pixels), existing.apply(pixels))
     assert isinstance(existing, NormalizationParameters)
+
+
+@pytest.mark.parametrize("image_type", ["fluorescence", "rgb"])
+def test_from_columns_refuses_rows_of_other_percentiles_with_a_colliding_short_name(image_type):
+    # Issue #35: 1.000001 and 1.000002 both printed as "1" with six significant
+    # digits, so a row fitted with one was read back with the other's settings.
+    written = NormalizationSettings(image_type=image_type, percentile=(1.000001, 99.8))
+    reading = NormalizationSettings(image_type=image_type, percentile=(1.000002, 99.8))
+    channels = 3 if image_type == "rgb" else 1
+    parameters = Parameters(
+        written.method_name,
+        "image",
+        "a",
+        True,
+        (1.0,) * channels,
+        (2.0,) * channels,
+        tuple(range(channels)),
+    )
+    columns = parameters.to_columns()
+    assert Parameters.from_columns(columns, written) == parameters
+    with pytest.raises(ValueError, match="Column normalization_method is .*1.000001-99.8"):
+        Parameters.from_columns(columns, reading)
+    # A row written before the fix carries the short name and is refused too.
+    columns["normalization_method"] = columns["normalization_method"].replace("1.000001", "1")
+    with pytest.raises(ValueError, match="Column normalization_method is .*'.*percentile 1-99.8'"):
+        Parameters.from_columns(columns, written)

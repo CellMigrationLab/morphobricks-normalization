@@ -20,7 +20,7 @@ from typing import Any
 
 from ._version import __version__
 from .issues import BIOLOGICAL_REPEAT_SCOPE, WARNING, Issue
-from .normalization import NORMAL_CONSISTENCY
+from .normalization import NORMAL_CONSISTENCY, percentile_name
 
 IMAGE_TYPES = ("fluorescence", "rgb")
 FLUORESCENCE_METHODS = ("minmax", "percentile", "zscore", "robust_zscore")
@@ -137,10 +137,13 @@ class NormalizationSettings:
 
     @property
     def method_name(self) -> str:
-        """Written name of the method, as in ``normalization_method`` (contract §3.1)."""
+        """Written name of the method, as in ``normalization_method`` (contract §3.1).
+
+        The percentiles are written exactly (:func:`~.normalization.percentile_name`), so
+        the name identifies the settings that change the fitted parameters (issue #35).
+        """
         if self.method == "percentile":
-            low, high = self.percentile
-            name = f"percentile {low:g}-{high:g}"
+            name = percentile_name(*self.percentile)
             return f"rgb {name}" if self.image_type == "rgb" else name
         return _METHOD_NAMES[self.method]
 

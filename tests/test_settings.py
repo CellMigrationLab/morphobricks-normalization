@@ -171,3 +171,58 @@ def test_written_method_names_are_those_of_the_methods():
         assert settings.method_name == name
     assert NormalizationSettings().method_name == "percentile 1-99.8"
     assert NormalizationSettings(image_type="rgb").method_name == "rgb percentile 1-99.8"
+
+
+# Pairs whose six-significant-digit names collided before issue #35.
+COLLIDING_PERCENTILES = [
+    ((1.000001, 99.8), (1.000002, 99.8)),
+    ((1.0, 99.8), (1.0000001, 99.8)),
+    ((0.5, 99.99999), (0.5, 99.999991)),
+    ((1e-07, 50.0), (1.1e-07, 50.0)),
+]
+
+
+@pytest.mark.parametrize("image_type", ["fluorescence", "rgb"])
+@pytest.mark.parametrize("first, second", COLLIDING_PERCENTILES)
+def test_distinct_percentiles_have_distinct_written_names(first, second, image_type):
+    # The written name is the identity from_columns checks: two settings that
+    # fit different quantiles must never share it (issue #35).
+    a = NormalizationSettings(image_type=image_type, percentile=first)
+    b = NormalizationSettings(image_type=image_type, percentile=second)
+    assert a.method_name != b.method_name
+
+
+@pytest.mark.parametrize(
+    "percentile",
+    [
+        (1.0, 99.8),
+        (0.5, 99.0),
+        (0.0, 100.0),
+        (2.5, 97.5),
+        (1.000001, 99.8),
+        (1e-07, 50.0),
+        (0.1 + 0.2, 99.8),
+        (1 / 3, 200 / 3),
+    ],
+)
+def test_written_percentile_name_holds_the_exact_percentiles(percentile):
+    settings = NormalizationSettings(percentile=percentile)
+    low, high = settings.method_name.removeprefix("percentile ").split("-", 1)
+    assert (float(low), float(high)) == settings.percentile
+    pooled = PooledHistogram([compute_plane_histogram(np.arange(100, dtype=np.uint8))])
+    assert percentile_range(pooled, *settings.percentile).method == settings.method_name
+
+
+def test_ordinary_percentile_names_are_unchanged():
+    names = {
+        (1.0, 99.8): "percentile 1-99.8",
+        (0.5, 99.0): "percentile 0.5-99",
+        (0.0, 100.0): "percentile 0-100",
+        (2.5, 97.5): "percentile 2.5-97.5",
+    }
+    for percentile, name in names.items():
+        assert NormalizationSettings(percentile=percentile).method_name == name
+        rgb = NormalizationSettings(image_type="rgb", percentile=percentile)
+        assert rgb.method_name == f"rgb {name}"
+    # -0.0 is the same percentile as 0.0 (the settings compare equal), so the same name.
+    assert NormalizationSettings(percentile=(-0.0, 100.0)).method_name == "percentile 0-100"

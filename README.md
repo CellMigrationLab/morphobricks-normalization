@@ -29,10 +29,10 @@ out of scope for now.
 
 ## Status
 
-Pre-alpha; the latest release is v0.4.0. The library offers:
+Pre-alpha; the latest release is v0.5.0. The library offers:
 
 - supported pixel types, bin counts and per-plane histograms (`dtypes`, `histogram`), with a robust range and a range check;
-- plane records, `plane_histograms.csv` reading and writing and pooling of group statistics (`records`, `csv_io`, `pooling`): schema version 4 in v0.4.0; on `main` after the Stage 3 pull request, schema version 5 with channels named by canonical channel ID (ADR 0003, see CHANGELOG "Unreleased");
+- plane records, `plane_histograms.csv` reading and writing and pooling of group statistics (`records`, `csv_io`, `pooling`): schema version 5 since v0.5.0, with channels named by canonical channel ID (ADR 0003; version 4 tables are refused, see the CHANGELOG migration notes);
 - settings, scopes, repeat groups and `fit`, with `Parameters` (`apply`, `to_columns`, `from_columns`), for fluorescence and RGB images;
 - per-image summaries and intensity checks, returned as `Issue` warnings.
 
@@ -56,7 +56,7 @@ for key, rows in groups.items():
 ## Installation
 
 ```bash
-pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.4.0"
+pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.5.0"
 ```
 
 For development, from a clone:

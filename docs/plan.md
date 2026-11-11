@@ -2,7 +2,7 @@
 
 > See also: [Preprocessing follow-up](archive/followup_preprocessing.md) (done) · [CellPatcher follow-up](archive/followup_cellpatcher.md) (done)
 
-**Status:** implemented through v0.4.0 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
+**Status:** implemented through v0.5.0 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
 channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
 (N4–N28) is withdrawn where §12 says so. A robust histogram range was added on 28 October
@@ -264,9 +264,9 @@ their formula is implemented here.
   The preprocessing brick adds the setting and the warning (follow-up P6).*
 - **Stage 3 S3.2 — channels by canonical channel ID (ADR 0003):** `plane_histograms.csv`
   schema version 5, `PlaneRecord.channels`, fits, parameters, summaries and checks by channel
-  ID (N61–N64). *Pull request #90 (10 November 2026; rebased on #91 and #92 and finished on
-  11 November 2026, the owner having decided to start Stage 3 now), not merged; see CHANGELOG
-  "Unreleased".*
+  ID (N61–N66). *Pull request #90 (10 November 2026; rebased on #91 and #92 and finished on
+  11 November 2026, the owner having decided to start Stage 3 now), merged on 11 November 2026;
+  released in `v0.5.0` (CHANGELOG).*
 - **Release `v0.3.1`**, pinned by the other bricks. *Released (28 October 2026): Milestone 5.
   The tag `v0.3.0` points at the same code but its package reports version 0.2.0, because
   `pyproject.toml` was not updated before tagging; `v0.3.1` corrects the version and nothing
@@ -290,6 +290,13 @@ their formula is implemented here.
   with the same messages (NM-01); the version-2 parity tests became fit goldens (NM-02); plus the
   numerical-range and refusal fixes merged since `v0.3.4` (CHANGELOG). Valid inputs give
   bit-identical outputs. Migration notes in the CHANGELOG.
+- **Release `v0.5.0`** (11 November 2026): Stage 3 S3.2 (ADR 0003, N61–N66). `plane_histograms.csv`
+  schema version 5 (one row per plane, the `channels` presence column, per-channel columns by
+  canonical channel ID, tails as centred moments); version 4 tables are refused (hard cut); fits,
+  parameters (columns version 2), summaries and checks by channel ID; partial presence in a fitted
+  group refused by default (`A_SCOPE_INCOMPLETE`) with the recorded opt-in `partial_channels`; plus
+  the #91 and #92 fixes. Planes whose channels are all present give the v0.4.0 histograms and fits
+  bit for bit. Migration notes for the consuming bricks in the CHANGELOG.
 - **Then:** the preprocessing follow-up, then the CellPatcher follow-up (N6). Preprocessing
   steps P2 and P3 do not depend on this brick and may start earlier; its step P3b (writing
   schema version 3) follows Milestone 2b. From `v0.2.0` on, the other bricks pin the tag

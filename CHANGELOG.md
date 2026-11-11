@@ -18,6 +18,28 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   error 0 (its representative is `2**53`; error 1), and `normalization_exact` and
   `Histogram_Exact_C<i>` are false for it. Only int64 and uint64 planes with such values
   change; bin counts and limits never do.
+
+  **Who is affected, and by how much.** Only int64 and uint64 images with a pixel of
+  magnitude `2**51` (about `2.25e15`) or more. Every other pixel type (8-, 16- and 32-bit
+  integers, float32, float64), and 64-bit images whose values all stay below `2**51`, give
+  bit-identical numbers. For the affected images:
+  - representatives move by at most one float64 step (at most 1536 for int64 and 2048 for
+    uint64 values near `9e18` and `1.8e19`, about `1e-16` relative);
+  - `max_representative_error` is the true largest distance: for bins of one value float64
+    cannot hold it grows from 0 to at most half a float64 step (for example 1 for
+    `[2**53 + 1]`, 170 and 341 for the constant planes `3074457345618258602` and
+    `6148914691236517205`), so `is_exact`, `normalization_exact` and
+    `Histogram_Exact_C<i>` change from true to false; for wider bins it changes in its last
+    bits only;
+  - pooled means, standard deviations and percentiles, and fitted offsets and scales, move by
+    at most about `3e-14` relative in the `tools/dump_outputs.py` cases (a zscore offset
+    `9618469625711740` becomes `9618469625711942`, nearer the exact model mean
+    `9618469625711938`).
+
+  Statistics files need not be recomputed: they store counts and limits, which do not change,
+  and representatives and bounds are derived when the file is read, so an existing
+  `plane_histograms.csv` gives the new numbers. Parameters fitted with v0.4.0 from such
+  images differ from a refit by the amounts above.
 - **Standard deviations of large finite values (#33).** `PooledHistogram.std` and
   `WeightedHistogram.std` summed squared deviations that overflow for values beyond about
   `1e154` (`[-1e200, 1e200]` gave `inf`, so `zscore` was refused, although its standard

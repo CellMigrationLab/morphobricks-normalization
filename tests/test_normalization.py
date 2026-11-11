@@ -116,3 +116,12 @@ def test_apply_accepts_float32_and_float64_and_keeps_non_finite_pixels(dtype):
     result = ZSCORE.apply(pixels, clip=(-0.5, 0.75), dtype=dtype)
     assert result.dtype == np.dtype(dtype)
     np.testing.assert_array_equal(result, np.array([-0.5, 0.5, np.nan, 0.75], dtype=dtype))
+
+
+@pytest.mark.parametrize("dtype", [">f4", ">f8", "<f4", np.dtype(">f8")])
+def test_apply_accepts_float32_and_float64_of_either_byte_order(dtype):
+    # A byte-swapped float32 or float64 is still float32 or float64: it was accepted before
+    # #39, and the refusal named it "float32" (the type it asked for).
+    result = ZSCORE.apply(np.array([-1.0, 0.0, 1.0]), dtype=dtype)
+    assert result.dtype == np.dtype(dtype)
+    np.testing.assert_array_equal(result, np.array([-1.0, 0.0, 1.0], dtype=dtype))

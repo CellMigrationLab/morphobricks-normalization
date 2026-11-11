@@ -87,7 +87,7 @@ def _result_dtype(dtype: np.dtype | type | str) -> np.dtype:
         result = np.dtype(dtype)
     except TypeError:
         raise ValueError(f"dtype must be float32 or float64; got {dtype!r}.") from None
-    if result not in (np.dtype(np.float32), np.dtype(np.float64)):
+    if result.name not in ("float32", "float64"):  # by name: either byte order is allowed
         raise ValueError(
             f"dtype must be float32 or float64; got {result.name!r}. Normalized values are "
             "real numbers: another type would round, truncate or wrap them."

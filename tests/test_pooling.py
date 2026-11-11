@@ -228,8 +228,10 @@ def test_tail_whose_squares_overflowed_is_a_named_refusal(tmp_path):
     with np.errstate(over="ignore"):  # the tail's squares overflow as the file is written
         hist = compute_plane_histogram(plane, 256, settings=ROBUST)
     assert hist.overflow.sum_of_squares == np.inf
-    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a")
-    (back,) = read_plane_histograms(write_plane_histograms([record], tmp_path / "p.csv"))
+    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a", channels=["DNA"])
+    (back,) = read_plane_histograms(
+        write_plane_histograms([record], tmp_path / "p.csv", channel_ids=["DNA"])
+    )
     pooled = PooledHistogram([back.histograms[0]])
     assert np.isfinite(pooled.mean) and np.isfinite(pooled.percentile(50))
     message = "pooled: tail 1 of 2 has sum of squares inf, tail 2 of 2 has sum of squares inf"

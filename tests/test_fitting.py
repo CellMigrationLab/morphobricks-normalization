@@ -475,7 +475,7 @@ def test_from_columns_refuses_rows_of_other_percentiles_with_a_colliding_short_n
         True,
         (1.0,) * channels,
         (2.0,) * channels,
-        tuple(range(channels)),
+        ("B", "G", "R") if image_type == "rgb" else ("DNA",),
     )
     columns = parameters.to_columns()
     assert Parameters.from_columns(columns, written) == parameters

@@ -516,7 +516,7 @@ exact. Which scopes a calling brick offers without the file is the calling brick
 | `image_type` | Channels | Pixel types | Methods |
 |---|---|---|---|
 | `fluorescence` (default) | any | every type of §1.2.1 | §3.2 |
-| `rgb` | exactly 3 (R, G, B) | integer types | §3.3 only |
+| `rgb` | exactly 3 (R, G, B) | 8- and 16-bit integer types (`uint8`, `uint16`, `int8`, `int16`); 32- and 64-bit integers are refused (issue #23): CSBDeep's float32 arithmetic (§3.3) cannot hold every value above `2**24` | §3.3 only |
 
 - The type is chosen by the user: in the preprocessing brick, which suggests `rgb` when the
   metadata has an RGB samples axis (TIFF photometric RGB, three samples per pixel) and
@@ -736,7 +736,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | A method other than `percentile` with `rgb` | `MethodNotAllowedError` | "RGB images are normalized with StarDist's percentile method only, which scales the three colour channels together. Use method 'percentile'." |
 | An unknown scope, including the removed `condition`, `technical_repeat` and `experiment` | `ValueError` | "Scope '{scope}' does not exist. Choose 'biological_repeat' (one biological repeat across all conditions), 'image' or 'patch'." |
 | `biological_repeat` without the statistics file | `MethodNotAllowedError` | "The biological-repeat scope needs the preprocessing brick's plane_histograms.csv, which was not given. Run the preprocessing brick on this experiment, or use the image or patch scope." |
-| `rgb` without exactly three channels, or with a float pixel type | `ValueError` | "RGB normalization needs images with exactly three 8- or 16-bit colour channels, but these images have {n} channels of type {dtype}. Check the axis mapping (the samples axis must be the channel axis), or choose image type 'fluorescence'." |
+| `rgb` without exactly three channels, or with a pixel type other than an 8- or 16-bit integer (float, 32- or 64-bit integer) | `ValueError` | "RGB normalization needs images with exactly three 8- or 16-bit colour channels, but these images have {n} channels of type {dtype}. Check the axis mapping (the samples axis must be the channel axis), or choose image type 'fluorescence'." |
 | A `(condition, biological_repeat)` missing from `repeat_groups` | `ValueError` | Names the missing pairs and asks to update the experiment design in the preprocessing brick. |
 | Unsupported pixel type; bin count not allowed (§1.2) | `UnsupportedDtypeError`, `ValueError` | Existing messages |
 | Group without finite pixels | `NoValidPixelsError` | Existing message |

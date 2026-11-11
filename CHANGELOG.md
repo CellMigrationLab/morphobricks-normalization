@@ -77,6 +77,15 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   `ValueError` naming the value, clip limits that are not two finite numbers with
   `low < high` (equal limits too), and every result type but float32 and float64. Valid
   calls give bit-identical results; no dump output changes.
+- **RGB images of 32- and 64-bit integers are refused (#23).** `check_rgb` accepted every
+  integer type although its message, the contract's, asks for 8- or 16-bit colour channels,
+  and `apply_rgb` repeats CSBDeep's float32 arithmetic, which cannot hold every 32- or 64-bit
+  value (above `2**24`). `check_rgb`, and with it `fit` of RGB pixels or plane rows, now
+  refuses `int32`, `uint32`, `int64` and `uint64` with that message ("... but these images
+  have 3 channels of type int32 ..."). `uint8`, `uint16`, `int8` and `int16` are accepted as
+  before, with bit-identical results; no dump output changes. **Not compatible:** RGB
+  images of 32- or 64-bit integers that were fitted before are refused; save them as 8- or
+  16-bit, or choose image type `fluorescence`.
 
 ## v0.4.0 (2026-11-10)
 

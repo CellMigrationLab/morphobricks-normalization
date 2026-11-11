@@ -31,6 +31,8 @@ from .summaries import IncompatibleSummariesError
 # Added to the scale by csbdeep.utils.normalize_mi_ma (its ``eps``).
 EPSILON = 1e-20
 RGB_CHANNEL_COUNT = 3
+# The pixel types of RGB images: 8- and 16-bit integers, every value exact in float32 (#23).
+RGB_DTYPES = frozenset(np.dtype(name) for name in ("uint8", "uint16", "int8", "int16"))
 
 
 def rgb_percentile(
@@ -80,7 +82,11 @@ def apply_rgb(
 
 
 def check_rgb(channel_count: int, dtypes: Iterable[np.dtype]) -> None:
-    """Refuse images that are not three channels of an integer type (contract §5, §9.1).
+    """Refuse images that are not three channels of an 8- or 16-bit integer type (contract §5).
+
+    32- and 64-bit integers are refused (issue #23): CSBDeep's float32 arithmetic, which
+    :func:`apply_rgb` repeats, cannot hold every such value (above ``2**24``), and the
+    contract's message asks for 8- or 16-bit colour channels.
 
     Parameters
     ----------
@@ -95,8 +101,8 @@ def check_rgb(channel_count: int, dtypes: Iterable[np.dtype]) -> None:
         With the contract's message, naming the channel count and pixel type.
     """
     dtypes = sorted({np.dtype(dtype).name for dtype in dtypes})
-    integer = all(np.issubdtype(np.dtype(name), np.integer) for name in dtypes)
-    if channel_count != RGB_CHANNEL_COUNT or not integer:
+    supported = all(np.dtype(name) in RGB_DTYPES for name in dtypes)
+    if channel_count != RGB_CHANNEL_COUNT or not supported:
         raise ValueError(
             "RGB normalization needs images with exactly three 8- or 16-bit colour channels, "
             f"but these images have {channel_count} channels of type {' and '.join(dtypes)}. "
@@ -106,7 +112,7 @@ def check_rgb(channel_count: int, dtypes: Iterable[np.dtype]) -> None:
 
 
 def check_rgb_pixels(pixels: np.ndarray, channel_axis: int | None) -> None:
-    """Refuse a pixel array that is not three integer channels, before any work (issue #52).
+    """Refuse a pixel array that is not three 8- or 16-bit channels, before any work (#52, #23).
 
     Parameters
     ----------
@@ -132,7 +138,7 @@ def check_rgb_pixels(pixels: np.ndarray, channel_axis: int | None) -> None:
 
 
 def check_rgb_records(records: list[PlaneRecord], group: str | None) -> None:
-    """Refuse rows that are not three channels of one integer type (contract §5, §9.1, #51).
+    """Refuse rows that are not three channels of one 8- or 16-bit type (contract §5, #51, #23).
 
     RGB pools all images of a group into one distribution, so bit depths are never mixed
     or converted; the message names the images of each pixel type.

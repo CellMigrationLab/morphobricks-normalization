@@ -38,7 +38,8 @@ src/morphobricks_normalization/
                     their exact bound for 64-bit values float64 cannot hold (#28)
   ranges.py         HistogramSettings, RangeCheck, range_check_issues (Milestone 5)
   integrity.py      invariants every PlaneHistogram and HistogramTail checks when made
-                    (counts, limits, tail sums) and the pixel type of every block
+                    (counts, limits, tail moments) and the pixel type of every block
+  tail_moments.py   exact centred moments of a tail (count, mean, std; schema version 5)
   channels.py       canonical channel IDs (the Spec's Token rule): check_channel_id(s)
   records.py        PlaneRecord (one plane_histograms.csv row: an XYC plane, one
                     histogram per channel; position_id and channels (IDs) required),
@@ -47,7 +48,7 @@ src/morphobricks_normalization/
                     in CellProfiler-style columns named by channel ID, presence column
                     `channels`, underflow/overflow columns (atomic write, labels always text)
   pooling.py        PooledHistogram: pooled counts, never mean-of-means, tails by
-                    their means for percentiles and by their sums for mean and std;
+                    their means for percentiles and by their moments for mean and std;
                     WeightedHistogram: histograms added with a weight each (Milestone 2);
                     linear_percentile: NumPy's linear interpolation (Milestone 3)
   normalization.py  NormalizationParameters (offset, scale) and the four linear methods

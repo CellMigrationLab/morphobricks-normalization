@@ -35,6 +35,22 @@ schema version 5 and channels named by canonical channel ID everywhere. Version 
   `NormalizationSettings(partial_channels="planes_with_channel")`, stored by `to_dict` when
   chosen and reported per fit by the new warning `channel_partially_present`. Planes of one image
   with different channel lists are refused.
+- **Centred tail moments** (owner decision of 11 November 2026, plan N65; #91's question): the
+  underflow and overflow columns are `Histogram_UnderflowCount_<ID>`,
+  `Histogram_UnderflowMean_<ID>`, `Histogram_UnderflowStd_<ID>` (and `Overflow`), replacing the
+  raw `...Sum_<ID>` and `...SumOfSquares_<ID>`. `HistogramTail(count, mean, std)` replaces
+  `HistogramTail(count, sum, sum_of_squares)`. The new module `tail_moments.py` accumulates every
+  tail pixel exactly (significand times a power of two, or the integer itself), so the mean and
+  the standard deviation are each the float64 nearest the exact value: no cancellation for large
+  values with a small spread, no overflow for finite pixels (no scale column needed), and the
+  same bits whole or in blocks (they could differ in the last bits before). Pooling adds
+  `count · std²` and `count · (mean − pooled mean)²`, and a pooled mean whose tail products
+  overflow is redone with exact power-of-two scaling. This supersedes #91's refusal of an
+  infinite tail sum of squares and of opposite infinite tail sums below: those tails now give
+  their finite mean and standard deviation. Numbers without tails (the default min-max range)
+  do not change; with tails, means, standard deviations and percentiles move by at most
+  about `1.4e-14` relative in the `tools/dump_outputs.py` cases, and every tail mean of the
+  `--corpus` is unchanged.
 - **Parameter columns are versioned**: `to_columns` adds `normalization_parameters_version` =
   `2` (appended to `COLUMNS`), and `from_columns` refuses a row without it (the
   `Normalization_Offset_C<i>` columns of 0.4, which would otherwise read as channel `C0`) or of

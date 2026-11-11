@@ -515,6 +515,19 @@ decisions HV1-HV4, taken on the S3.1 benchmark; implemented in S3.2):
 58. **N64** (HV4) Version 4 is a hard cut: the version 5 reader refuses it, naming version 5
     and how to recompute; there is no converter (ADR 0002 AR10).
 
+Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull request #90):
+
+59. **N65** Schema version 5 stores each tail's **centred moments**: count, mean and
+    population standard deviation (`Histogram_UnderflowMean_<ID>`, `Histogram_UnderflowStd_<ID>`
+    and the same for `Overflow`), each the float64 nearest its exact value, instead of the raw
+    sum and sum of squares, which cancel for large values with a small spread and overflow
+    beyond about `1.3e154` (#91's question). Pooling adds `count · std²` and
+    `count · (mean − pooled mean)²` (contract §1.4).
+60. **N66** A channel that only some planes of a fitted group have is **refused by default**
+    (`ChannelScopeIncompleteError`, the Spec's `A_SCOPE_INCOMPLETE`); the user may select the
+    planes that have it with `partial_channels="planes_with_channel"`, stored with the settings
+    and reported per fit (the notebook asks explicitly) (contract §1.5, §8.3).
+
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that
 pull request for the owner's review (not numbered decisions until the owner confirms them):
@@ -523,10 +536,7 @@ pull request for the owner's review (not numbered decisions until the owner conf
   `used_ids.channels` (retired IDs); the calling brick passes them (contract §6.1).
 - **Sort order** is code point order; the `channels` column is the last plane column, before
   every per-channel column (contract §6.1, §6.2).
-- **Partial presence inside one fitted group** is refused by default
-  (`ChannelScopeIncompleteError`, the Spec's `A_SCOPE_INCOMPLETE`, experiment-v1 §8); the user
-  may select the planes that have the channel with `partial_channels="planes_with_channel"`,
-  stored with the run's settings and reported per fit (contract §1.5, §8.3).
+- **Partial presence inside one fitted group**: confirmed by the owner, now N66.
 - **Parameter columns have their own version**, `normalization_parameters_version` = `2`; a row
   without it (the C-index columns of 0.4) is refused, never read as channel `C0` (contract
   §8.1).

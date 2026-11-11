@@ -24,8 +24,9 @@ Robust range (contract §1.4)
     With ``HistogramSettings(histogram_range="robust")``, a histogram that would
     not be exact is binned between the plane's quantiles at ``robust_quantiles``
     instead of its minimum and maximum, with the same rules. The pixels below
-    and above are kept as :class:`HistogramTail` counts and sums (underflow and
-    overflow). Exact histograms never change.
+    and above are kept as :class:`HistogramTail` counts, means and standard
+    deviations (underflow and overflow), exact to the last bit
+    (:mod:`~morphobricks_normalization.tail_moments`). Exact histograms never change.
 
 Every pixel in a bin lies within half a bin width of its bin's representative
 value, and every pixel of a tail between the tail's mean and the plane's
@@ -55,7 +56,7 @@ from .dtypes import check_supported, default_bin_count, is_integer, validate_bin
 from .integer_representatives import beyond_float_exact, integer_representatives, wide_integer_error
 from .integrity import check_histogram, check_tail, checked_blocks
 from .ranges import CENTRAL_PERCENTILES, HistogramSettings, RangeCheck
-from .sums import weighted_sum
+from .tail_moments import TailMoments, centred_moments, counted_sums
 
 # Above this many distinct values, integer planes are binned with a search over
 # bin starts instead of a full per-value count.
@@ -78,29 +79,26 @@ class HistogramTail:
     ----------
     count
         Number of pixels.
-    sum, sum_of_squares
-        Sum of their values and of their squared values, in float64; checked
-        by :func:`~morphobricks_normalization.integrity.check_tail`.
+    mean, std
+        Their mean, the value standing in for them, and their population standard
+        deviation about it: the float64 nearest the exact value of each (schema
+        version 5, contract §1.4), 0.0 for an empty tail; checked by
+        :func:`~morphobricks_normalization.integrity.check_tail`.
     """
 
     count: int = 0
-    sum: float = 0.0
-    sum_of_squares: float = 0.0
+    mean: float = 0.0
+    std: float = 0.0
 
     def __post_init__(self) -> None:
-        checked = check_tail(self.count, self.sum, self.sum_of_squares)
-        for name, value in zip(("count", "sum", "sum_of_squares"), checked, strict=True):
+        checked = check_tail(self.count, self.mean, self.std)
+        for name, value in zip(("count", "mean", "std"), checked, strict=True):
             object.__setattr__(self, name, value)
 
     @property
     def is_empty(self) -> bool:
         """True when no pixel lies in this tail."""
         return self.count == 0
-
-    @property
-    def mean(self) -> float | None:
-        """Mean value of the tail's pixels, the value standing in for them (None if empty)."""
-        return None if self.count == 0 else self.sum / self.count
 
 
 EMPTY_TAIL = HistogramTail()
@@ -583,7 +581,7 @@ def _bin_pass(
     a robust range: the pixels outside ``[lo, hi]`` then go to the tails.
     ``selection`` is fed every block on the way.
     """
-    under, over = _TailSums(), _TailSums()
+    under, over = TailMoments(), TailMoments()
     if is_integer(dtype):
         counts = _integer_bins(blocks, dtype, n, lo, hi, extrema, selection, under, over)
     else:
@@ -600,8 +598,8 @@ def _bin_pass(
         valid,
         pixel_min=extrema[0],
         pixel_max=extrema[1],
-        underflow=under.tail(),
-        overflow=over.tail(),
+        underflow=HistogramTail(*under.moments()),
+        overflow=HistogramTail(*over.moments()),
     )
 
 
@@ -613,8 +611,8 @@ def _integer_bins(
     hi: int,
     extrema: tuple[int, int] | None,
     selection: _RadixSelection | None,
-    under: _TailSums,
-    over: _TailSums,
+    under: TailMoments,
+    over: TailMoments,
 ) -> np.ndarray:
     width = hi + 1 - lo
     starts = _integer_bin_starts(width, n)
@@ -653,8 +651,8 @@ def _float_bins(
     valid: int,
     extrema: tuple[float, float] | None,
     selection: _RadixSelection | None,
-    under: _TailSums,
-    over: _TailSums,
+    under: TailMoments,
+    over: TailMoments,
 ) -> np.ndarray:
     counts = np.zeros(n, dtype=np.int64)
     if lo == hi and extrema is None:
@@ -679,28 +677,8 @@ def _float_bins(
     return counts
 
 
-class _TailSums:
-    """Running count, sum and sum of squares of the pixels of one tail."""
-
-    def __init__(self) -> None:
-        self.count = 0
-        self.sum = 0.0
-        self.sum_of_squares = 0.0
-
-    def add(self, values: np.ndarray) -> None:
-        values = values.astype(np.float64)
-        self.count += int(values.size)
-        self.sum += float(np.sum(values))
-        self.sum_of_squares += float(np.sum(values * values))
-
-    def tail(self) -> HistogramTail:
-        return (
-            HistogramTail(self.count, self.sum, self.sum_of_squares) if self.count else EMPTY_TAIL
-        )
-
-
 def _split_tails(
-    values: np.ndarray, lo: int | float, hi: int | float, under: _TailSums, over: _TailSums
+    values: np.ndarray, lo: int | float, hi: int | float, under: TailMoments, over: TailMoments
 ) -> np.ndarray:
     """Add the values outside ``[lo, hi]`` to the tails; return the values inside."""
     below = values < lo
@@ -714,14 +692,10 @@ def _split_tails(
 
 
 def _table_tail(per_value: np.ndarray, first_value: int) -> HistogramTail:
-    """Sum the tail of per-value counts whose first entry counts ``first_value``."""
+    """Return the tail of per-value counts whose first entry counts ``first_value``."""
     count = int(per_value.sum())
-    if count == 0:
-        return EMPTY_TAIL
-    values = first_value + np.arange(per_value.size, dtype=np.float64)
-    return HistogramTail(
-        count, weighted_sum(per_value, values), weighted_sum(per_value, values * values)
-    )
+    total, squares = counted_sums(per_value, first_value)
+    return HistogramTail(*centred_moments(count, total, squares)) if count else EMPTY_TAIL
 
 
 def _inverse_cdf_rank(q: float, total: int) -> int:

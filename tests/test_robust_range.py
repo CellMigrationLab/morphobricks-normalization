@@ -7,6 +7,7 @@ relative tolerance, never bit for bit.
 """
 
 import csv
+from fractions import Fraction
 
 import numpy as np
 import pytest
@@ -84,7 +85,7 @@ def issue_planes(seed=0):
     return clean, hot
 
 
-def assert_same_histogram(a, b, sums_exact=True):
+def assert_same_histogram(a, b):
     assert a.dtype == b.dtype and a.bin_count == b.bin_count
     assert (a.binning_min, a.binning_max) == (b.binning_min, b.binning_max)
     assert (a.pixel_min, a.pixel_max) == (b.pixel_min, b.pixel_max)
@@ -92,12 +93,8 @@ def assert_same_histogram(a, b, sums_exact=True):
     np.testing.assert_array_equal(a.counts, b.counts)
     for ta, tb in ((a.underflow, b.underflow), (a.overflow, b.overflow)):
         assert ta.count == tb.count
-        if sums_exact:
-            assert (ta.sum, ta.sum_of_squares) == (tb.sum, tb.sum_of_squares)
-        else:
-            np.testing.assert_allclose(
-                [ta.sum, ta.sum_of_squares], [tb.sum, tb.sum_of_squares], rtol=1e-12
-            )
+        # Mean and std are rounded once from exact moments: equal whole or in blocks.
+        assert (ta.mean, ta.std) == (tb.mean, tb.std)
 
 
 # --- The reproduction of issue #12 -------------------------------------------------------------
@@ -240,11 +237,11 @@ def test_blockwise_equals_whole_in_minmax_mode(dtype):
 
 @pytest.mark.parametrize("dtype", DTYPES)
 def test_blockwise_gives_the_same_robust_limits_and_counts(dtype):
-    # Only the tails' float sums may differ in the last bits (summation order).
+    # The tails too: their moments are exact, so block order cannot change a bit.
     plane = mixed_plane(dtype, np.random.default_rng(6))
     expected, check = histogram_with_range_check(whole(plane), dtype, settings=ROBUST)
     histogram, block_check = histogram_with_range_check(in_blocks(plane), dtype, settings=ROBUST)
-    assert_same_histogram(histogram, expected, sums_exact=False)
+    assert_same_histogram(histogram, expected)
     assert block_check == check
 
 
@@ -287,7 +284,8 @@ def test_small_integers_with_fewer_bins_than_values_use_the_robust_range():
         quantile(plane, 99.99),
     )
     assert histogram.overflow.count >= 6 and histogram.pixel_max == 65535
-    assert histogram.overflow.sum == float(plane[plane > histogram.binning_max].sum())
+    above = plane[plane > histogram.binning_max].astype(np.int64)
+    assert histogram.overflow.mean == float(Fraction(int(above.sum()), above.size))
     minmax, minmax_check = histogram_with_range_check(in_blocks(plane), plane.dtype, 256)
     assert_same_histogram(minmax, compute_plane_histogram(plane, 256))
     assert minmax_check.robust_limits == check.robust_limits
@@ -322,7 +320,7 @@ def test_nan_and_infinite_pixels_are_left_out():
     histogram = compute_plane_histogram(plane, settings=ROBUST)
     assert (histogram.valid_pixel_count, histogram.non_finite_pixel_count) == (2487, 13)
     assert histogram.binning_min == quantile(plane, 0.01)
-    assert np.isfinite([histogram.overflow.sum, histogram.underflow.sum]).all()
+    assert np.isfinite([histogram.overflow.mean, histogram.underflow.mean]).all()
 
 
 def test_coinciding_robust_limits():
@@ -332,7 +330,8 @@ def test_coinciding_robust_limits():
     histogram = compute_plane_histogram(plane, settings=ROBUST)
     assert (histogram.binning_min, histogram.binning_max) == (0.0, 0.0)
     assert histogram.counts[0] == 39998 and histogram.counts[1:].sum() == 0
-    assert (histogram.underflow.sum, histogram.overflow.sum) == (-5.0, 7.0)
+    assert (histogram.underflow.mean, histogram.overflow.mean) == (-5.0, 7.0)
+    assert histogram.underflow.std == histogram.overflow.std == 0.0
     pooled = PooledHistogram([histogram])
     assert pooled.percentile(0.001) == -5.0 and pooled.percentile(100) == 7.0
     assert pooled.median == 0.0
@@ -462,7 +461,8 @@ def test_schema_5_round_trip_keeps_the_tails(tmp_path):
             row = next(csv.DictReader(fh))
         assert row["schema_version"] == "5"
         assert int(row["Histogram_UnderflowCount_C0"]) == records[0].histograms[0].underflow.count
-        assert float(row["Histogram_OverflowSum_C0"]) == records[0].histograms[0].overflow.sum
+        assert float(row["Histogram_OverflowMean_C0"]) == records[0].histograms[0].overflow.mean
+        assert float(row["Histogram_OverflowStd_C0"]) == records[0].histograms[0].overflow.std
 
 
 @pytest.mark.parametrize(
@@ -470,7 +470,9 @@ def test_schema_5_round_trip_keeps_the_tails(tmp_path):
     [
         ("Histogram_UnderflowCount_C0", "0"),  # counts no longer add up
         ("Histogram_BinningMin_C0", None),  # limit at the extremum, yet a tail below it
-        ("Histogram_OverflowSum_C1", "3.0"),  # sums of an empty tail
+        ("Histogram_OverflowMean_C1", "3.0"),  # moments of an empty tail
+        ("Histogram_OverflowStd_C0", "-1.0"),  # a negative spread
+        ("Histogram_OverflowStd_C0", "1e300"),  # more than half the tail's range
     ],
 )
 def test_inconsistent_tails_are_rejected(tmp_path, column, value):

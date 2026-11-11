@@ -11,8 +11,8 @@ as in CellProfiler with the ID as the channel token (HV2):
 ``Intensity_MinIntensity_<ID>``, ``Intensity_MaxIntensity_<ID>``,
 ``Histogram_ValidPixelCount_<ID>``, ``Histogram_BinningMin_<ID>``,
 ``Histogram_BinningMax_<ID>``, the underflow and overflow columns
-(``Histogram_UnderflowCount_<ID>``, ``Histogram_UnderflowSum_<ID>``,
-``Histogram_UnderflowSumOfSquares_<ID>`` and the same three for ``Overflow``,
+(``Histogram_UnderflowCount_<ID>``, ``Histogram_UnderflowMean_<ID>``,
+``Histogram_UnderflowStd_<ID>`` and the same three for ``Overflow``,
 contract §1.4) and one column per bin (``Histogram_Count_<ID>_00000`` ...).
 
 A channel a plane does not list is *absent*: all its cells are blank, and the
@@ -91,11 +91,11 @@ CHANNEL_FEATURES = (
     "Histogram_BinningMin",
     "Histogram_BinningMax",
     "Histogram_UnderflowCount",
-    "Histogram_UnderflowSum",
-    "Histogram_UnderflowSumOfSquares",
+    "Histogram_UnderflowMean",
+    "Histogram_UnderflowStd",
     "Histogram_OverflowCount",
-    "Histogram_OverflowSum",
-    "Histogram_OverflowSumOfSquares",
+    "Histogram_OverflowMean",
+    "Histogram_OverflowStd",
 )
 BIN_COLUMN_PREFIX = "Histogram_Count"
 # The parameter-less feature whose columns name the table's channel IDs (HV2).
@@ -552,7 +552,7 @@ def _duplicate_message(path: str | Path, plane_id: str, lines: dict[str, int], l
 
 
 def _tail_text(tail: HistogramTail) -> tuple[str, str, str]:
-    return str(tail.count), repr(float(tail.sum)), repr(float(tail.sum_of_squares))
+    return str(tail.count), repr(float(tail.mean)), repr(float(tail.std))
 
 
 def _tail(texts: list[str]) -> HistogramTail:

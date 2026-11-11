@@ -107,7 +107,7 @@ class PooledHistogram:
     ) -> None:
         values, weights = [], []
         bin_values, bin_weights = [], []
-        # (count, sum, sum of squares) of every non-empty tail.
+        # (count, mean, standard deviation) of every non-empty tail.
         self.tails: list[tuple[float, float, float]] = []
         self.n_planes = 0
         self.n_excluded_planes = 0
@@ -129,7 +129,7 @@ class PooledHistogram:
                 if not tail.is_empty:
                     values.append(np.array([tail.mean]))
                     weights.append(np.array([tail.count], dtype=np.int64))
-                    self.tails.append((tail.count, tail.sum, tail.sum_of_squares))
+                    self.tails.append((tail.count, tail.mean, tail.std))
             self.minimum = min(self.minimum, float(hist.pixel_min))
             self.maximum = max(self.maximum, float(hist.pixel_max))
             self.max_representative_error = max(
@@ -151,21 +151,21 @@ class PooledHistogram:
         self.pixel_count = int(self.counts.sum())
         self._cumulative = np.cumsum(self.counts)
         if self.tails:
-            # The bins alone, for the mean and standard deviation (the tails use their sums).
+            # The bins alone, for the mean and standard deviation (the tails use their moments).
             self.bin_values, self.bin_counts = _merge(bin_values, bin_weights)
         else:
             self.bin_values, self.bin_counts = self.values, self.counts
 
     @property
     def mean(self) -> float:
-        """Count-weighted mean; pixels outside the bins count with their exact values."""
+        """Count-weighted mean; pixels outside the bins count by their tail's mean."""
         if self.tails:
             return _mean_with_tails(self.bin_values, self.bin_counts, self.tails, self.pixel_count)
-        return weighted_sum(self.counts, self.values) / self.pixel_count
+        return _mean_with_tails(self.values, self.counts, [], self.pixel_count)
 
     @property
     def std(self) -> float:
-        """Count-weighted population standard deviation; tails count with their exact sums."""
+        """Count-weighted population standard deviation; tails count with their moments."""
         if self.tails:
             return _std_with_tails(
                 self.bin_values, self.bin_counts, self.tails, self.pixel_count, self.mean
@@ -274,11 +274,11 @@ class WeightedHistogram:
         self.weights = np.bincount(inverse, weights=scaled)
         self._cumulative = np.cumsum(self.weights)
         self.total_weight = float(self._cumulative[-1])
-        # Tails scaled by their part's weight, for the mean and standard deviation.
+        # Tails with their count scaled by their part's weight (mean and spread unchanged).
         self.tails = [
-            (count * float(w), total * float(w), squares * float(w))
+            (count * float(w), mean, std)
             for part, w in zip(parts, weights, strict=True)
-            for count, total, squares in part.tails
+            for count, mean, std in part.tails
         ]
         if self.tails:
             merged, inverse = np.unique(
@@ -294,16 +294,16 @@ class WeightedHistogram:
 
     @property
     def mean(self) -> float:
-        """Weighted mean; pixels outside the bins count with their exact values."""
+        """Weighted mean; pixels outside the bins count by their tail's mean."""
         if self.tails:
             return _mean_with_tails(
                 self.bin_values, self.bin_weights, self.tails, self.total_weight
             )
-        return weighted_sum(self.weights, self.values) / self.total_weight
+        return _mean_with_tails(self.values, self.weights, [], self.total_weight)
 
     @property
     def std(self) -> float:
-        """Weighted population standard deviation; tails count with their exact sums."""
+        """Weighted population standard deviation; tails count with their moments."""
         if self.tails:
             return _std_with_tails(
                 self.bin_values, self.bin_weights, self.tails, self.total_weight, self.mean
@@ -360,29 +360,24 @@ def pooled_statistics(
 def _mean_with_tails(
     values: np.ndarray, weights: np.ndarray, tails: list[tuple[float, float, float]], total: float
 ) -> float:
-    sums = [s for _, s, _ in tails]
-    if not all(math.isfinite(s) for s in sums):
-        # math.fsum would raise a bare ValueError or OverflowError from the standard library.
-        raise ValueError(_non_finite_tail_message(sums))
-    return (weighted_sum(weights, values) + math.fsum(sums)) / total
+    """Return the weighted mean of the bins and of each tail's mean, weighted by its count.
 
-
-def _non_finite_tail_message(sums: list[float]) -> str:
-    """Refusal text for tail sums that are infinite or NaN, naming each such tail."""
-    bad = ", ".join(
-        f"tail {number} of {len(sums)} has sum {s!r}"
-        for number, s in enumerate(sums, 1)
-        if not math.isfinite(s)
-    )
-    opposing = any(s == math.inf for s in sums) and any(s == -math.inf for s in sums)
-    reason = (
-        "infinite sums of opposite sign have no mean" if opposing else "a sum that is not finite"
-    )
-    return (
-        f"The mean cannot be pooled: {bad} ({reason}). The pixels outside the robust range "
-        "are too large for float64 sums. Use a method that does not need the mean, or "
-        "another range."
-    )
+    Without tails this is the plain weighted mean, bit for bit (a sum that overflows gives
+    ``inf`` or ``nan``, which the methods refuse by name). A tail's mean is finite, so when
+    the products of the tails overflow although every value is finite (pixels near the
+    float64 limit at both ends), the sum is redone with every value divided by a power of
+    two near the largest, which is exact, and the finite mean is found.
+    """
+    if not tails:
+        return weighted_sum(weights, values) / total
+    weights = np.concatenate([np.asarray(weights, dtype=np.float64), [t[0] for t in tails]])
+    values = np.concatenate([values, [t[1] for t in tails]])
+    with np.errstate(over="ignore", invalid="ignore"):  # an overflow is redone below
+        mean = weighted_sum(weights, values) / total
+    if math.isfinite(mean) or not np.isfinite(values).all():
+        return mean
+    scale = _power_of_two_near(float(np.max(np.abs(values))))
+    return weighted_sum(weights, values / scale) / total * scale
 
 
 def _std_with_tails(
@@ -394,15 +389,13 @@ def _std_with_tails(
 ) -> float:
     """Return the population standard deviation of the bins (and tails) around ``mean`` (#33).
 
-    The squares are first summed as they are, which keeps every finite result bit for
-    bit. When that overflows although the mean and every value are finite (``[-1e200,
-    1e200]`` has standard deviation ``1e200`` but squares of ``1e400``), the sum is redone
-    with every value divided by a power of two near the largest, which is exact, so the finite
-    spread is found. A tail whose stored sum of squares is not finite is refused by name.
+    Each tail adds its own spread, ``count * std**2``, and its mean's distance from ``mean``
+    (centred moments: no cancellation). The squares are first summed as they are, which
+    keeps every finite result bit for bit. When that overflows although the mean and every
+    value are finite (``[-1e200, 1e200]`` has standard deviation ``1e200`` but squares of
+    ``1e400``), the sum is redone with every value divided by a power of two near the
+    largest, which is exact, so the finite spread is found.
     """
-    squares = [s2 for _, _, s2 in tails]
-    if not all(math.isfinite(s2) for s2 in squares):
-        raise ValueError(_non_finite_squares_message(squares))
     try:
         with np.errstate(over="ignore", invalid="ignore"):  # an overflow is redone below
             std = _std_scaled(values, weights, tails, total, mean, 1.0)
@@ -411,11 +404,13 @@ def _std_with_tails(
     if math.isfinite(std) or not (math.isfinite(mean) and np.isfinite(values).all()):
         return std
     largest = max(float(np.max(np.abs(values), initial=0.0)), abs(mean))
-    largest = max([largest] + [abs(s / count) for count, s, _ in tails])
-    # Values divided by 2**(exponent - 1) are below 2 in magnitude, and the scale is finite.
-    return _std_scaled(
-        values, weights, tails, total, mean, math.ldexp(1.0, math.frexp(largest)[1] - 1)
-    )
+    largest = max([largest] + [max(abs(m), s) for _, m, s in tails])
+    return _std_scaled(values, weights, tails, total, mean, _power_of_two_near(largest))
+
+
+def _power_of_two_near(largest: float) -> float:
+    """Return the power of two at or just below ``largest``; values divided by it are below 2."""
+    return math.ldexp(1.0, math.frexp(largest)[1] - 1)
 
 
 def _std_scaled(
@@ -430,29 +425,10 @@ def _std_scaled(
     mean = mean / scale
     deviations = values / scale - mean
     squares = weighted_sum(weights, deviations * deviations)
-    for count, s, s2 in tails:
-        # Each tail adds its spread around its own mean and its mean's distance
-        # from the overall mean; the spread never goes negative through rounding.
-        s, s2 = s / scale, s2 / scale / scale
-        tail_mean = s / count
-        squares += max(s2 - s * tail_mean, 0.0) + count * (tail_mean - mean) ** 2
+    for count, tail_mean, tail_std in tails:
+        spread, offset = tail_std / scale, tail_mean / scale - mean
+        squares += count * (spread * spread) + count * (offset * offset)
     return float(np.sqrt(squares / total)) * scale
-
-
-def _non_finite_squares_message(squares: list[float]) -> str:
-    """Refusal text for tails whose sum of squares overflowed float64 when it was computed."""
-    bad = ", ".join(
-        f"tail {number} of {len(squares)} has sum of squares {s2!r}"
-        for number, s2 in enumerate(squares, 1)
-        if not math.isfinite(s2)
-    )
-    return (
-        f"The standard deviation cannot be pooled: {bad}. The squares of pixels outside the "
-        "robust range overflowed float64 when the statistics file was written (pixel values "
-        "beyond about 1.3e154), so their spread is not known, although it may be finite. Use "
-        "a method that does not need the standard deviation (percentile or robust z-score), "
-        "or the min-max range."
-    )
 
 
 def _channel_histogram(record: PlaneRecord, channel: str | None) -> PlaneHistogram:

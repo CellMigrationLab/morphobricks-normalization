@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 import numpy as np
 import pytest
 
@@ -98,18 +100,30 @@ def test_percentile_limits():
         pooled.percentile(101)
 
 
-def test_opposing_infinite_tail_sums_are_a_named_refusal():
-    # Float64 pixels at both ends overflow the tails' sums to +inf and -inf; the mean then
-    # needs a refusal that says why, not a bare error from math.fsum.
+def test_tails_at_both_float64_limits_have_a_finite_exact_mean():
+    # Float64 pixels at both ends overflowed the draft format's raw tail sums to +inf and
+    # -inf (a named refusal then). Their tails' means are finite, and the pooled mean is
+    # found by exact power-of-two scaling.
     plane = np.full((80, 80), 1.0)
     plane.ravel()[:5] = -1.7e308
     plane.ravel()[5:10] = 1.7e308
     plane.ravel()[10:] = np.linspace(0, 10, 6390)
     histogram = compute_plane_histogram(plane, settings=ROBUST)
-    assert histogram.underflow.sum == -np.inf and histogram.overflow.sum == np.inf
-    with pytest.raises(ValueError, match="opposite sign") as caught:
-        _ = PooledHistogram([histogram]).mean
-    assert "tail 1 of 2" in str(caught.value) and "tail 2 of 2" in str(caught.value)
+    assert histogram.underflow.mean < -1e307 and histogram.overflow.mean > 1e307
+    pooled = PooledHistogram([histogram])
+    stored = [
+        (c, Fraction(v)) for c, v in zip(pooled.bin_counts, pooled.bin_values.tolist(), strict=True)
+    ]
+    stored += [(c, Fraction(m)) for c, m, _ in pooled.tails]
+    oracle = sum(c * v for c, v in stored) / pooled.pixel_count  # exact, from what is stored
+    # Each count * value product is rounded once (as for the bins): within that bound.
+    bound = sum(abs(c * v) for c, v in stored) / pooled.pixel_count * Fraction(2) ** -52
+    assert abs(Fraction(pooled.mean) - oracle) <= bound
+    # From the pixels: as close as float64 tail means allow (each within half a step of
+    # 1.7e308, and the two tails cancel), never inf or nan.
+    exact = sum(Fraction(v) for v in plane.ravel().tolist()) / plane.size
+    assert abs(pooled.mean - float(exact)) <= 1e-15 * 1.7e308
+    assert np.isfinite(pooled.std)
 
 
 @pytest.mark.parametrize("q", [0, 25, 50, 75, 100])
@@ -158,7 +172,7 @@ def test_percentiles_from_pixels_near_float64_limits_are_finite_and_exact(q, lim
 
 
 def exact_std(values, weights, tails=()):
-    """Population standard deviation of weighted values and (count, sum, squares) tails.
+    """Population standard deviation of weighted values and (count, mean, std) tails.
 
     Every float is taken at its exact value (Fraction) and the square root in 40 digits, so
     nothing here can overflow or round like the package's float64 arithmetic.
@@ -171,10 +185,10 @@ def exact_std(values, weights, tails=()):
     tails = [tuple(Fraction(x) for x in tail) for tail in tails]
     total = sum(weights) + sum(c for c, _, _ in tails)
     mean = (
-        sum(w * v for w, v in zip(weights, values, strict=True)) + sum(s for _, s, _ in tails)
+        sum(w * v for w, v in zip(weights, values, strict=True)) + sum(c * m for c, m, _ in tails)
     ) / total
     squares = sum(w * (v - mean) ** 2 for w, v in zip(weights, values, strict=True))
-    squares += sum(s2 - s * s / c + c * (s / c - mean) ** 2 for c, s, s2 in tails)
+    squares += sum(c * s * s + c * (m - mean) ** 2 for c, m, s in tails)
     variance = squares / total
     with localcontext() as context:
         context.prec = 40
@@ -215,27 +229,26 @@ def test_std_with_large_tails_is_found_by_scaling():
     plane = np.random.default_rng(7).normal(0, 1, 10000) * 1e153
     settings = HistogramSettings(histogram_range="robust", robust_quantiles=(0.05, 99.95))
     hist = compute_plane_histogram(plane, 256, settings=settings)
-    assert hist.has_tails and np.isfinite(hist.overflow.sum_of_squares)
+    assert hist.has_tails and np.isfinite(hist.overflow.std)
     pooled = PooledHistogram([hist])
     expected = exact_std(pooled.bin_values, pooled.bin_counts, pooled.tails)
     assert pooled.std == pytest.approx(expected, rel=1e-12, abs=0)
     assert pooled.std == pytest.approx(np.std(plane / 1e153) * 1e153, rel=1e-4)
 
 
-def test_tail_whose_squares_overflowed_is_a_named_refusal(tmp_path):
+def test_tails_whose_squares_overflow_float64_give_the_exact_std(tmp_path):
+    # The draft format's raw sums of squares overflowed here and the z-score was refused;
+    # centred moments keep the spread, through the statistics file.
     plane = np.random.default_rng(1).normal(0, 1, 10000) * 1e150
     plane[:5] = (1e200, 2e200, -1e200, 3e200, -2e200)
-    with np.errstate(over="ignore"):  # the tail's squares overflow as the file is written
-        hist = compute_plane_histogram(plane, 256, settings=ROBUST)
-    assert hist.overflow.sum_of_squares == np.inf
+    hist = compute_plane_histogram(plane, 256, settings=ROBUST)
     record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a", channels=["DNA"])
     (back,) = read_plane_histograms(
         write_plane_histograms([record], tmp_path / "p.csv", channel_ids=["DNA"])
     )
     pooled = PooledHistogram([back.histograms[0]])
-    assert np.isfinite(pooled.mean) and np.isfinite(pooled.percentile(50))
-    message = "pooled: tail 1 of 2 has sum of squares inf, tail 2 of 2 has sum of squares inf"
-    with pytest.raises(ValueError, match=message):
-        pooled.summary()  # the standard deviation; mean and percentiles stay available
-    with pytest.raises(ValueError, match="percentile or robust z-score"):
-        fit([back], NormalizationSettings(method="zscore", scope="image"), group="a.tif")
+    expected = exact_std(pooled.bin_values, pooled.bin_counts, pooled.tails)
+    assert pooled.std == pytest.approx(expected, rel=1e-12, abs=0)
+    assert pooled.std == pytest.approx(np.std(plane / 1e150) * 1e150, rel=1e-6)
+    parameters = fit([back], NormalizationSettings(method="zscore", scope="image"), group="a")
+    assert parameters.scale[0] == pooled.std

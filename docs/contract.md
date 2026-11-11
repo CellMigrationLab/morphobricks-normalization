@@ -184,11 +184,10 @@ filled in:
   beyond it. Each of the four is given: a missing `pixel_min` or `pixel_max` is refused,
   never taken from `binning_min` or `binning_max`, even where a min-max histogram would
   have them equal (#47). In the statistics file the message names the blank column.
-- An empty tail has zero sums. A populated tail has a sum that is a number and a sum of
-  squares of 0 or more, with `count · sum_of_squares ≥ sum²`, a mean within its range and
-  a sum of squares possible for values in it (relative rounding slack 1e-9). A sum of
-  squares (or sum) that overflows float64 to infinity is accepted only when the tail's
-  range makes the overflow possible (values beyond about 1e154).
+- An empty tail has count, mean and standard deviation 0. A populated tail has a finite
+  mean within its range (between its extremum and its binning limit) and a finite standard
+  deviation of 0 or more and at most half that range (relative slack 1e-9 plus one float64
+  step). Both are always finite for finite pixels (schema version 5, below).
 - Pooling adds the counts as integers, so a group's pixel count is exact; a group of more
   than 2**63 − 1 finite pixels is refused.
 
@@ -201,7 +200,7 @@ tail's mean and its count.
 | Statistic | Definition | Accuracy |
 |---|---|---|
 | min, max | Smallest `pixel_min`, largest `pixel_max` | Exact |
-| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares. The weighted sums are correctly rounded sums of the products (`math.fsum`), so they never depend on the CPU thread count or BLAS library (#67). When the squares overflow float64 although every value is finite (`[-1e200, 1e200]`), the std is computed with the values divided by a power of two, exactly, so a finite spread is never reported as infinite (#33) | Exact for exact histograms; otherwise very close (errors cancel) |
+| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their centred moments (count, mean, std, §1.4). The weighted sums are correctly rounded sums of the products (`math.fsum`), so they never depend on the CPU thread count or BLAS library (#67). When the squares overflow float64 although every value is finite (`[-1e200, 1e200]`), the std is computed with the values divided by a power of two, exactly, so a finite spread is never reported as infinite (#33) | Exact for exact histograms; otherwise very close (errors cancel) |
 | percentile q | Smallest representative with cumulative count ≥ ceil(q/100 · N) (numpy `inverted_cdf`) | Within the group's largest per-plane bound |
 | median | 50th percentile | As percentiles |
 | MAD | Median of \|representative − median\| | Within twice the bound |
@@ -257,8 +256,16 @@ at `robust_quantiles = (q_low, q_high)` in percent: the value of rank
 `max(1, ceil(q/100 · N))` among the `N` sorted finite pixels (NumPy
 `method="inverted_cdf"`, the percentile rule of §1.2.3), so both are pixel values. The bins
 span `[lo, hi]` with the rules of §1.2.2. Pixels `x < lo` form the **underflow** and pixels
-`x > hi` the **overflow**; each tail keeps its count, the sum of its values and the sum of
-their squares, in float64 (`HistogramTail`). `Histogram_BinningMin/Max_<ID>` hold `lo` and
+`x > hi` the **overflow**; each tail keeps its **centred moments** (`HistogramTail`, schema
+version 5; owner decision of 11 November 2026, N65): its count, its mean and its population
+standard deviation about its mean. Every pixel is taken at its exact value (a float as its
+significand times a power of two, an integer as itself), the sum and the sum of squares are
+accumulated as exact rationals over all blocks, and the mean and the standard deviation are
+each rounded once to the nearest float64 (`tail_moments.py`). So nothing cancels (the raw
+float64 sums of squares of version 4 lost the spread of large values with a small spread),
+nothing overflows (the mean lies in the tail's range, the standard deviation is at most half
+of it, for every finite pixel; the raw squares overflowed beyond about `1.3e154`), and a plane
+gives the same bits whole or in blocks of any size or order. No scale column is needed. `Histogram_BinningMin/Max_<ID>` hold `lo` and
 `hi`; `Intensity_Min/MaxIntensity_<ID>` stay the exact extrema. A limit equals its extremum
 exactly when its tail is empty. With the default quantiles, a plane of at most 10,000 finite
 pixels keeps its extrema as limits; a 512 × 512 plane has 26 pixels in each tail.
@@ -268,11 +275,13 @@ pixels keeps its extrema as limits; a 512 × 512 plane has 26 pixels in each tai
 - `Histogram_ValidPixelCount_<ID>` = the bins' counts + underflow count + overflow count.
 - Percentiles, median and MAD: each non-empty tail stands as one value, its mean, with its
   count.
-- Mean and standard deviation use the tails' sums: as exact as without tails.
-- A tail whose sum of squares is not finite (its pixels' squares overflowed float64 when the
-  file was written, values beyond about `1.3e154`) has no known spread: the standard
-  deviation, and so `zscore`, is refused with a message naming the tail (#33). Mean,
-  percentiles, median and MAD do not use it.
+- Mean: each tail adds `count · mean`, summed with the bins' products in one correctly
+  rounded sum. When those products overflow although every value is finite (tails near the
+  float64 limits), the sum is redone with the values divided by a power of two, exactly.
+- Standard deviation: each tail adds `count · std²` (its own spread) and
+  `count · (mean − pooled mean)²`, centred terms that never cancel; overflow is handled by the
+  same power-of-two scaling as the bins (#33). Pooling is exact given the stored moments, up
+  to one rounding of each product.
 - Min-max parameters use the exact extrema (`pixel_min`, `pixel_max`).
 - `max_representative_error` is the larger of the bins' bound and, for each non-empty tail,
   the larger distance from the tail's mean to its two ends (`max(mean − pixel_min,
@@ -631,8 +640,8 @@ description, so every parallel shard has the same header), in sorted order, in t
 | `Intensity_MinIntensity_<ID>`, `Intensity_MaxIntensity_<ID>` | number or blank | Exact finite extrema of the channel. Floats written at full precision. |
 | `Histogram_ValidPixelCount_<ID>` | integer | Finite pixels; equals the sum of the channel's count columns plus its underflow and overflow counts. |
 | `Histogram_BinningMin_<ID>`, `Histogram_BinningMax_<ID>` | number or blank | Range the channel's bins cover: its extrema, or its robust limits (§1.4). |
-| `Histogram_UnderflowCount_<ID>`, `Histogram_UnderflowSum_<ID>`, `Histogram_UnderflowSumOfSquares_<ID>` | integer, number, number | Pixels below `Histogram_BinningMin_<ID>`: their count, the sum of their values and of their squares (float64). Always written; `0`, `0.0`, `0.0` with the min-max range and for exact histograms. |
-| `Histogram_OverflowCount_<ID>`, `Histogram_OverflowSum_<ID>`, `Histogram_OverflowSumOfSquares_<ID>` | integer, number, number | The same for the pixels above `Histogram_BinningMax_<ID>`. |
+| `Histogram_UnderflowCount_<ID>`, `Histogram_UnderflowMean_<ID>`, `Histogram_UnderflowStd_<ID>` | integer, number, number | Pixels below `Histogram_BinningMin_<ID>`: their count, their mean and their population standard deviation, each the float64 nearest its exact value (centred moments, §1.4, N65). Always written; `0`, `0.0`, `0.0` with the min-max range and for exact histograms. |
+| `Histogram_OverflowCount_<ID>`, `Histogram_OverflowMean_<ID>`, `Histogram_OverflowStd_<ID>` | integer, number, number | The same for the pixels above `Histogram_BinningMax_<ID>`. |
 | `Histogram_Count_<ID>_00000` … `Histogram_Count_<ID>_<bin_count − 1>` | integer | Pixel count per bin, the bin number written with five digits. |
 
 A 16-bit image with exact histograms has 65,536 count columns per channel, so the table is
@@ -817,7 +826,7 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | Statistics file row whose `plane_id`, `image_file` or `bit_depth` differs from what its `source_relative_path`, `z`, `t` and `dtype` give | `CsvFormatError` | Names the file, line, column, stored value and implied value, and asks to run the preprocessing brick again |
 | Statistics file with the columns but no rows | `CsvFormatError` | Names the file and asks to run the preprocessing brick again |
 | Two rows with the same `plane_id`: in the statistics file, or given to `write_plane_histograms`, `scope_groups`, `fit` or `image_summaries` | `CsvFormatError` (file), `ValueError` | Names the plane and both lines (file) or every repeated plane, and asks to remove the repeats or run the preprocessing brick again |
-| A histogram or tail that breaks the invariants of §1.2.2 (negative or wrapping counts, valid above total, missing or disordered limits, impossible tail sums) | `ValueError`; `CsvFormatError` in the file | Names the rule and the values; in the file also the line and channel |
+| A histogram or tail that breaks the invariants of §1.2.2 (negative or wrapping counts, valid above total, missing or disordered limits, impossible tail moments) | `ValueError`; `CsvFormatError` in the file | Names the rule and the values; in the file also the line and channel |
 | A `PlaneRecord` without `position_id` (None, blank or not text); in the file a row with `position_id` blank | `ValueError`; `CsvFormatError` in the file | Names the image, says every plane needs its position and asks to run the preprocessing brick again |
 | A plane coordinate `z` or `t` that is not a whole number 0 or above | `ValueError`; `CsvFormatError` in the file | Names the image, coordinate and value |
 | A block of another pixel type than the plane's | `ValueError` | Names the block and both pixel types |

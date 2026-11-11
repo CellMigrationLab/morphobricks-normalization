@@ -145,11 +145,11 @@ def test_header_follows_the_contract(tmp_path):
             f"Histogram_BinningMin_{c}",
             f"Histogram_BinningMax_{c}",
             f"Histogram_UnderflowCount_{c}",
-            f"Histogram_UnderflowSum_{c}",
-            f"Histogram_UnderflowSumOfSquares_{c}",
+            f"Histogram_UnderflowMean_{c}",
+            f"Histogram_UnderflowStd_{c}",
             f"Histogram_OverflowCount_{c}",
-            f"Histogram_OverflowSum_{c}",
-            f"Histogram_OverflowSumOfSquares_{c}",
+            f"Histogram_OverflowMean_{c}",
+            f"Histogram_OverflowStd_{c}",
         ]
         expected += [f"Histogram_Count_{c}_{i:05d}" for i in range(3)]
     assert per_channel == expected
@@ -174,7 +174,7 @@ def test_rows_hold_every_channel_side_by_side_by_id(tmp_path):
     assert [
         row[f"Histogram_{tail}{what}_DNA"]
         for tail in ("Underflow", "Overflow")
-        for what in ("Count", "Sum", "SumOfSquares")
+        for what in ("Count", "Mean", "Std")
     ] == ["0", "0.0", "0.0"] * 2
     assert [row[bin_column("DNA", i)] for i in range(8)] == ["1", "0", "2", "0", "0", "0", "1", "0"]
     assert [row[bin_column("ACTIN", i)] for i in range(3)] == ["2", "1", "1"]
@@ -367,7 +367,7 @@ def test_inconsistent_channel_columns_are_rejected(tmp_path, column, value):
         ("Histogram_ValidPixelCount_PHASE", "0"),  # a fabricated zero
         ("Histogram_Count_PHASE_00000", "0"),
         ("Intensity_MinIntensity_PHASE", "nan"),  # a fabricated NaN
-        ("Histogram_UnderflowSum_PHASE", "0.0"),
+        ("Histogram_UnderflowMean_PHASE", "0.0"),
     ],
 )
 def test_a_value_in_an_absent_channel_is_refused(tmp_path, column, value):

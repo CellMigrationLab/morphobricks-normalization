@@ -115,13 +115,24 @@ def histogram_text(hist: PlaneHistogram) -> str:
         hist.valid_pixel_count,
         hist.pixel_min,
         hist.pixel_max,
-        (hist.underflow.count, hist.underflow.sum, hist.underflow.sum_of_squares),
-        (hist.overflow.count, hist.overflow.sum, hist.overflow.sum_of_squares),
+        tail_fields(hist.underflow),
+        tail_fields(hist.overflow),
         hist.representatives,
         hist.max_representative_error,
         hist.is_exact,
     )
     return text(fields)
+
+
+def tail_fields(tail: object) -> tuple:
+    """Return a tail's stored fields: count, mean and std (schema version 5).
+
+    Commits before the centred tail moments stored count, sum and sum of squares; those
+    are dumped instead, so the corpus still runs on them (``PYTHONPATH=<base>/src``).
+    """
+    if hasattr(tail, "std"):
+        return tail.count, tail.mean, tail.std
+    return tail.count, tail.sum, tail.sum_of_squares
 
 
 def planes() -> Iterator[tuple[str, np.ndarray]]:

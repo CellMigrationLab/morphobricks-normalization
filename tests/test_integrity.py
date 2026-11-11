@@ -223,24 +223,24 @@ def test_a_plane_without_valid_pixels_has_no_limits():
 @pytest.mark.parametrize(
     "tail, message",
     [
-        ((2, float("nan"), 1.0), "the sum must be a number"),
-        ((2, 1.0, -1.0), "sum of squares 0 or more"),
-        ((2, 1.0, float("nan")), "sum of squares 0 or more"),
-        ((2, float("inf"), 4.0), "infinite sum"),
-        ((2, 10.0, 1.0), "variance would be negative"),
+        ((2, float("nan"), 1.0), "the mean must be finite"),
+        ((2, float("inf"), 1.0), "the mean must be finite"),
+        ((2, 1.0, -1.0), "standard deviation a finite number 0 or above"),
+        ((2, 1.0, float("nan")), "standard deviation a finite number 0 or above"),
+        ((2, 1.0, float("inf")), "standard deviation a finite number 0 or above"),
         ((-1, 0.0, 0.0), "between 0 and 2"),
-        ((0, 1.0, 0.0), "empty underflow or overflow must have zero sums"),
+        ((0, 1.0, 0.0), "empty underflow or overflow must have mean and std 0"),
+        ((0, 0.0, 1.0), "empty underflow or overflow must have mean and std 0"),
     ],
 )
-def test_impossible_tail_sums_are_refused(tail, message):
+def test_impossible_tail_moments_are_refused(tail, message):
     with pytest.raises(ValueError, match=message):
         HistogramTail(*tail)
 
 
 def test_signed_and_constant_tails_are_accepted():
-    assert HistogramTail(2, -6.0, 18.0).mean == -3.0
-    third = 0.1 + 0.2  # rounding of the sums must not refuse a constant tail
-    assert HistogramTail(3, 3 * third, 3 * third * third).count == 3
+    assert HistogramTail(2, -3.0, 0.0).mean == -3.0
+    assert HistogramTail(3, 0.1 + 0.2, 0.0).count == 3
 
 
 def robust_plane_histogram(dtype=np.float64, outliers=(-1e6, 1e6)):
@@ -255,10 +255,11 @@ def test_tails_must_fit_their_range():
     good = robust_plane_histogram()
     assert not good.underflow.is_empty and not good.overflow.is_empty
     lo, above = good.underflow, good.binning_min + 1.0
+    half_range = (good.binning_min - good.pixel_min) / 2
     for bad in (
-        HistogramTail(lo.count, lo.count * above, lo.count * above * above),  # above the limit
-        HistogramTail(lo.count, lo.sum, lo.sum_of_squares * 10),  # values beyond the minimum
-        HistogramTail(lo.count, lo.sum, float("inf")),  # cannot overflow in this range
+        HistogramTail(lo.count, above, lo.std),  # mean above the limit
+        HistogramTail(lo.count, good.pixel_min - 1.0, lo.std),  # mean below the minimum
+        HistogramTail(lo.count, lo.mean, half_range * 1.001),  # wider than its range
     ):
         with pytest.raises(ValueError, match="which values in that range cannot have"):
             PlaneHistogram(
@@ -276,11 +277,13 @@ def test_tails_must_fit_their_range():
             )
 
 
-@pytest.mark.filterwarnings("ignore:overflow encountered:RuntimeWarning")  # issue #33
-def test_a_sum_of_squares_that_overflows_float64_is_accepted_where_possible():
-    # Values near 1e200 overflow their squares (issue #33): legitimate, not corruption.
+def test_tails_of_values_whose_squares_overflow_float64_stay_finite():
+    # Values near 1e200 overflowed the raw sums of squares of the draft format (issue #33);
+    # the centred moments are exact and finite.
     result = robust_plane_histogram(outliers=(-1e200, 1e200))
-    assert result.underflow.sum_of_squares == np.inf and result.overflow.count >= 1
+    assert result.overflow.count >= 1
+    for tail in (result.underflow, result.overflow):
+        assert np.isfinite([tail.mean, tail.std]).all() and tail.std > 1e198
 
 
 # --- The statistics file (#43, #44, #45, #46, #47, #48) ----------------------------------------
@@ -364,11 +367,11 @@ def test_wrapping_counts_in_the_file_are_refused(tmp_path):
 @pytest.mark.parametrize(
     "column, value",
     [
-        ("Histogram_UnderflowSum_C0", "nan"),
-        ("Histogram_UnderflowSumOfSquares_C0", "-1"),
-        ("Histogram_UnderflowSumOfSquares_C0", "inf"),
-        ("Histogram_OverflowSum_C0", "inf"),
-        ("Histogram_OverflowSum_C0", "0.0"),
+        ("Histogram_UnderflowMean_C0", "nan"),
+        ("Histogram_UnderflowStd_C0", "-1"),
+        ("Histogram_UnderflowStd_C0", "inf"),
+        ("Histogram_OverflowMean_C0", "inf"),
+        ("Histogram_OverflowMean_C0", "0.0"),
     ],
 )
 def test_impossible_sums_of_a_populated_tail_are_refused(tmp_path, column, value):
@@ -377,8 +380,7 @@ def test_impossible_sums_of_a_populated_tail_are_refused(tmp_path, column, value
         read_plane_histograms(path)
 
 
-@pytest.mark.filterwarnings("ignore:overflow encountered:RuntimeWarning")  # issue #33
-def test_populated_tails_and_overflowed_squares_round_trip(tmp_path):
+def test_populated_tails_of_huge_values_round_trip(tmp_path):
     records = [
         record("c/r/a.tif", [robust_plane_histogram()]),
         record("c/r/b.tif", [robust_plane_histogram(outliers=(-1e200, 1e200))]),

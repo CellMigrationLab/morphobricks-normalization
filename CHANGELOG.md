@@ -28,6 +28,12 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   instead of giving `inf`: its spread is not known. No dump output changes. Not changed: the
   raw sums of squares of the file lose precision by cancellation for tails of large values
   with a small spread; a centred representation needs a new schema version.
+- **Missing conditions per time point (#41).** With `scope="biological_repeat"` and
+  `per_time_point=True`, `repeat_missing_conditions` checked each repeat group over all its
+  time points, not the groups that are fitted, so a group such as `r1::t=0` with control
+  images only gave no warning when treated images of `r1` existed at another time point.
+  The groups that are fitted are now checked, and the warning's items and message name them
+  (`r1::t=0`). Without `per_time_point` the warning is unchanged. No dump output changes.
 
 ## v0.4.0 (2026-11-10)
 

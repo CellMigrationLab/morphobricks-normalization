@@ -104,7 +104,8 @@ def scope_groups(
         The rows of each group, by group key in sorted order.
     issues : list of Issue
         ``repeat_missing_conditions`` when a repeat group has no rows from
-        some condition of the statistics; the group is still used.
+        some condition of the statistics; the group is still used. With
+        ``per_time_point`` each time point's group is checked (``<label>::t=<t>``).
 
     Raises
     ------
@@ -128,7 +129,7 @@ def scope_groups(
         groups.setdefault(group_key(record, settings, repeat_groups), []).append(record)
     issues = []
     if settings.scope == "biological_repeat":
-        issues.extend(_incomplete_repeat_groups(records, repeat_groups))
+        issues.extend(_incomplete_repeat_groups(groups))
     return dict(sorted(groups.items())), issues
 
 
@@ -179,17 +180,17 @@ def _missing_pairs_error(pairs: set[tuple[str, str]]) -> ValueError:
     )
 
 
-def _incomplete_repeat_groups(
-    records: list[PlaneRecord], repeat_groups: RepeatGroups | None
-) -> list[Issue]:
-    conditions = {record.condition for record in records}
-    present: dict[str, set[str]] = {}
-    for record in records:
-        present.setdefault(_repeat_group(record, repeat_groups), set()).add(record.condition)
+def _incomplete_repeat_groups(groups: dict[tuple, list[PlaneRecord]]) -> list[Issue]:
+    """Warn about every fitted group without rows from some condition of the statistics.
+
+    The groups are the ones that are fitted, so with ``per_time_point`` each time point of
+    a repeat group is checked on its own and named ``<label>::t=<t>`` (#41).
+    """
+    conditions = {record.condition for members in groups.values() for record in members}
     missing = {
-        label: sorted(conditions - found)
-        for label, found in sorted(present.items())
-        if conditions - found
+        group_name(key): sorted(conditions - {record.condition for record in members})
+        for key, members in sorted(groups.items())
+        if conditions - {record.condition for record in members}
     }
     if not missing:
         return []

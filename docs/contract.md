@@ -466,7 +466,9 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
   forms a group with the other conditions' `single` rows, or with the repeat it is paired
   with.
 - **Incomplete groups:** a repeat group without rows from every condition of the statistics
-  gives the warning `repeat_missing_conditions` (§9.2) and is still used.
+  gives the warning `repeat_missing_conditions` (§9.2) and is still used. With
+  `per_time_point=true` each time point's group is checked on its own and named in the
+  warning as `<label>::t=<t>` (#41).
 
 ### 4.3 Pooling weights
 

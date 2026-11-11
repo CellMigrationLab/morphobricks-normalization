@@ -4,6 +4,21 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## Unreleased
+
+Numerical-correctness fixes. Each says which outputs change; every other output is
+bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden fits).
+
+- **64-bit integers float64 cannot hold (#28).** A bin's representative is the float64 nearest
+  its midpoint, rounded once (it was rounded twice, `binning_min` first, which could miss a
+  representable value by 2 above `2**53`). `max_representative_error` of an integer plane
+  with a value of magnitude `2**51` or more is the exact largest distance between its
+  integers and the float64 standing in for them, rounded up, so a histogram is exact only
+  when every representative equals its value: `[2**53 + 1]` is no longer reported exact with
+  error 0 (its representative is `2**53`; error 1), and `normalization_exact` and
+  `Histogram_Exact_C<i>` are false for it. Only int64 and uint64 planes with such values
+  change; bin counts and limits never do.
+
 ## v0.4.0 (2026-11-10)
 
 Breaking release: `PlaneRecord.position_id` is required (NM-04) and the readers of old table layouts

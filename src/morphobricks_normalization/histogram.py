@@ -52,6 +52,7 @@ import numpy as np
 
 from .bin_centres import float_bin_centres, float_bin_position
 from .dtypes import check_supported, default_bin_count, is_integer, validate_bin_count
+from .integer_representatives import beyond_float_exact, integer_representatives, wide_integer_error
 from .integrity import check_histogram, check_tail, checked_blocks
 from .ranges import CENTRAL_PERCENTILES, HistogramSettings, RangeCheck
 from .sums import weighted_sum
@@ -172,11 +173,7 @@ class PlaneHistogram:
         if self.is_empty:
             return np.full(self.bin_count, np.nan)
         if is_integer(self.dtype):
-            first, last = self._integer_bin_limits
-            return np.array(
-                [self.binning_min + (a + b) / 2 for a, b in zip(first, last, strict=True)],
-                dtype=np.float64,
-            )
+            return integer_representatives(self)
         lo, hi = float(self.binning_min), float(self.binning_max)
         return float_bin_centres(lo, hi, self.bin_count)
 
@@ -188,10 +185,12 @@ class PlaneHistogram:
         Float planes: half the bin width. Pixels of a tail are represented by
         the tail's mean, so they add the larger distance from that mean to the
         tail's ends: the plane's extremum and the binning limit. A histogram
-        with tails is therefore never exact.
+        with tails is therefore never exact. Beyond ``2**51``: see ``integer_representatives``.
         """
         if self.is_empty:
             return 0.0
+        if is_integer(self.dtype) and beyond_float_exact(self):
+            return wide_integer_error(self)
         if is_integer(self.dtype):
             first, last = self._integer_bin_limits
             widest = max(b - a + 1 for a, b in zip(first, last, strict=True))

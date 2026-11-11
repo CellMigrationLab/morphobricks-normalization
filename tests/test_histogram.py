@@ -1,12 +1,19 @@
 import bisect
+from fractions import Fraction
 
 import numpy as np
 import pytest
 
 from morphobricks_normalization import (
+    NormalizationSettings,
+    PlaneRecord,
+    PooledHistogram,
     UnsupportedDtypeError,
     compute_block_histogram,
     compute_plane_histogram,
+    fit,
+    read_plane_histograms,
+    write_plane_histograms,
 )
 from morphobricks_normalization import histogram as histogram_module
 
@@ -344,3 +351,84 @@ def test_blocks_are_read_once_for_small_integers_and_twice_otherwise(dtype, pass
     floats = plane.astype(np.float32)
     compute_block_histogram(lambda: (calls.append(1), iter([floats]))[1], floats.dtype, 4)
     assert len(calls) == 2  # floats are always read twice
+
+
+# 64-bit integers that float64 cannot hold (#28) ---------------------------------------
+
+UNREPRESENTABLE = [
+    ("uint64", 2**53 - 1),
+    ("uint64", 2**53),
+    ("uint64", 2**53 + 1),
+    ("uint64", 2**64 - 1),
+    ("int64", 2**63 - 1),
+    ("int64", -(2**63)),
+    ("int64", -(2**63) + 1),
+    ("int64", -(2**53) - 1),
+]
+
+
+@pytest.mark.parametrize(("dtype", "value"), UNREPRESENTABLE)
+def test_singleton_64_bit_value_is_exact_only_if_float64_holds_it(dtype, value):
+    hist = compute_plane_histogram(np.array([[value]], dtype=dtype), 256)
+    (occupied,) = np.flatnonzero(hist.counts)
+    representative = hist.representatives[occupied]
+    error = abs(Fraction(float(representative)) - value)  # exact, independent of the package
+    assert hist.counts[occupied] == 1 and hist.pixel_min == hist.pixel_max == value
+    assert hist.is_exact == (error == 0)
+    assert hist.max_representative_error == float(error)  # 0 or 1: representable
+
+
+def test_adjacent_64_bit_integers_sharing_a_float_are_not_exact():
+    plane = np.array([[2**53, 2**53 + 1, 2**53 + 1]], dtype=np.uint64)
+    hist = compute_plane_histogram(plane, 256)
+    np.testing.assert_array_equal(np.flatnonzero(hist.counts), [0, 1])  # bins stay exact
+    assert hist.representatives[0] == hist.representatives[1] == 2.0**53
+    assert not hist.is_exact and hist.max_representative_error == 1.0
+    pooled = PooledHistogram([hist])
+    assert pooled.counts.tolist() == [3] and pooled.max_representative_error == 1.0
+    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a")
+    settings = NormalizationSettings(method="minmax", scope="image")
+    with pytest.raises(ValueError, match="zero"):  # 2**53 + 1 - 2**53 rounds to 0 in float64
+        fit([record], settings, group="a.tif")
+    plane = np.array([[2**53 - 2, 2**53 + 1]], dtype=np.uint64)
+    parameters = fit(
+        [
+            PlaneRecord(
+                "a.tif", "c", "r", "t", [compute_plane_histogram(plane, 256)], position_id="a"
+            )
+        ],
+        settings,
+        group="a.tif",
+    )
+    assert parameters.exact is False
+
+
+@pytest.mark.parametrize("dtype", ["int64", "uint64"])
+@pytest.mark.parametrize("bins", [2, 7, 256])
+def test_wide_64_bit_bound_covers_every_pixel_exactly(dtype, bins):
+    info = np.iinfo(dtype)
+    plane = np.random.default_rng(bins).integers(
+        info.min, info.max, (24, 31), dtype=dtype, endpoint=True
+    )
+    plane[0, :2] = (info.min, info.max)
+    hist = compute_plane_histogram(plane, bins)
+    block = compute_block_histogram(lambda: iter((plane[:5], plane[5:])), plane.dtype, bins)
+    assert block.max_representative_error == hist.max_representative_error
+    starts = [first for first, _ in hist.integer_bin_limits()]
+    representatives = [Fraction(float(r)) for r in hist.representatives]
+    worst = max(
+        abs(representatives[bisect.bisect_right(starts, int(v)) - 1] - int(v))
+        for v in plane.ravel().tolist()
+    )
+    assert Fraction(hist.max_representative_error) >= worst and not hist.is_exact
+
+
+def test_64_bit_bound_survives_the_statistics_file(tmp_path):
+    plane = np.array([[2**53 + 1, 2**53 + 3, 2**53 + 4]], dtype=np.uint64)
+    hist = compute_plane_histogram(plane, 256)
+    record = PlaneRecord("a.tif", "c", "r", "t", [hist], position_id="a")
+    (back,) = read_plane_histograms(write_plane_histograms([record], tmp_path / "p.csv"))
+    read = back.histograms[0]
+    assert read.pixel_min == 2**53 + 1 and read.pixel_max == 2**53 + 4
+    assert read.max_representative_error == hist.max_representative_error == 1.0
+    assert not read.is_exact

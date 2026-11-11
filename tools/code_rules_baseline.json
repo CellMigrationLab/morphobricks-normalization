@@ -32,7 +32,7 @@
     "src/morphobricks_normalization/histogram.py _integer_bins: # Ruff findings too-many-arguments": 1,
     "src/morphobricks_normalization/histogram.py _integer_bins: # parameters (max #)": 9,
     "src/morphobricks_normalization/histogram.py _integer_bins: private function of # lines without a docstring": 25,
-    "src/morphobricks_normalization/histogram.py: # lines (max #)": 862,
+    "src/morphobricks_normalization/histogram.py: # lines (max #)": 861,
     "src/morphobricks_normalization/pooling.py __init__: # Ruff findings missing-return-type-special-method": 1,
     "src/morphobricks_normalization/records.py _check_channels: private function of # lines without a docstring": 19,
     "src/morphobricks_normalization/scopes.py _incomplete_repeat_groups: private function of # lines without a docstring": 26,

@@ -120,8 +120,14 @@ Notation in this section: `n` = `bin_count`, `lo` = `binning_min`, `hi` = `binni
 - If `W > n`: bin `i` holds the values `lo + ceil(i·W/n)` to `lo + ceil((i+1)·W/n) − 1`.
   Limits are whole numbers, consecutive bins touch without gaps or overlaps, and widths
   are `floor(W/n)` or `ceil(W/n)` values.
-- Representative value of a bin: `(first value + last value) / 2`.
+- Representative value of a bin: `(first value + last value) / 2`, the float64 nearest it.
 - Bound: every pixel is within `(widest bin − 1) / 2` of its representative.
+- Planes with a value of magnitude `2**51` or more (64-bit types, #28): float64 cannot hold
+  every value there (`2**53 + 1` is stored as `2**53`), so the bound is the exact largest
+  distance between a bin's (or tail's) integers and the float64 standing in for them, rounded
+  up. A bin is exact only when its representative equals its value, so `normalization_exact`
+  is false for a group with such a value. Counts and bin limits stay exact integers. Below
+  `2**51` representatives and bound are exact float64 arithmetic, unchanged.
 
 ##### Float planes
 

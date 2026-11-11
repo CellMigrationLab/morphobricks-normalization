@@ -198,7 +198,7 @@ tail's mean and its count.
 | Statistic | Definition | Accuracy |
 |---|---|---|
 | min, max | Smallest `pixel_min`, largest `pixel_max` | Exact |
-| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares. The weighted sums are correctly rounded sums of the products (`math.fsum`), so they never depend on the CPU thread count or BLAS library (#67) | Exact for exact histograms; otherwise very close (errors cancel) |
+| mean, std | Count-weighted mean and population std (÷N) of representatives; tails count with their exact sums and sums of squares. The weighted sums are correctly rounded sums of the products (`math.fsum`), so they never depend on the CPU thread count or BLAS library (#67). When the squares overflow float64 although every value is finite (`[-1e200, 1e200]`), the std is computed with the values divided by a power of two, exactly, so a finite spread is never reported as infinite (#33) | Exact for exact histograms; otherwise very close (errors cancel) |
 | percentile q | Smallest representative with cumulative count ≥ ceil(q/100 · N) (numpy `inverted_cdf`) | Within the group's largest per-plane bound |
 | median | 50th percentile | As percentiles |
 | MAD | Median of \|representative − median\| | Within twice the bound |
@@ -260,6 +260,10 @@ pixels keeps its extrema as limits; a 512 × 512 plane has 26 pixels in each tai
 - Percentiles, median and MAD: each non-empty tail stands as one value, its mean, with its
   count.
 - Mean and standard deviation use the tails' sums: as exact as without tails.
+- A tail whose sum of squares is not finite (its pixels' squares overflowed float64 when the
+  file was written, values beyond about `1.3e154`) has no known spread: the standard
+  deviation, and so `zscore`, is refused with a message naming the tail (#33). Mean,
+  percentiles, median and MAD do not use it.
 - Min-max parameters use the exact extrema (`pixel_min`, `pixel_max`).
 - `max_representative_error` is the larger of the bins' bound and, for each non-empty tail,
   the larger distance from the tail's mean to its two ends (`max(mean − pixel_min,

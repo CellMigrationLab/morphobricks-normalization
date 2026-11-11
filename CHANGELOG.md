@@ -18,6 +18,16 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   error 0 (its representative is `2**53`; error 1), and `normalization_exact` and
   `Histogram_Exact_C<i>` are false for it. Only int64 and uint64 planes with such values
   change; bin counts and limits never do.
+- **Standard deviations of large finite values (#33).** `PooledHistogram.std` and
+  `WeightedHistogram.std` summed squared deviations that overflow for values beyond about
+  `1e154` (`[-1e200, 1e200]` gave `inf`, so `zscore` was refused, although its standard
+  deviation is `1e200`; a tail could raise a bare `OverflowError`). When the plain sum is not
+  finite but the mean and every value are, it is redone with the values divided by a power of
+  two, which is exact; every finite result is unchanged bit for bit. A tail whose stored sum
+  of squares is infinite (schema version 4 keeps raw sums of squares) is refused by name
+  instead of giving `inf`: its spread is not known. No dump output changes. Not changed: the
+  raw sums of squares of the file lose precision by cancellation for tails of large values
+  with a small spread; a centred representation needs a new schema version.
 
 ## v0.4.0 (2026-11-10)
 

@@ -386,7 +386,12 @@ The method identifier is a setting (`settings.method`); the written name is what
 | `fluorescence` | `minmax`, `percentile` (default), `zscore`, `robust_zscore` | `min-max`, `percentile <low>-<high>` (e.g. `percentile 1-99.8`), `z-score`, `robust z-score` |
 | `rgb` | `percentile` (the only one) | `rgb percentile <low>-<high>` (e.g. `rgb percentile 1-99.8`) |
 
-Percentile values in names are formatted with `:g` (as `percentile_range` does today).
+Each percentile value in a name is the shortest decimal that reads back as exactly the same
+float, never in exponent form (`percentile_name`, used by `percentile_range` and
+`NormalizationSettings.method_name`): `1`, `99.8`, `1.000001`, `0.00001`; `-0.0` is written `0`.
+The name therefore identifies the percentiles exactly, and `from_columns` refuses a row whose
+percentiles differ from the settings' however little (issue #35). Values with at most six
+significant digits and at least `0.0001` are written as `:g` wrote them before.
 
 ### 3.2 Fluorescence
 

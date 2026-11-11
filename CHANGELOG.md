@@ -56,6 +56,21 @@ bit-identical (`tools/dump_outputs.py` and `--corpus` lines, and the 400 golden 
   images only gave no warning when treated images of `r1` existed at another time point.
   The groups that are fitted are now checked, and the warning's items and message name them
   (`r1::t=0`). Without `per_time_point` the warning is unchanged. No dump output changes.
+- **Exact percentiles in the written method name (#35).** `normalization_method` wrote each
+  percentile with `:g`, six significant digits, so different settings shared a name
+  (`percentile=(1.000001, 99.8)` and `(1.000002, 99.8)` both wrote `percentile 1-99.8`) and
+  `Parameters.from_columns` read parameters fitted with one as the other's. Each percentile is
+  now the shortest decimal that reads back as exactly the same float, never in exponent form
+  (`NormalizationSettings.method_name`, `percentile_range` and the new `normalization.percentile_name`).
+  Names of percentiles with at most six significant digits and at least `0.0001`, the default
+  `percentile 1-99.8` among them, are unchanged; others change, for example
+  `percentile 1-99.8` becomes `percentile 1.000001-99.8`, and `percentile 1e-05-50` becomes
+  `percentile 0.00001-50`. **Not compatible:** a parameter row written before this change with
+  such percentiles holds the old short name and is refused by `from_columns` with the existing
+  message naming the row's and the settings' names ("Column normalization_method is
+  'percentile 1-99.8', but the settings use 'percentile 1.000001-99.8'"); fit the parameters
+  again (the owner's ruling of 10 November 2026: no backward compatibility before the first
+  pipeline release). Fitted offsets and scales do not change, and no dump output changes.
 
 ## v0.4.0 (2026-11-10)
 

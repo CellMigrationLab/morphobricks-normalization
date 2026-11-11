@@ -83,7 +83,24 @@ def percentile_range(
     if not 0 <= low < high <= 100:
         raise ValueError(f"Expected 0 <= low < high <= 100; got low={low}, high={high}.")
     lower = pooled.percentile(low)
-    return _parameters(f"percentile {low:g}-{high:g}", lower, pooled.percentile(high) - lower)
+    return _parameters(percentile_name(low, high), lower, pooled.percentile(high) - lower)
+
+
+def percentile_name(low: float, high: float) -> str:
+    """Return the written name of the percentile method, ``percentile <low>-<high>``.
+
+    Each percentile is written as the shortest decimal that reads back as exactly the same
+    float, never in exponent form (``1``, ``99.8``, ``1.000001``, ``0.0000001``), so two
+    settings with different percentiles never share a name (issue #35): ``from_columns``
+    compares this name to refuse parameters fitted with other percentiles. ``-0.0`` is
+    written as ``0``, the same percentile as ``0.0``.
+    """
+    return f"percentile {_exact_decimal(low)}-{_exact_decimal(high)}"
+
+
+def _exact_decimal(value: float) -> str:
+    """Shortest positional decimal that round-trips to ``value`` (``-0.0`` as ``0``)."""
+    return np.format_float_positional(float(value) + 0.0, unique=True, trim="-")
 
 
 def z_score(pooled: PooledHistogram) -> NormalizationParameters:

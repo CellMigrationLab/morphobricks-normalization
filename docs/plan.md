@@ -264,7 +264,8 @@ their formula is implemented here.
   The preprocessing brick adds the setting and the warning (follow-up P6).*
 - **Stage 3 S3.2 — channels by canonical channel ID (ADR 0003):** `plane_histograms.csv`
   schema version 5, `PlaneRecord.channels`, fits, parameters, summaries and checks by channel
-  ID (N61–N64). *Draft pull request (10 November 2026), not merged; see CHANGELOG
+  ID (N61–N64). *Pull request #90 (10 November 2026; rebased on #91 and #92 and finished on
+  11 November 2026, the owner having decided to start Stage 3 now), not merged; see CHANGELOG
   "Unreleased".*
 - **Release `v0.3.1`**, pinned by the other bricks. *Released (28 October 2026): Milestone 5.
   The tag `v0.3.0` points at the same code but its package reports version 0.2.0, because
@@ -513,6 +514,28 @@ decisions HV1-HV4, taken on the S3.1 benchmark; implemented in S3.2):
     not written and the run reports the plane and channel. The table has no failed state.
 58. **N64** (HV4) Version 4 is a hard cut: the version 5 reader refuses it, naming version 5
     and how to recompute; there is no converter (ADR 0002 AR10).
+
+Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
+pull request #90), each taken on the side the Spec states or the safer one, and listed in that
+pull request for the owner's review (not numbered decisions until the owner confirms them):
+
+- **Header IDs** are the description's declared channels (`[channels]`), never
+  `used_ids.channels` (retired IDs); the calling brick passes them (contract §6.1).
+- **Sort order** is code point order; the `channels` column is the last plane column, before
+  every per-channel column (contract §6.1, §6.2).
+- **Partial presence inside one fitted group** is refused by default
+  (`ChannelScopeIncompleteError`, the Spec's `A_SCOPE_INCOMPLETE`, experiment-v1 §8); the user
+  may select the planes that have the channel with `partial_channels="planes_with_channel"`,
+  stored with the run's settings and reported per fit (contract §1.5, §8.3).
+- **Parameter columns have their own version**, `normalization_parameters_version` = `2`; a row
+  without it (the C-index columns of 0.4) is refused, never read as channel `C0` (contract
+  §8.1).
+- **A failed measurement removes an earlier table** at the output path, so no out-of-date table
+  looks current (contract §6.2).
+- **Summary columns** are named by ID already in S3.2, since records are by ID (HV2).
+- **RGB parameter order** follows the one rule of every per-channel table, sorted IDs (`B`, `G`,
+  `R`); source order `R`, `G`, `B` is kept where order means position: a plane's `channels`
+  cell, pixel arrays and `apply` (contract §8.1).
 
 ## 13. Still to measure
 

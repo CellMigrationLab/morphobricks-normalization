@@ -338,22 +338,28 @@ The owner's decisions of 10 November 2026 (MorphoBricks-Spec ADR 0003, HV1-HV4; 
 replace the C index as the channel token: a channel is named by its **canonical channel ID**
 from the confirmed experiment description (experiment-v1 §3.1, §4.3), whose Token rule
 `^[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)*$` it follows. Images of one experiment may have
-different channels (N43 is replaced by per-row presence); a channel is pooled, fitted,
-summarized and checked only over the planes that have it, never by its position in the image.
-An index given where an ID is expected is refused (`ValueError`), never read as an ID.
+different channels (N43 is replaced by per-row presence); a channel is pooled, summarized and
+checked only over the planes that have it, never by its position in the image. A fitted group
+in which only some planes have a channel is refused (`ChannelScopeIncompleteError`, the Spec's
+`A_SCOPE_INCOMPLETE`, experiment-v1 §8) unless the user selects those planes with
+`NormalizationSettings(partial_channels="planes_with_channel")`, which is stored with the run's
+settings (§8.3) and reported per fit (`channel_partially_present`, §9.2). An index given where
+an ID is expected is refused (`ValueError`), never read as an ID.
 
 | Module | Stage 3 (schema version 5) |
 |---|---|
 | `channels.py` (new) | `CHANNEL_ID_PATTERN`, `check_channel_id`, `check_channel_ids`. |
-| `records.py` | `PlaneRecord(..., *, position_id, channels)`: `channels` (required, keyword-only) is the plane's IDs in source order (the unit's list), one per histogram; `has_channel(id)`, `channel_histogram(id)`. `ChannelMeasurementFailure(plane_id, channel, reason)`, `ChannelMeasurementError` and `check_measurements` (HV3). `different_channel_counts` is removed; `same_channels_per_image` refuses an image whose planes list different channels. |
+| `records.py` | `PlaneRecord(..., *, position_id, channels)`: `channels` (required, keyword-only) is the plane's IDs in source order (the unit's list), one per histogram; `has_channel(id)`, `channel_histogram(id)`. `ChannelMeasurementFailure(plane_id, channel, reason)`, `ChannelMeasurementError` (with `removed`, the earlier table the writer removed, §6.2) and `check_measurements` (HV3); `check_universe`. `different_channel_counts` is removed; `same_channels_per_image` refuses an image whose planes list different channels. |
 | `csv_io.py` | `SCHEMA_VERSION = "5"`; `CHANNELS_COLUMN`; `write_plane_histograms(records, path, *, channel_ids, failures=())`; `read_plane_histogram_table(path)` gives `PlaneHistogramTable(channel_ids, records)`, `read_plane_histograms` its records; `table_header(ids, bin_count)`, `header_channels(header)`; `channel_column(feature, id)`, `bin_column(id, index)`, `channel_columns(id, bin_count)`. |
 | `pooling.py` | `PooledHistogram(histograms, channel=None)`: `channel` is an ID; a record without it is refused, not skipped. |
-| `fitting.py`, `parameters.py` (new) | `fit(..., channels=None)`: for rows, the IDs to fit (default all the rows have); for pixels, the ID of each entry along `channel_axis` (required except for RGB, `R`, `G`, `B`). `Parameters` (moved to `parameters.py`, re-exported by `fitting`) holds `channels` as sorted IDs (required); `select(ids)`; `apply(pixels, channel_axis=, channels=)`; columns `Normalization_Offset_<ID>`, `Normalization_Scale_<ID>`. |
+| `settings.py` | `NormalizationSettings.partial_channels`: `"refuse"` (default) or `"planes_with_channel"` (§8.3). |
+| `fitting.py`, `parameters.py` (new) | `fit(..., channels=None)`: for rows, the IDs to fit (default all the rows have; a channel only some rows have raises `ChannelScopeIncompleteError` unless `partial_channels="planes_with_channel"`); for pixels, the ID of each entry along `channel_axis` (required except for RGB, `R`, `G`, `B`). `Parameters` (moved to `parameters.py`, re-exported by `fitting`) holds `channels` as sorted IDs (required); `select(ids)`; `apply(pixels, channel_axis=, channels=)`; columns `Normalization_Offset_<ID>`, `Normalization_Scale_<ID>` and `normalization_parameters_version` = `2` (§8.1). |
 | `summaries.py`, `checks.py`, `ranges.py`, `issues.py` | `ImageSummary.channels` (sorted IDs); `summary_columns(channel_ids)`; checks compare a channel among the images that have it; `range_check_issues` takes `(plane_id, channel_id, check)`; `Issue.channel` is an ID; new warning `channel_partially_present` (§9.2). |
 | `rgb.py` | RGB rows and arrays have the channels `R`, `G`, `B` in this order (experiment-v1 §4.4b); `check_rgb_channels`. |
 
 For planes whose channels are all present, histograms and fitted numbers are those of schema
-version 4 for the same pixels, bit for bit; only names change.
+version 4 for the same pixels, bit for bit; only names change (and the parameter columns gain
+their version column, §8.1).
 
 ---
 
@@ -363,7 +369,7 @@ version 4 for the same pixels, bit for bit; only names change.
 
 | Object | Holds | Stored as |
 |---|---|---|
-| `NormalizationSettings` | Image type, method and its options, scope, pooling weight, per-time-point option (§8.3) | Run configuration of the calling brick, once per run |
+| `NormalizationSettings` | Image type, method and its options, scope, pooling weight, per-time-point option, what to do with a channel only some planes of a group have (`partial_channels`) (§8.3) | Run configuration of the calling brick, once per run |
 | Source statistics | Pooled plane histograms of a group (§1.2), or pixel arrays from which the library computes the same statistics | Not stored by the library |
 | `RepeatGroups` | Mapping from `(condition, biological_repeat)` to the repeat group's label (§4.2), built by the calling brick from `experiment_design.csv` | Not stored by the library |
 | `Parameters` | Offset and scale per channel of one group, with the canonical channel IDs they belong to (`channels`, N46 as amended by HV2) (§8) | Per-row columns (N21, N23) |
@@ -393,10 +399,10 @@ issues = range_check_issues([(plane_id, channel_id, check), ...])  # §1.4
 |---|---|
 | `check_settings` | Checks the method against the image type (§5) and the scope against the available statistics (§4.5) using the settings alone, so a calling brick can refuse a choice before reading any image. Raises `MethodNotAllowedError` (a `ValueError`) with a message of §9.1. |
 | `group_key` | The group of a row at the settings' scope (§4.1). `biological_repeat` needs `repeat_groups`; without it, repeats match by name (§4.2). |
-| `fit` | One entry point for every method; dispatches on `settings.image_type` and `settings.method`. Statistics are pooled histograms per channel, or pixels; with `pooling="conditions"` the histograms carry their condition (§4.3). Never reads files and never walks folders. |
+| `fit` | One entry point for every method; dispatches on `settings.image_type` and `settings.method`. Statistics are pooled histograms per channel, or pixels; with `pooling="conditions"` the histograms carry their condition (§4.3). Channels are pooled by ID; a channel only some rows of the group have raises `ChannelScopeIncompleteError` unless `settings.partial_channels` is `"planes_with_channel"` (§1.5). Never reads files and never walks folders. |
 | `apply` | Returns a new float32 array; the input is never modified. `channel_axis` gives the channel axis of `pixels` and `channels` the ID of each entry along it (each entry gets its own ID's parameters; for `rgb` it defaults to `R`, `G`, `B`); both may be left out for one channel. No clipping (N19). Non-finite pixels stay non-finite. Computed in float64 for fluorescence (§3.2) and with CSBDeep's float32 arithmetic for `rgb` (§3.3). |
 | `select` | The parameters of some of the image's channels by ID, e.g. of a single-channel patch; `channels` keeps their IDs (N46). For `rgb` only all of `R`, `G` and `B` can be selected (§5: the three channels stay together); a subset is refused. |
-| `to_columns` / `from_columns` | The columns of §8.1 as text in the format of §8.2; `from_columns(to_columns(p)) == p` exactly. `to_columns` writes the pairs of `channels` only; `from_columns` reads every channel whose pair is filled and skips channels whose pair is blank (N46). `from_columns` refuses a `normalization_scope` that is not one of §4.1's scopes, and one that differs from `settings.scope` (issue #37): parameters are read with the settings of the run that wrote them, method and scope alike, so image-scope parameters are never read as biological-repeat or patch ones. |
+| `to_columns` / `from_columns` | The columns of §8.1 as text in the format of §8.2; `from_columns(to_columns(p)) == p` exactly. `from_columns` first refuses a row whose `normalization_parameters_version` is missing or not `2` (§8.1). `to_columns` writes the pairs of `channels` only; `from_columns` reads every channel whose pair is filled and skips channels whose pair is blank (N46). `from_columns` refuses a `normalization_scope` that is not one of §4.1's scopes, and one that differs from `settings.scope` (issue #37): parameters are read with the settings of the run that wrote them, method and scope alike, so image-scope parameters are never read as biological-repeat or patch ones. |
 | Validity | `Parameters` and `NormalizationParameters` refuse, when made, an offset that is not finite and a scale that is not finite and above 0, naming the channel or method; `Parameters.channels`, `select` and `apply` take canonical channel IDs only (text following the Token rule; an index, a boolean or other text is refused, never converted). Non-finite pixels stay non-finite in `apply`. |
 | `to_dict` / `from_dict` | JSON-compatible dictionaries (§8.3) that round-trip exactly. |
 | `image_summaries`, `intensity_checks` | §7. |
@@ -577,7 +583,13 @@ Every MorphoBricks table with values per channel puts the channels in columns, n
   `Histogram_ValidPixelCount_<ID>` and a bin index from the last `_NNNNN` of its column, and
   checks the whole header against the layout it implies.
 - Columns are grouped by channel, the channel IDs of the experiment in sorted order (Python
-  string order, code point by code point).
+  string order, code point by code point: `ACTIN` < `DNA` < `PAX_488` < `actin`; HV1 says
+  "sorted" and this is the order chosen, the same on every platform and locale).
+- **Which IDs.** The experiment's channel IDs are the **declared** channels of the confirmed
+  description (the keys of its `[channels]` table, experiment-v1 §4.3), including a declared
+  channel no imaging unit lists (it is blank in every row, `v22`). They are never
+  `used_ids.channels` (§4.9), which also keeps retired IDs no image can have. The calling
+  brick passes this list; the library cannot tell the two apart and takes the list it is given.
 - Rows may have different channels (N43 replaced by per-row presence, HV1): a channel a row
   does not have is blank there, never zero.
 
@@ -609,7 +621,7 @@ channels by canonical channel ID and adds the presence column (ADR 0003 HV1, HV2
 | `total_pixel_count` | integer | Pixels in one channel of the plane (height × width). |
 | `bin_count` | integer | Number of histogram bins per channel; the same in every row. |
 | `schema_version` | text | `5`. Versions 1 and 2 had one row per plane and channel with a `c` column; version 3 had no underflow and overflow columns; version 4 named the channels by C index; a table of another version is refused and recomputed on the next run, never converted (HV4). |
-| `channels` | text | The presence column (HV1): the canonical channel IDs of the plane, in source order (entry *i* is source channel C*i*, the imaging unit's confirmed `channels` list), `;`-separated. Never blank. There is no `failed_channels` column. |
+| `channels` | text | The presence column (HV1): the canonical channel IDs of the plane, in source order (entry *i* is source channel C*i*, the imaging unit's confirmed `channels` list), `;`-separated. Never blank. It is the last plane column, right after `schema_version` and before every per-channel column (the Spec fixes the column, not its place; this is the place). There is no `failed_channels` column. |
 
 **Per-channel columns**, for every channel ID of the experiment (given to the writer from the
 description, so every parallel shard has the same header), in sorted order, in this order:
@@ -638,7 +650,10 @@ refuses any value there, so a zero or NaN histogram can never stand for an absen
 Absent is not failed: a failed measurement is not a state of the table. If any channel
 measurement of the run failed, the writer is given the failures
 (`ChannelMeasurementFailure`) and writes nothing, raising `ChannelMeasurementError` with every
-failing plane and channel; an existing file is left as it was. The reader also refuses a
+failing plane and channel. A file already at the path (an earlier run's table) is **removed**,
+and the error names it (`removed`): left in place, it would sit beside this run's other outputs
+and read as this run's table. Nothing else is touched, and every other error leaves an existing
+file as it was (the temporary-file write of §6.1). The reader also refuses a
 `channels` cell that is blank, repeats an ID, names an ID the header lacks or disagrees with
 `channel_count`, and planes of one image that list different channels.
 
@@ -733,15 +748,24 @@ written (N23); the settings are written once in the calling brick's run configur
 | `normalization_scope` | text | `biological_repeat`, `image` or `patch` |
 | `normalization_group` | text | §4.1 group text |
 | `normalization_exact` | `true`/`false` | `true` exactly when every pooled histogram has `max_representative_error == 0` (§1.2.4), at every scope |
+| `normalization_parameters_version` | integer | `2`: the version of these columns. Version 1, the `Normalization_Offset_C<i>` columns of normalization 0.4 and earlier, had no such column; `from_columns` refuses a row without it or of another version and asks to fit again (no conversion, ADR 0002 AR10). Read as text or as the number a table reader gives (`2`, `2.0`). |
 | `Normalization_Offset_<ID>`, `Normalization_Scale_<ID>` | number or blank | One pair per canonical channel ID (§6.1, N41; token by HV2), grouped by channel in sorted ID order. A row whose patch holds only some channels, or whose image lacks a channel of the experiment, fills the pairs of its channels and leaves the others blank. For `rgb`, the shared value in R, G and B. |
+
+**Channel order.** Every table with per-channel columns orders them by sorted channel ID (HV1's
+rule for `plane_histograms.csv`, which HV2 extends to all per-channel tables), and
+`Parameters.channels`, `offset` and `scale` follow the same order. For `rgb` that is `B`, `G`,
+`R`, while a plane's `channels` cell, an RGB pixel array and `apply(..., channels=)` use the
+source order `R`, `G`, `B` (experiment-v1 §4.4b). Every lookup is by ID, so the order never
+selects a channel; one rule for every table was chosen over an RGB exception.
 
 ### 8.2 Formatting
 
 - Numbers at full precision (Python `repr` of the float), read back unchanged.
 - `from_columns` reads only the `Normalization_Offset_<ID>` and `Normalization_Scale_<ID>`
-  columns (N47, token by HV2), taking every `<ID>` that follows the Token rule. A column of the
-  version-4 naming, `Normalization_Offset_C0`, is indistinguishable from the ID `C0` (a legal
-  Token), so a table must say by its own version which naming it uses (CellPatcher, S3.3).
+  columns (N47, token by HV2), taking every `<ID>` that follows the Token rule, once
+  `normalization_parameters_version` is `2`. A column of the version-4 naming,
+  `Normalization_Offset_C0`, is indistinguishable from the ID `C0` (a legal Token); the version
+  column tells them apart, so an old row is refused, never read as channel `C0`.
 - Column order within a file is the calling brick's; readers select columns by name.
 
 ### 8.3 Run level
@@ -758,8 +782,10 @@ The calling brick stores `NormalizationSettings.to_dict()` once per run:
 | `scope` | `image` |
 | `pooling` | `pixels` (`biological_repeat` only) |
 | `per_time_point` | `false` |
+| `partial_channels` | `refuse`: a fit of a group in which only some planes have a channel is refused (`ChannelScopeIncompleteError`, the Spec's `A_SCOPE_INCOMPLETE`). `planes_with_channel`: the user selects, for each such channel, the planes that have it; written only when chosen, so the choice is recorded with the run. Fluorescence only (reset for `rgb`). |
 
-Keys that do not apply to the method or scope are omitted. With `biological_repeat`, the
+Keys that do not apply to the method or scope are omitted, and so is `partial_channels` at its
+default. With `biological_repeat`, the
 calling brick also records which `experiment_design.csv` it used (name and SHA-256), and the
 statistics file's name, `schema_version` and SHA-256. Raw patches are normalized on load from
 the row's columns alone.
@@ -798,8 +824,10 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | `repeat_groups` with an empty or non-text label, or two biological repeats of one condition in one repeat group | `ValueError` | Names the pairs and the label, and asks to correct the experiment design in the preprocessing brick |
 | A group of more than 2**63 − 1 finite pixels | `ValueError` | Asks to pool fewer planes |
 | Statistics file of schema version 1, 2, 3 or 4 (HV4) | `CsvFormatError` | "This plane_histograms.csv was written with schema version {version}, {what}. This version reads schema version 5 only, with every channel named by its canonical channel ID from the experiment description; old tables are not converted. Run the preprocessing brick again on this experiment: it recomputes the table (schema version 5)." — `{what}` is "one row per channel" (1, 2), "its channels named by index and without the underflow and overflow columns" (3), "its channels named by their index in the image (C0, C1, ...)" (4) |
-| A failed channel measurement given to `write_plane_histograms` (HV3) | `ChannelMeasurementError` | Names every failing plane and channel and its reason, says plane_histograms.csv was not written and asks to fix the cause and run the preprocessing brick again |
+| A failed channel measurement given to `write_plane_histograms` (HV3) | `ChannelMeasurementError` | Names every failing plane and channel and its reason, says plane_histograms.csv was not written (and, when it removed an earlier run's table at the path, names it) and asks to fix the cause and run the preprocessing brick again |
 | A value in a cell of a channel the row does not list; a `channels` cell blank, with a repeated or unknown ID, or not matching `channel_count`; planes of one image listing different channels | `CsvFormatError` (file), `ValueError` (records) | Names the file, line, channel and columns |
+| A fitted group in which only some planes have a channel to fit, with `partial_channels="refuse"` (default; Spec `A_SCOPE_INCOMPLETE`) | `ChannelScopeIncompleteError` (a `ValueError`; `channels` maps each such ID to the planes that lack it) | "A_SCOPE_INCOMPLETE: in group '{group}', channel {ID} is present in {k} of {n} planes (absent from ...). ..." naming every such channel, and the three ways on: groups whose planes all have it, `channels=[...]` without it, or `partial_channels='planes_with_channel'` |
+| A parameter row without `normalization_parameters_version`, or of another version (§8.1) | `ValueError` | Says the row was written by normalization 0.4 or earlier (or names its version), that old parameters are not converted, and asks to fit again |
 | A record or writer channel that is not a canonical channel ID (an index included), a record channel not in the writer's `channel_ids`, a requested channel no plane of the group has | `ValueError` | Names the value or channel and what to do; an absent channel is never fitted from zeros |
 | `HistogramSettings` with an unknown range, invalid quantiles or `min_central_bins` below 1 | `ValueError` | Names the value and the allowed ones |
 | `from_columns` with a missing or unreadable column, an unknown `normalization_scope`, or a channel without both its offset and scale | `ValueError` | Names the column |
@@ -824,7 +852,7 @@ Returned as `Issue` objects; processing continues and the calling brick reports 
 | `repeat_missing_conditions` | A repeat group without images from every condition (§4.2) |
 | `approximate_parameters` | Parameters from inexact histograms (`normalization_exact = false`) |
 | `planes_without_finite_pixels` | Planes without finite pixels excluded from a group that still has others |
-| `channel_partially_present` | A fitted channel that only some planes of the group have (ADR 0003); its parameters come from those planes, the others are listed in `items` and `channel` names it |
+| `channel_partially_present` | With `partial_channels="planes_with_channel"` only: a fitted channel that only some planes of the group have (ADR 0003); its parameters come from those planes, as selected, the others are listed in `items` and `channel` names it. Without that choice the fit is refused (§9.1) |
 | `patches_discarded` | Patches without spread or finite pixels, listed in one warning with a suggested scope |
 | The four codes of §7.2 | Intensity checks |
 | `channel_without_finite_pixels` | An image channel without finite pixels, which the intensity checks cannot check (§7.1, `unchecked_channels`) |

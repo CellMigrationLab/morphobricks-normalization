@@ -152,6 +152,17 @@ def test_owner_case_table_lists_every_id_and_leaves_the_extra_stain_blank_elsewh
                 assert set(extra) == {""}  # blank, never a zero or NaN histogram
 
 
+def test_the_header_lists_the_declared_channel_ids_not_retired_ones(tmp_path):
+    # Open question 1 of PR #90: the caller passes the description's declared channels (its
+    # [channels] table), not used_ids.channels, which keeps retired IDs no image can have.
+    used = 'channels = ["ACTIN", "DNA", "EXTRA_STAIN", "TUBULIN"]'
+    assert used in OWNER_CASE
+    description = parse(OWNER_CASE.replace(used, used.replace('"TUBULIN"', '"OLD", "TUBULIN"')))
+    assert description.channel_ids == ("DNA", "ACTIN", "TUBULIN", "EXTRA_STAIN")
+    _, read = table(tmp_path, description, records(description))
+    assert read.channel_ids == ("ACTIN", "DNA", "EXTRA_STAIN", "TUBULIN")  # sorted, no OLD
+
+
 @pytest.mark.parametrize("method", METHODS)
 def test_owner_case_shared_stains_pool_across_repeats_extra_only_within_its_repeat(owner, method):
     description, _, rows = owner

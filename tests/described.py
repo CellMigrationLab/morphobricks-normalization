@@ -4,7 +4,9 @@ A description is read from the vendored MorphoBricks-Spec fixtures (``tests/spec
 pinned in ``PIN.toml``) with ``tomllib``, or written here as the same TOML text (the owner's
 case is not a Spec fixture). Only what the statistics need is taken from it: every imaging
 unit (repeat, condition, technical repeat) with its folder labels and its ordered ``channels``
-list (experiment-v1 §4.4), and the experiment's channel IDs (``used_ids.channels``).
+list (experiment-v1 §4.4), and the experiment's channel IDs: the keys of its ``[channels]``
+table, the declared IDs (open question 1 of PR #90: never ``used_ids.channels``, which also
+keeps retired IDs no image can have).
 
 Each image is simulated as the calling brick holds it, a ``(C, Y, X)`` array in the unit's
 source channel order; its histograms are computed per C index, exactly as the preprocessing
@@ -67,7 +69,7 @@ def parse(text: str) -> Description:
                     Unit(repeat, folder, member["source_repeat"], tech["source_folder"],
                          tuple(tech["channels"]))
                 )  # fmt: skip
-    return Description(tuple(units), tuple(data["used_ids"]["channels"]))
+    return Description(tuple(units), tuple(data["channels"]))  # declared, not used_ids
 
 
 def fixture(name: str) -> Description:

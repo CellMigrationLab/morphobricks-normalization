@@ -44,13 +44,17 @@ of ``M`` is ``cot(theta / 2)``: 5 degrees gives 22.9, so this rule is the bindin
 vectors and :data:`MAX_CONDITION` the one for three nearly coplanar vectors.
 """
 MAX_CONDITION = 50.0
-"""Largest accepted 2-norm condition number of the unit stain matrix.
+"""Largest accepted 2-norm condition number of the unit stain matrix: a heuristic threshold.
 
-The relative error of the concentrations is at most ``cond(M)`` times the relative error of
-the optical densities. One 8-bit grey level at a mid-range value (``I`` about 80, ``OD`` about
-0.5) is an optical-density error of about 1 %, so 50 bounds the worst-case amplification at
-about 50 %: beyond it the unmixed maps are dominated by quantisation noise. Ruifrok-Johnston
-H&E-DAB has 3.8 and scikit-image's Methyl Blue/Ponceau Fuchsin matrix 2.0.
+The norm-wise relative error of a pixel's concentration vector is at most ``cond(M)`` times the
+norm-wise relative error of its optical-density vector. One 8-bit grey level at a mid-range
+value (``I`` about 80, ``OD`` about 0.5) is an optical-density error of about 1 %, so at 50 the
+worst-case norm-wise amplification is of order 50 %. This is a provisional refusal of nearly
+singular matrices, not a guarantee on any one stain map or pixel (the error of a single
+component can be smaller or larger than the norm-wise bound suggests); concentration errors are
+to be benchmarked on realistic noise and backgrounds. The measured condition number is recorded
+in the provenance. Ruifrok-Johnston H&E-DAB has 3.8 and scikit-image's Methyl Blue/Ponceau
+Fuchsin matrix 2.0.
 """
 MIN_REGION_OD = 0.01
 """Smallest optical-density norm of a region's mean for it to define a stain vector.
@@ -86,6 +90,16 @@ class StainMatrix:
         return np.array(self.rows, dtype=np.float64)
 
 
+def _refuse_masked(value: object, what: str) -> None:
+    """Refuse a masked array, or a sequence holding a masked value: ``np.asarray`` drops masks."""
+    items = value if isinstance(value, (list, tuple)) else ()
+    if isinstance(value, np.ma.MaskedArray) or any(isinstance(v, np.ma.MaskedArray) for v in items):
+        raise TypeError(
+            f"{what} is a masked array (or holds a masked value): its mask would be dropped "
+            "silently. Pass plain numbers."
+        )
+
+
 def check_white(white: object) -> np.ndarray:
     """Return a declared white as a float64 ``(3,)`` array after checking it.
 
@@ -104,6 +118,7 @@ def check_white(white: object) -> np.ndarray:
     ValueError
         Not three finite numbers in ``(0, 255]``.
     """
+    _refuse_masked(white, "white")
     values = np.asarray(white)
     if values.dtype.kind not in "iuf" or values.shape != (CHANNELS,):
         raise ValueError(
@@ -121,6 +136,7 @@ def check_white(white: object) -> np.ndarray:
 
 def _unit_vector(name: str, values: object) -> np.ndarray:
     """Return the stain vector ``name`` normalised to unit length, or refuse it."""
+    _refuse_masked(values, f"Stain vector {name!r}")
     vector = np.asarray(values)
     if vector.dtype.kind not in "iuf" or vector.shape != (CHANNELS,):
         raise ValueError(
@@ -246,7 +262,12 @@ def concentrations(od: np.ndarray, matrix: StainMatrix) -> np.ndarray:
 
 
 def _check_region(region: object, shape: tuple[int, int], name: str) -> np.ndarray:
-    """Return a boolean ``(Y, X)`` region, or refuse a wrong type, shape or empty region."""
+    """Return a boolean ``(Y, X)`` region; refuse a masked, mistyped, misshaped or empty one."""
+    if isinstance(region, np.ma.MaskedArray):
+        raise TypeError(
+            f"Region {name!r} is a masked array: which pixels belong to it would be ambiguous. "
+            "Pass a plain boolean array."
+        )
     if not isinstance(region, np.ndarray) or region.dtype != np.bool_:
         raise TypeError(f"Region {name!r} must be a boolean NumPy array (Y, X).")
     if region.shape != shape:
@@ -272,8 +293,9 @@ def region_white(rgb: np.ndarray, region: object) -> tuple[float, float, float]:
     if (median <= 0).any() or (median >= WHITE_MAX).any():
         raise ValueError(
             f"The background median {tuple(median.tolist())} has a channel at 0 or 255 "
-            "(dark or saturated); the white cannot be measured from it. Lower the exposure "
-            "or choose another background region."
+            "(dark or saturated): an unsaturated white cannot be inferred from this region. "
+            "Lower the exposure or choose another background region; a white declared "
+            "explicitly (for example 255 for a scanner that maps background to 255) is accepted."
         )
     return tuple(float(v) for v in median)
 
@@ -283,11 +305,16 @@ def region_vectors(
 ) -> Mapping[str, tuple[float, float, float]]:
     """Return the unit mean optical-density vector of each labelled region.
 
+    A selected pixel with a channel at 0 would enter at the floor (:data:`FLOOR`, intensity 1)
+    and bend the region's direction, so such a region is refused; zeros outside the regions do
+    not matter.
+
     Raises
     ------
     ValueError
-        No regions, an empty or wrongly shaped region, or a region whose mean optical density
-        is below :data:`MIN_REGION_OD` (background, not stain).
+        No regions, an empty or wrongly shaped region, a region holding a pixel with a channel at
+        0, or a region whose mean optical density is below :data:`MIN_REGION_OD` (background,
+        not stain).
     TypeError
         ``regions`` is not a mapping, or a region is not a boolean array.
     """
@@ -297,6 +324,13 @@ def region_vectors(
     vectors = {}
     for name, region in regions.items():
         mask = _check_region(region, rgb.shape[:2], name)
+        floored = int((rgb[mask] < FLOOR).any(axis=-1).sum())
+        if floored:
+            raise ValueError(
+                f"Region {name!r} holds {floored} pixel(s) with a channel at 0: their optical "
+                "density would be taken at the floor (intensity 1) and bend the stain vector. "
+                "Choose a reference region without saturated-dark pixels."
+            )
         mean = od[mask].mean(axis=0)
         norm = float(np.linalg.norm(mean))
         if norm < MIN_REGION_OD:

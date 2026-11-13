@@ -286,3 +286,60 @@ def test_yxc_and_cyx_with_white_are_bitwise_identical(preset):
     assert a.image.tobytes() == b.image.tobytes()
     assert np.array_equal(yxc, before)
     assert {k for k in a.provenance if a.provenance[k] != b.provenance[k]} == {"axes"}
+
+
+# --- Review of 3a7af3e: masked auxiliary inputs and floored reference regions ---------
+
+
+def _plain_rgb() -> np.ndarray:
+    rng = np.random.default_rng(3)
+    return rng.integers(60, 230, (8, 8, 3), dtype=np.uint8)
+
+
+@pytest.mark.parametrize(
+    "white",
+    [
+        np.ma.array([240.0, 235.0, 245.0], mask=[True, False, False]),
+        np.ma.array([240.0, 235.0, 245.0], mask=False),  # an all-false mask is refused too
+        [240.0, np.ma.masked, 245.0],
+    ],
+)
+def test_a_masked_white_is_refused_through_to_scalar(white):
+    with pytest.raises(TypeError, match="white is a masked array"):
+        to_scalar(_plain_rgb(), axes="YXC", preset="he_custom", white=white)
+
+
+def test_a_masked_stain_vector_component_is_refused_through_to_scalar():
+    vectors = {
+        "eosin": np.ma.array([0.07, 0.99, 0.11], mask=[False, True, False]),
+        "hematoxylin": (0.65, 0.70, 0.29),
+    }
+    with pytest.raises(TypeError, match="Stain vector 'eosin' is a masked array"):
+        to_scalar(_plain_rgb(), axes="YXC", preset="he_custom", white=WHITE, stain_vectors=vectors)
+
+
+def test_masked_regions_are_refused_by_both_region_helpers():
+    from morphobricks_normalization.stain import stain_vectors_from_regions, white_from_region
+
+    region = np.zeros((8, 8), bool)
+    region[:2, :2] = True
+    masked = np.ma.array(region, mask=np.zeros((8, 8), bool))
+    masked.mask[0, 0] = True  # one selected pixel marked invalid, three valid ones
+    with pytest.raises(TypeError, match="masked array"):
+        white_from_region(_plain_rgb(), axes="YXC", region=masked)
+    with pytest.raises(TypeError, match="masked array"):
+        stain_vectors_from_regions(_plain_rgb(), axes="YXC", white=WHITE, regions={"eosin": masked})
+
+
+def test_a_reference_region_with_a_floored_pixel_is_refused_and_zeros_outside_do_not_matter():
+    from morphobricks_normalization.stain import stain_vectors_from_regions
+
+    rgb = _plain_rgb()
+    region = np.zeros((8, 8), bool)
+    region[2:5, 2:5] = True
+    rgb[7, 7, 1] = 0  # outside the region: allowed
+    vectors = stain_vectors_from_regions(rgb, axes="YXC", white=WHITE, regions={"eosin": region})
+    assert set(vectors) == {"eosin"}
+    rgb[3, 3, 0] = 0  # inside the region: its OD would be taken at the floor
+    with pytest.raises(ValueError, match="holds 1 pixel"):
+        stain_vectors_from_regions(rgb, axes="YXC", white=WHITE, regions={"eosin": region})

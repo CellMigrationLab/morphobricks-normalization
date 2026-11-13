@@ -21,6 +21,12 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   `target_stain` and `exclusion_stain`; the provenance gains `modality` and `hints`. New
   helpers `white_from_region`, `stain_vectors_from_regions`; new pure modules `optical_density`
   and `scalar_inputs`; `PRESETS_BY_MODALITY`.
+- **Review fixes (ChatGPT review of `3a7af3e`)**: a masked `white`, a masked stain-vector component (or a masked
+  value inside a list) and a masked region are refused (`TypeError`), never unmasked by `np.asarray`;
+  `stain_vectors_from_regions` refuses a reference region holding a pixel with a channel at 0 (its optical density
+  would be taken at the floor), while zeros outside the regions are allowed; the condition-number limit is
+  documented as a heuristic norm-wise threshold; the `psr_polarized` green-weighted greyscale bias is documented;
+  the median-255 refusal of `white_from_region` says a declared white of 255 is still accepted.
 - **CellProfiler-style image names** (issue #94, contract §3.4): each stain preset names its image
   (`StainPreset.image_name`, e.g. `he_eosin` -> `Eosin`, `trichrome_blue` -> `MethylBlue`), recorded in the
   provenance; consumers use it as the derived channel's name in feature columns.

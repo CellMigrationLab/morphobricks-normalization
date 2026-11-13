@@ -545,6 +545,10 @@ refused) and its `accepts` those it uses when given; every other argument (`whit
 `trichrome_blue`) is refused, never ignored. `polarizer` is `"circular"` or `"linear"`; the provenance hints of
 `psr_polarized` record `orientation_valid = (polarizer == "circular")`: a linear polarizer
 darkens fibres at some angles to its axis, so consumers must refuse orientation features then.
+`psr_polarized` is scikit-image's `rgb2gray`, a weighted sum `0.2125 R + 0.7154 G + 0.0721 B`
+dominated by green: birefringent fibres of different colours (red-orange thick, green-yellow thin
+fibres) that look equally bright can get different values, which can bias detection towards some
+fibre colours even with a circular polarizer.
 Hue is not used (later, as a separate feature).
 
 **RGB inputs (refused, never repaired).** `axes` is exactly `"YXC"` or `"CYX"`, with no default;

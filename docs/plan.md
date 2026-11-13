@@ -2,7 +2,7 @@
 
 > See also: [Preprocessing follow-up](archive/followup_preprocessing.md) (done) · [CellPatcher follow-up](archive/followup_cellpatcher.md) (done)
 
-**Status:** implemented through v0.5.0 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
+**Status:** implemented through v0.6.0 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
 channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
 (N4–N28) is withdrawn where §12 says so. A robust histogram range was added on 28 October
@@ -218,7 +218,9 @@ calling brick.
 ## 9. Dependencies
 
 `numpy` only. No GPU or deep-learning dependency; StarDist and CSBDeep are not dependencies,
-their formula is implemented here.
+their formula is implemented here. The one exception is the optional extra `histology`
+(`scikit-image>=0.22`) for the RGB-to-scalar stain presets of `stain.py` (N67); the core
+imports and works without it.
 
 ## 10. Milestones
 
@@ -534,6 +536,57 @@ Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull reques
     (`ChannelScopeIncompleteError`, the Spec's `A_SCOPE_INCOMPLETE`); the user may select the
     planes that have it with `partial_channels="planes_with_channel"`, stored with the settings
     and reported per fit (the notebook asks explicitly) (contract §1.5, §8.3).
+61. **N67** (13 November 2026, issue #94) RGB-to-scalar stain presets are now in scope, H&E
+    first, and normalization owns the conversion; consumers (FiberFeatures #210) call it and
+    never reimplement it. This reverses the withdrawal of stain methods (N5, N17-N18, N24-N28)
+    for this method family only: new module `stain.py`, `rgb_to_scalar` with a code-defined
+    registry of frozen, versioned presets (P0: `he_eosin`, `he_hematoxylin`,
+    `luminance_inverted`, `lab_a`; contract §3.4). scikit-image is the optional extra
+    `histology` (N5 stays for the core). scikit-image's clipping in `separate_stains` is
+    accepted in P0 and reported as `clipped_fraction`; `fixed_range` stays `None` until
+    calibrated. The StarDist percentile normalization (`rgb.py`, §3.1) is unchanged. Later
+    (not in P0): trichrome and custom stain vectors (P1), RGB colour normalization (P2).
+62. **N68** (13 November 2026, issue #94, owner's preset catalogue) Presets are image
+    preprocessing steps owned here: each turns one declared imaging unit into one float32
+    `(Y, X)` map with provenance and carries a modality and **consumer hints** (`polarity`,
+    `scaling` per image or fixed, `mask`, `measures`) that are recommendations for consumers
+    (FiberFeatures #214), never applied here. New general entry point `to_scalar` (`rgb_to_scalar`
+    delegates, P0 outputs bitwise unchanged). Catalogue: `fluorescence` and `shg` (passthrough
+    of a `"YX"` plane as float32), `psr_brightfield`, `he_custom`, `trichrome_custom`
+    (`custom_od`), `psr_polarized`, `trichrome_blue` (`bpx_from_rgb`), `trichrome_green` (minus
+    CIELAB a*). `custom_od` is implemented here in NumPy, not via scikit-image: optical density
+    against a **declared white** (never assumed 255; measured once with `white_from_region` and
+    recorded), user-supplied stain vectors (two, the third completed by a cross product, or
+    three), collinear (< 5 degrees) and ill-conditioned (condition number > 50) matrices refused,
+    negative concentrations kept and reported; `stain_vectors_from_regions` derives the vectors
+    from labelled regions (TWOMBLI). `psr_polarized` is luminance, not inverted, and requires a
+    declared polarizer; only `"circular"` gives `orientation_valid` (linear polarizers darken
+    fibres at some angles). Arguments a preset does not use are refused. Colour normalization
+    stays later, with a frozen reference only (contract §3.4). Review fixes (13 November 2026, ChatGPT review of b152472): the P0 provenance key
+    `clipped_fraction` is renamed `zero_fraction` (it counts pixels whose component is exactly 0,
+    which includes pixels that were never clipped); masked arrays (`np.ma.MaskedArray`) and
+    images with no pixels are refused for every preset; `polarity = "bright"` means the
+    structure has higher values than its surroundings (the signal direction), not more stain.
+63. **N69** (13 November 2026, issue #94, owner decisions "default stain vectors per preset")
+    Custom-vector presets carry published **default stain vectors** where they exist, as frozen
+    read-only data in the preset record (`default_stain_vectors`, with a citation): `he_custom`
+    the Ruifrok & Johnston haematoxylin and eosin rows of `rgb_from_hed`, `trichrome_custom` the
+    Methyl Blue (`collagen`) and Ponceau Fuchsin (`ponceau_fuchsin`) rows of `rgb_from_bpx` (the
+    values of Fiji's Masson Trichrome). The numbers are copied into the code and tested equal to
+    scikit-image's. `psr_brightfield` and green trichrome stay user-measured (no reliable
+    published vectors). A given `stain_vectors` overrides the default; the provenance records
+    `stain_vectors_source` (`"preset_default"` with the citation, or `"user"`). User vectors are
+    measured in preprocessing from marked regions with a declared white and registered with the
+    experiment description (MorphoBricks-Spec #36). `white` stays required for every
+    `custom_od` preset. `trichrome_custom`'s exclusion stain becomes `ponceau_fuchsin` (it was
+    `nuclei`): the published matrix has no nuclear stain, so the exclusion map is the red
+    counterstain and the `exclude_nuclei` mask hint is met by a mask built in preprocessing.
+    `luminance_inverted`, `lab_a`, `psr_polarized` and `trichrome_green` accept an optional
+    declared **white**: the RGB is rescaled to `clip(rint(I * 255 / white), 0, 255)` as uint8
+    before scikit-image, `white_clipped_fraction` is reported, and without `white` (or with
+    255) outputs are bitwise unchanged. The `fixed_deconvolution` presets do not take `white`
+    (`custom_od` is the path for deconvolution against a declared white). Masks are built in
+    preprocessing, never in an analysis brick (contract §3.4).
 
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that

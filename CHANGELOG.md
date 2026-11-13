@@ -4,6 +4,71 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## v0.6.0 (2026-11-13)
+
+Additive release (issue #94, PR #95; plan N67-N69, contract §3.4): a new `stain` module turns one
+declared imaging unit into one scalar map with a named preset; scikit-image is the new optional extra
+`histology`. Nothing that existed changes: `rgb.py`, `NormalizationParameters`,
+`plane_histograms.csv`, the CSBDeep parity path and every public name and output of v0.5.0 are
+untouched, and the package still imports with NumPy only. Reviewed independently at `3a7af3e`,
+`8cc45da` and `2506e51` (all findings fixed).
+
+**Known limitations** (state them with results):
+- RGB inputs are declared 8-bit sRGB only, three samples and no alpha; 16-bit, ICC profiles and
+  scanner colour management are not handled.
+- `he_custom` is a two-stain model (cross-product residual, declared white), not scikit-image's
+  three-stain HED deconvolution; use `he_eosin` for the published conversion.
+- The fixed HED/BPX deconvolution keeps scikit-image's floor and zero-clipping; `zero_fraction`
+  cannot tell naturally zero components from clipped negatives.
+- With a declared white, the luminance and CIELAB projections re-quantise to uint8 (clipping
+  reported); `custom_od` floors zero intensity to 1 and keeps negative concentrations.
+- The trichrome vectors are one Masson profile, not every protocol; a linear polarizer makes
+  orientation unreliable; eosin-derived maps are not collagen-specific.
+- Beer–Lambert on scanner sRGB values is an approximation; preset scaling hints are recorded, never
+  applied.
+
+
+- **RGB-to-scalar stain presets** (issue #94, plan N67, contract §3.4): new `stain` module with
+  `rgb_to_scalar(pixels, *, axes, preset)` and the preset registry `PRESETS` (`he_eosin`,
+  `he_hematoxylin`, `luminance_inverted`, `lab_a`). 8-bit sRGB, `axes` `"YXC"` or `"CYX"`.
+  scikit-image is the new optional extra `histology`. `rgb.py`, the parameter columns and
+  `plane_histograms.csv` are unchanged.
+- **Preset catalogue** (issue #94, plan N68, contract §3.4): general entry point
+  `to_scalar(pixels, *, axes, preset, white=None, stain_vectors=None, polarizer=None)`;
+  `rgb_to_scalar` delegates to it and the four P0 presets give bitwise identical outputs. New
+  presets `fluorescence`, `shg` (passthrough), `psr_brightfield`, `he_custom`,
+  `trichrome_custom` (`custom_od`: optical density against a declared white, user stain vectors,
+  NumPy only), `psr_polarized` (needs `polarizer`), `trichrome_blue`, `trichrome_green`.
+  `StainPreset` gains `modality`, read-only consumer `hints`, `needs`, `inverted`,
+  `target_stain` and `exclusion_stain`; the provenance gains `modality` and `hints`. New
+  helpers `white_from_region`, `stain_vectors_from_regions`; new pure modules `optical_density`
+  and `scalar_inputs`; `PRESETS_BY_MODALITY`.
+- **`he_custom` stated as a two-stain model** (review of `8cc45da`): contract §3.4 says plainly that it is not the
+  three-stain HED conversion (cross-product residual instead of DAB, log10 OD against the declared white, no
+  clipping); the wrong "completion of `rgb_from_hed`" sentence is corrected; the uint8 re-quantisation of the
+  declared-white path is documented (at most half a grey level per channel). New tests: the literal published
+  vectors independent of scikit-image, `he_custom` on a reference pixel computed by hand, and its difference from
+  scikit-image's HED eosin.
+- **Review fixes (ChatGPT review of `3a7af3e`)**: a masked `white`, a masked stain-vector component (or a masked
+  value inside a list) and a masked region are refused (`TypeError`), never unmasked by `np.asarray`;
+  `stain_vectors_from_regions` refuses a reference region holding a pixel with a channel at 0 (its optical density
+  would be taken at the floor), while zeros outside the regions are allowed; the condition-number limit is
+  documented as a heuristic norm-wise threshold; the `psr_polarized` green-weighted greyscale bias is documented;
+  the median-255 refusal of `white_from_region` says a declared white of 255 is still accepted.
+- **CellProfiler-style image names** (issue #94, contract §3.4): each stain preset names its image
+  (`StainPreset.image_name`, e.g. `he_eosin` -> `Eosin`, `trichrome_blue` -> `MethylBlue`), recorded in the
+  provenance; consumers use it as the derived channel's name in feature columns.
+- **Default stain vectors and declared white** (issue #94, plan N69, contract §3.4):
+  `he_custom` (Ruifrok & Johnston H&E) and `trichrome_custom` (Methyl Blue / Ponceau Fuchsin of
+  `rgb_from_bpx`) use published default vectors when `stain_vectors` is not given;
+  `psr_brightfield` still needs them. New `StainPreset` fields `accepts`,
+  `default_stain_vectors`, `default_stain_vectors_citation`; provenance `stain_vectors_source`,
+  `stain_vectors_citation`. `trichrome_custom`'s exclusion stain is renamed `nuclei` ->
+  `ponceau_fuchsin`. `luminance_inverted`, `lab_a`, `psr_polarized`, `trichrome_green` accept an
+  optional `white` (rescale to `clip(rint(I * 255 / white), 0, 255)`, `white_clipped_fraction`
+  reported); without it outputs are bitwise unchanged. The registry moves to `stain_presets.py`
+  (re-exported by `stain.py`).
+
 ## v0.5.0 (2026-11-11)
 
 Breaking release. Stage 3 S3.2 (MorphoBricks-Spec roadmap; ADR 0003, plan N61–N66, PR #90):

@@ -6,7 +6,7 @@ Read it, and the documents below, before changing anything.
 
 | File | What it fixes |
 |---|---|
-| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N64 (§12) and what is still to be measured (§13) |
+| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N69 (§12) and what is still to be measured (§13) |
 | `docs/contract.md` | Rules other bricks rely on: methods and formulas, interface, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | `CHANGELOG.md` | Release notes and migration notes |
 | `docs/archive/` | Historical record: the two done follow-ups for the calling bricks |
@@ -56,6 +56,13 @@ src/morphobricks_normalization/
   scopes.py         group_key, group_name, scope_groups: groups at each scope, repeat groups
   rgb.py            StarDist's percentile normalization: rgb_percentile, apply_rgb
                     (CSBDeep's float32 arithmetic), check_rgb
+  stain.py          image-to-scalar presets: to_scalar, rgb_to_scalar, PRESETS (catalogue with
+                    modality and consumer hints), white_from_region, stain_vectors_from_regions
+                    (optional scikit-image extra `histology`; contract §3.4, N67, N68)
+  optical_density.py  optical density against a declared white, stain matrices (normalised,
+                    cross-product completion, collinearity and conditioning checks), unmixing
+                    (NumPy only; the `custom_od` presets)
+  scalar_inputs.py  input checks of the presets: RGB with declared axes, single YX planes
   fitting.py        fit, by channel ID
   parameters.py     Parameters (apply, select, to_columns, from_columns with
                     Normalization_Offset_<ID> and Normalization_Scale_<ID>)
@@ -113,13 +120,14 @@ range check.
 7. **Parameters as numbers.** Parameters are numeric columns, never JSON; only the
    method's columns are written; settings are stored once per run (N21, N23).
    `from_columns(to_columns(p))` must equal `p` exactly.
-8. **Dependencies.** Required: `numpy` only. No GPU, deep-learning, widget or file-format
+8. **Dependencies.** Required: `numpy` only; the optional extra `histology` (scikit-image) is
+   imported lazily by `stain.py` alone (N67). No GPU, deep-learning, widget or file-format
    dependency beyond what the statistics file needs.
 
 ## 3. How we work
 
 1. **Read first:** the plan, the contract and the modules you touch.
-2. **Ask before deciding.** Decisions N1–N64 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
+2. **Ask before deciding.** Decisions N1–N69 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
 3. **Outputs stay bit-identical** unless a change says otherwise. `tests/test_fit_goldens.py` keeps the fitted

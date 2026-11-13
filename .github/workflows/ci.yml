@@ -59,7 +59,7 @@ jobs:
       - run: python -m pip install -e ".[dev]" csbdeep
       - run: python -m pytest tests/test_rgb.py -rs
 
-  # The RGB-to-scalar stain presets (tests/test_stain.py) need the optional extra
+  # The stain presets (tests/test_stain*.py, test_optical_density.py) need the optional extra
   # `histology` (scikit-image); the main matrix runs without it, so these tests run here.
   histology:
     runs-on: ubuntu-latest
@@ -69,4 +69,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -e ".[dev,histology]"
-      - run: python -m pytest tests/test_stain.py -rs
+      - run: python -m pytest tests/test_stain.py tests/test_stain_catalogue.py tests/test_optical_density.py -rs

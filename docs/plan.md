@@ -546,6 +546,23 @@ Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull reques
     accepted in P0 and reported as `clipped_fraction`; `fixed_range` stays `None` until
     calibrated. The StarDist percentile normalization (`rgb.py`, §3.1) is unchanged. Later
     (not in P0): trichrome and custom stain vectors (P1), RGB colour normalization (P2).
+62. **N68** (13 November 2026, issue #94, owner's preset catalogue) Presets are image
+    preprocessing steps owned here: each turns one declared imaging unit into one float32
+    `(Y, X)` map with provenance and carries a modality and **consumer hints** (`polarity`,
+    `scaling` per image or fixed, `mask`, `measures`) that are recommendations for consumers
+    (FiberFeatures #214), never applied here. New general entry point `to_scalar` (`rgb_to_scalar`
+    delegates, P0 outputs bitwise unchanged). Catalogue: `fluorescence` and `shg` (passthrough
+    of a `"YX"` plane as float32), `psr_brightfield`, `he_custom`, `trichrome_custom`
+    (`custom_od`), `psr_polarized`, `trichrome_blue` (`bpx_from_rgb`), `trichrome_green` (minus
+    CIELAB a*). `custom_od` is implemented here in NumPy, not via scikit-image: optical density
+    against a **declared white** (never assumed 255; measured once with `white_from_region` and
+    recorded), user-supplied stain vectors (two, the third completed by a cross product, or
+    three), collinear (< 5 degrees) and ill-conditioned (condition number > 50) matrices refused,
+    negative concentrations kept and reported; `stain_vectors_from_regions` derives the vectors
+    from labelled regions (TWOMBLI). `psr_polarized` is luminance, not inverted, and requires a
+    declared polarizer; only `"circular"` gives `orientation_valid` (linear polarizers darken
+    fibres at some angles). Arguments a preset does not use are refused. Colour normalization
+    stays later, with a frozen reference only (contract §3.4).
 
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that

@@ -11,6 +11,16 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   `he_hematoxylin`, `luminance_inverted`, `lab_a`). 8-bit sRGB, `axes` `"YXC"` or `"CYX"`.
   scikit-image is the new optional extra `histology`. `rgb.py`, the parameter columns and
   `plane_histograms.csv` are unchanged.
+- **Preset catalogue** (issue #94, plan N68, contract §3.4): general entry point
+  `to_scalar(pixels, *, axes, preset, white=None, stain_vectors=None, polarizer=None)`;
+  `rgb_to_scalar` delegates to it and the four P0 presets give bitwise identical outputs. New
+  presets `fluorescence`, `shg` (passthrough), `psr_brightfield`, `he_custom`,
+  `trichrome_custom` (`custom_od`: optical density against a declared white, user stain vectors,
+  NumPy only), `psr_polarized` (needs `polarizer`), `trichrome_blue`, `trichrome_green`.
+  `StainPreset` gains `modality`, read-only consumer `hints`, `needs`, `inverted`,
+  `target_stain` and `exclusion_stain`; the provenance gains `modality` and `hints`. New
+  helpers `white_from_region`, `stain_vectors_from_regions`; new pure modules `optical_density`
+  and `scalar_inputs`; `PRESETS_BY_MODALITY`.
 
 ## v0.5.0 (2026-11-11)
 

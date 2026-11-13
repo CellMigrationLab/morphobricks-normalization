@@ -24,6 +24,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+histology = ["scikit-image>=0.22"]
 dev = [
     "pytest>=7.4",
     "ruff>=0.6",
@@ -122,3 +123,4 @@ baseline = "tools/code_rules_baseline.json"
 "morphobricks_normalization.bin_reachability" = "pure"
 "morphobricks_normalization.tail_moments" = "pure"
 "morphobricks_normalization.sums" = "pure"
+"morphobricks_normalization.stain" = "pure"

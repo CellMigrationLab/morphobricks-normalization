@@ -56,6 +56,8 @@ src/morphobricks_normalization/
   scopes.py         group_key, group_name, scope_groups: groups at each scope, repeat groups
   rgb.py            StarDist's percentile normalization: rgb_percentile, apply_rgb
                     (CSBDeep's float32 arithmetic), check_rgb
+  stain.py          RGB-to-scalar stain presets: rgb_to_scalar, PRESETS (H&E first; optional
+                    scikit-image extra `histology`; contract §3.4, N67)
   fitting.py        fit, by channel ID
   parameters.py     Parameters (apply, select, to_columns, from_columns with
                     Normalization_Offset_<ID> and Normalization_Scale_<ID>)
@@ -113,7 +115,8 @@ range check.
 7. **Parameters as numbers.** Parameters are numeric columns, never JSON; only the
    method's columns are written; settings are stored once per run (N21, N23).
    `from_columns(to_columns(p))` must equal `p` exactly.
-8. **Dependencies.** Required: `numpy` only. No GPU, deep-learning, widget or file-format
+8. **Dependencies.** Required: `numpy` only; the optional extra `histology` (scikit-image) is
+   imported lazily by `stain.py` alone (N67). No GPU, deep-learning, widget or file-format
    dependency beyond what the statistics file needs.
 
 ## 3. How we work

@@ -4,6 +4,14 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## Unreleased
+
+- **RGB-to-scalar stain presets** (issue #94, plan N67, contract §3.4): new `stain` module with
+  `rgb_to_scalar(pixels, *, axes, preset)` and the preset registry `PRESETS` (`he_eosin`,
+  `he_hematoxylin`, `luminance_inverted`, `lab_a`). 8-bit sRGB, `axes` `"YXC"` or `"CYX"`.
+  scikit-image is the new optional extra `histology`. `rgb.py`, the parameter columns and
+  `plane_histograms.csv` are unchanged.
+
 ## v0.5.0 (2026-11-11)
 
 Breaking release. Stage 3 S3.2 (MorphoBricks-Spec roadmap; ADR 0003, plan N61–N66, PR #90):

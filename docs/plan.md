@@ -218,7 +218,9 @@ calling brick.
 ## 9. Dependencies
 
 `numpy` only. No GPU or deep-learning dependency; StarDist and CSBDeep are not dependencies,
-their formula is implemented here.
+their formula is implemented here. The one exception is the optional extra `histology`
+(`scikit-image>=0.22`) for the RGB-to-scalar stain presets of `stain.py` (N67); the core
+imports and works without it.
 
 ## 10. Milestones
 
@@ -534,6 +536,16 @@ Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull reques
     (`ChannelScopeIncompleteError`, the Spec's `A_SCOPE_INCOMPLETE`); the user may select the
     planes that have it with `partial_channels="planes_with_channel"`, stored with the settings
     and reported per fit (the notebook asks explicitly) (contract §1.5, §8.3).
+61. **N67** (13 November 2026, issue #94) RGB-to-scalar stain presets are now in scope, H&E
+    first, and normalization owns the conversion; consumers (FiberFeatures #210) call it and
+    never reimplement it. This reverses the withdrawal of stain methods (N5, N17-N18, N24-N28)
+    for this method family only: new module `stain.py`, `rgb_to_scalar` with a code-defined
+    registry of frozen, versioned presets (P0: `he_eosin`, `he_hematoxylin`,
+    `luminance_inverted`, `lab_a`; contract §3.4). scikit-image is the optional extra
+    `histology` (N5 stays for the core). scikit-image's clipping in `separate_stains` is
+    accepted in P0 and reported as `clipped_fraction`; `fixed_range` stays `None` until
+    calibrated. The StarDist percentile normalization (`rgb.py`, §3.1) is unchanged. Later
+    (not in P0): trichrome and custom stain vectors (P1), RGB colour normalization (P2).
 
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that

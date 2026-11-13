@@ -488,6 +488,50 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
 
 ---
 
+### 3.4 RGB-to-scalar stain presets (`stain.py`, issue #94, plan N67)
+
+A method family of its own, separate from §3.3 (which is unchanged): `rgb_to_scalar(pixels, *,
+axes, preset)` returns `ScalarResult(image, exclusion, provenance)` for consumers that need one
+channel from a stained image. normalization owns the conversion; consumers call it and never
+reimplement it. No file reading, tiling, segmentation or WSI handling is done here.
+
+| `preset` (version 1) | `image` | `exclusion` |
+|---|---|---|
+| `he_eosin` | `separate_stains(rgb, hed_from_rgb)`, component 1 (eosin) | component 0 (haematoxylin) |
+| `he_hematoxylin` | the same call, component 0 | `None` |
+| `luminance_inverted` | `1 - rgb2gray(rgb)` (baseline) | `None` |
+| `lab_a` | `rgb2lab(rgb)[..., 1]` (CIELAB a*, signed, not clipped; comparator) | `None` |
+
+Every preset has `stain` (`"he"` or `None`), `method`, `matrix`, `target_component`,
+`exclusion_component`, `polarity = "bright"` (higher means more stain), `fixed_range = None` and
+`version = 1`. `fixed_range` stays `None` until a stain-OD range is calibrated from a reference
+set and recorded; it is not hard-coded from one image. No trichrome presets yet.
+
+**Inputs (refused, never repaired).** `axes` is exactly `"YXC"` or `"CYX"`, with no default;
+the array is 3-D with exactly three samples (R, G, B) on the colour axis (an alpha channel, or
+any other count, is refused with a message, never dropped); the dtype is `uint8` (8-bit sRGB
+only; other dtypes are refused, 16-bit and ICC handling are later); an unknown preset is
+refused with the known ones listed. The source array is never modified and the result is
+deterministic; `YXC` and `CYX` of the same image give bitwise identical outputs. `image` and
+`exclusion` are float32 `(Y, X)` and finite (`uint8` cannot hold NaN or infinity).
+
+**scikit-image behaviour accepted in P0.** `separate_stains` floors every pixel value at 1e-6,
+treats 255 as white, divides by `-log(1e-6)` and sets negative component values to 0. The
+`clipped_fraction` of the provenance is the fraction of pixels whose target component is
+exactly 0 after the call (a pixel clipped from a negative value and one that was 0 cannot be told
+apart); it is `None` for `luminance_inverted` and `lab_a`, which do not clip. A self-computed
+optical-density path is later work.
+
+**Provenance** (read-only mapping): `preset`, `preset_version`, `stain`, `method`, `matrix`,
+`target_component`, `exclusion_component`, `polarity`, `input_dtype`, `axes`, `colour_space`
+(`"srgb"`), `skimage_version`, `clipped_fraction`.
+
+**Dependency.** scikit-image is the optional extra `histology`
+(`pip install morphobricks-normalization[histology]`), imported only inside the conversion;
+without it `rgb_to_scalar` raises `ImportError` naming the extra. `import
+morphobricks_normalization` needs NumPy only. The module is not re-exported from the package
+root; import it as `morphobricks_normalization.stain`.
+
 ## 4. Scopes, groups and weights
 
 ### 4.1 Scopes

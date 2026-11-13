@@ -539,3 +539,17 @@ def test_fixed_reference_values_of_the_colour_projections():
     eosin = to_scalar(rgb, axes="YXC", preset="he_eosin")
     assert eosin.image[0, 0] == 0.0  # white: no stain
     assert eosin.provenance["zero_fraction"] >= 1 / 3
+
+
+def test_every_preset_names_its_image_cellprofiler_style():
+    """Each preset names its image as CellProfiler's UnmixColors does: unique tokens."""
+    import re
+
+    names = {preset_id: preset.image_name for preset_id, preset in PRESETS.items()}
+    assert all(
+        isinstance(name, str) and re.fullmatch(r"[A-Z][A-Za-z0-9]*", name)
+        for name in names.values()
+    ), names
+    assert len(set(names.values())) == len(names)
+    assert names["he_eosin"] == "Eosin" and names["he_hematoxylin"] == "Hematoxylin"
+    assert names["trichrome_blue"] == "MethylBlue"

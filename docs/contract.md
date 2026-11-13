@@ -499,6 +499,16 @@ without the optional arguments. No file reading, tiling, segmentation or WSI han
 here. Modules: `stain.py` (API), `stain_presets.py` (registry, hints, default vectors; re-exported
 by `stain.py`), `optical_density.py` (OD maths, NumPy), `scalar_inputs.py` (input checks).
 
+**Image names.** Every preset names the image it makes, CellProfiler style (`StainPreset.image_name`,
+recorded in the provenance as `image_name`), as CellProfiler's `UnmixColors` names its outputs:
+`he_eosin` → `Eosin`, `he_hematoxylin` → `Hematoxylin`, `luminance_inverted` → `InvertedLuminance`,
+`lab_a` → `LabA`, `fluorescence` → `Fluorescence`, `shg` → `SHG`, `psr_brightfield` → `SiriusRed`,
+`psr_polarized` → `SiriusRedPolarized`, `trichrome_blue` → `MethylBlue`, `trichrome_green` →
+`TrichromeGreen`, `he_custom` → `EosinCustom`, `trichrome_custom` → `TrichromeCustom`. Names are
+unique tokens; consumers use them as the derived image's channel name in feature columns
+(`Eosin__Cells__ridge_support_mean`). A name says which image was measured, not what it means
+biologically (`Eosin` is eosin-derived texture, not collagen).
+
 **Catalogue** (every preset version 1, `polarity = "bright"`, `fixed_range = None`):
 
 | `preset` | modality | method | `image` | `exclusion` | needs | scaling | mask | measures |

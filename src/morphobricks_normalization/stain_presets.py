@@ -100,6 +100,12 @@ class StainPreset:
         when ``stain_vectors`` is not given, or ``None`` (then ``stain_vectors`` is needed).
     default_stain_vectors_citation
         Where the default vectors come from, recorded in the provenance.
+    image_name
+        The CellProfiler-style name of the image the preset makes (as CellProfiler's
+        ``UnmixColors`` names its outputs ``Hematoxylin``, ``Eosin``, ``Methyl blue``): a token of
+        letters and digits, unique among the presets, which consumers use as the derived
+        image's channel name in feature columns (``Eosin__Cells__ridge_support_mean``). It names
+        the image, not what it measures: ``Eosin`` is eosin-derived texture, not collagen.
     """
 
     id: str
@@ -122,6 +128,7 @@ class StainPreset:
         default=None, hash=False
     )
     default_stain_vectors_citation: str | None = None
+    image_name: str | None = None
 
 
 def _hints(scaling: str, mask: str, measures: str) -> Mapping[str, str]:
@@ -141,6 +148,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
         for preset in (
             StainPreset(
                 "he_eosin",
+                image_name="Eosin",
                 stain="he",
                 matrix="hed_from_rgb",
                 target_component=1,
@@ -149,6 +157,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "he_hematoxylin",
+                image_name="Hematoxylin",
                 stain="he",
                 matrix="hed_from_rgb",
                 target_component=0,
@@ -156,6 +165,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "luminance_inverted",
+                image_name="InvertedLuminance",
                 method="luminance",
                 inverted=True,
                 accepts=_WHITE,
@@ -163,6 +173,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "lab_a",
+                image_name="LabA",
                 method="cielab",
                 target_component=1,
                 accepts=_WHITE,
@@ -170,18 +181,21 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "fluorescence",
+                image_name="Fluorescence",
                 method="passthrough",
                 modality="fluorescence",
                 hints=_hints("per_image", "optional", "the labelled structure"),
             ),
             StainPreset(
                 "shg",
+                image_name="SHG",
                 method="passthrough",
                 modality="shg",
                 hints=_hints("fixed", "none", "fibrillar collagen (mainly type I)"),
             ),
             StainPreset(
                 "psr_brightfield",
+                image_name="SiriusRed",
                 stain="picrosirius_red",
                 method="custom_od",
                 needs=_CUSTOM,
@@ -191,6 +205,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "psr_polarized",
+                image_name="SiriusRedPolarized",
                 stain="picrosirius_red",
                 method="luminance",
                 modality="polarized",
@@ -200,6 +215,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "trichrome_blue",
+                image_name="MethylBlue",
                 stain="trichrome_blue",
                 matrix="bpx_from_rgb",
                 target_component=0,
@@ -207,6 +223,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "trichrome_green",
+                image_name="TrichromeGreen",
                 stain="trichrome_green",
                 method="cielab",
                 target_component=1,
@@ -216,6 +233,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "he_custom",
+                image_name="EosinCustom",
                 stain="he",
                 method="custom_od",
                 needs=_WHITE,
@@ -228,6 +246,7 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
             ),
             StainPreset(
                 "trichrome_custom",
+                image_name="TrichromeCustom",
                 method="custom_od",
                 needs=_WHITE,
                 accepts=frozenset({"stain_vectors"}),

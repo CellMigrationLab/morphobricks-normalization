@@ -21,6 +21,9 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   `target_stain` and `exclusion_stain`; the provenance gains `modality` and `hints`. New
   helpers `white_from_region`, `stain_vectors_from_regions`; new pure modules `optical_density`
   and `scalar_inputs`; `PRESETS_BY_MODALITY`.
+- **CellProfiler-style image names** (issue #94, contract §3.4): each stain preset names its image
+  (`StainPreset.image_name`, e.g. `he_eosin` -> `Eosin`, `trichrome_blue` -> `MethylBlue`), recorded in the
+  provenance; consumers use it as the derived channel's name in feature columns.
 - **Default stain vectors and declared white** (issue #94, plan N69, contract §3.4):
   `he_custom` (Ruifrok & Johnston H&E) and `trichrome_custom` (Methyl Blue / Ponceau Fuchsin of
   `rgb_from_bpx`) use published default vectors when `stain_vectors` is not given;

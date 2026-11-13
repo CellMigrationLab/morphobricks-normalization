@@ -231,6 +231,7 @@ def test_provenance_contents_and_zero_fraction():
     expected = {
         "preset": "he_eosin",
         "preset_version": 1,
+        "image_name": "Eosin",
         "stain": "he",
         "modality": "brightfield",
         "method": "fixed_deconvolution",

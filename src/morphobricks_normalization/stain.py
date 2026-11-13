@@ -216,6 +216,7 @@ def _provenance(
     record = {
         "preset": recipe.id,
         "preset_version": recipe.version,
+        "image_name": recipe.image_name,
         "stain": recipe.stain,
         "modality": recipe.modality,
         "method": recipe.method,

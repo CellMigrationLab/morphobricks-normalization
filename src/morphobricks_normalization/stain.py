@@ -20,17 +20,23 @@ Methods (a new stain is a new preset record, not a new code path):
   apart).
 - ``luminance`` (``luminance_inverted``: ``1 - rgb2gray``; ``psr_polarized``: ``rgb2gray``, not
   inverted, since birefringent fibres are bright on a dark field) and ``cielab`` (``lab_a``:
-  a*; ``trichrome_green``: minus a*), signed or bounded, not clipped.
+  a*; ``trichrome_green``: minus a*), signed or bounded, not clipped. They accept an optional
+  declared ``white`` (owner decision of 13 November 2026, N69): the RGB is then rescaled per
+  channel to ``clip(rint(I * 255 / white), 0, 255)`` as uint8 before the scikit-image call, and
+  the fraction of clipped pixels is reported. Without ``white`` nothing changes.
 - ``custom_od`` (``psr_brightfield``, ``he_custom``, ``trichrome_custom``): optical density
-  against a declared ``white`` and user-supplied ``stain_vectors``, in NumPy
+  against a declared ``white`` and ``stain_vectors``, in NumPy
   (:mod:`morphobricks_normalization.optical_density`), negative concentrations kept.
+  ``he_custom`` and ``trichrome_custom`` have published default vectors
+  (:data:`HE_DEFAULT_VECTORS`, :data:`BPX_DEFAULT_VECTORS`), used when ``stain_vectors`` is not
+  given; ``psr_brightfield`` has none. ``white`` is required for all three.
 
 RGB input contract. ``axes`` is exactly ``"YXC"`` or ``"CYX"`` and is never guessed; the array
 is 3-D with exactly three samples on the colour axis (R, G, B in that order; an alpha channel is
 refused, never dropped); the dtype is ``uint8`` (sRGB; 16-bit and ICC handling are later work).
 Nothing is reordered, rescaled or repaired silently, and the input array is never modified.
 
-Arguments a preset does not use (``white`` for ``lab_a``, ``polarizer`` for ``he_eosin``) are
+Arguments a preset does not use (``white`` for ``he_eosin``, ``polarizer`` for ``lab_a``) are
 refused, never ignored. ``psr_polarized`` needs ``polarizer`` (``"circular"`` or ``"linear"``):
 a linear polarizer darkens fibres at some angles to its axis, so the provenance hints record
 ``orientation_valid = False`` for it and consumers must refuse orientation features then.
@@ -46,7 +52,7 @@ scikit-image is the optional ``histology`` extra, imported only by the presets t
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from types import MappingProxyType, ModuleType
 from typing import Any
 
@@ -54,83 +60,29 @@ import numpy as np
 
 from morphobricks_normalization import optical_density as od
 from morphobricks_normalization import scalar_inputs as inputs
+from morphobricks_normalization.stain_presets import BPX_CITATION as BPX_CITATION
+from morphobricks_normalization.stain_presets import BPX_DEFAULT_VECTORS as BPX_DEFAULT_VECTORS
+from morphobricks_normalization.stain_presets import HE_CITATION as HE_CITATION
+from morphobricks_normalization.stain_presets import HE_DEFAULT_VECTORS as HE_DEFAULT_VECTORS
+from morphobricks_normalization.stain_presets import MASK_HINTS as MASK_HINTS
+from morphobricks_normalization.stain_presets import MODALITIES as MODALITIES
+from morphobricks_normalization.stain_presets import PRESETS as PRESETS
+from morphobricks_normalization.stain_presets import PRESETS_BY_MODALITY as PRESETS_BY_MODALITY
+from morphobricks_normalization.stain_presets import SCALING_HINTS as SCALING_HINTS
+from morphobricks_normalization.stain_presets import StainPreset as StainPreset
 
 AXES = inputs.AXES
 PLANE_AXES = inputs.PLANE_AXES
 SAMPLE_COUNT = inputs.SAMPLE_COUNT
 COLOUR_SPACE = "srgb"
 INSTALL_HINT = "pip install morphobricks-normalization[histology]"
-MODALITIES = ("fluorescence", "shg", "brightfield", "polarized")
-SCALING_HINTS = ("per_image", "fixed")
-MASK_HINTS = (
-    "exclude_nuclei_rbc_empty",
-    "exclude_nuclei",
-    "exclude_counterstain",
-    "background",
-    "none",
-    "optional",
-)
 POLARIZERS = ("circular", "linear")
 OPTIONAL_ARGUMENTS = ("white", "stain_vectors", "polarizer")
-EMPTY: Mapping[str, Any] = MappingProxyType({})
-
-
-@dataclass(frozen=True)
-class StainPreset:
-    """A frozen, versioned recipe for one scalar map from one imaging unit.
-
-    Attributes
-    ----------
-    id
-        Preset identifier, the key in :data:`PRESETS`.
-    version
-        Version of the recipe; any change of numbers is a new version.
-    stain
-        Stain as proposed for the MorphoBricks Spec (``"he"``, ``"picrosirius_red"``,
-        ``"trichrome_blue"``, ``"trichrome_green"``), or ``None``.
-    method
-        ``passthrough``, ``fixed_deconvolution``, ``luminance``, ``cielab`` or ``custom_od``.
-    matrix
-        Name of the scikit-image stain matrix (``hed_from_rgb``, ``bpx_from_rgb``), or ``None``.
-    target_component
-        Index of the component (deconvolution) or CIELAB channel returned, or ``None``.
-    exclusion_component
-        Component returned as the optional exclusion map (haematoxylin), or ``None``.
-    polarity
-        ``"bright"``: the structure of interest has higher values than its surroundings. It
-        is the signal direction for ridge detection, not a stain amount (``lab_a`` is redness,
-        ``luminance_inverted`` darkness).
-    fixed_range
-        Range for fixed intensity scaling; ``None`` until calibrated from a reference set.
-    modality
-        One of :data:`MODALITIES`.
-    hints
-        Read-only consumer hints: ``polarity``, ``scaling`` (:data:`SCALING_HINTS`), ``mask``
-        (:data:`MASK_HINTS`) and ``measures`` (short text). Recommendations, not applied here.
-    needs
-        The optional arguments of :func:`to_scalar` this preset requires; the others are
-        refused.
-    inverted
-        ``luminance``: ``1 - gray`` instead of ``gray``; ``cielab``: minus the channel.
-    target_stain, exclusion_stain
-        ``custom_od``: names of the target and exclusion vectors in ``stain_vectors``.
-    """
-
-    id: str
-    version: int = 1
-    stain: str | None = None
-    method: str = "fixed_deconvolution"
-    matrix: str | None = None
-    target_component: int | None = None
-    exclusion_component: int | None = None
-    polarity: str = "bright"
-    fixed_range: tuple[float, float] | None = None
-    modality: str = "brightfield"
-    hints: Mapping[str, str] = field(default_factory=lambda: EMPTY, hash=False)
-    needs: frozenset[str] = frozenset()
-    inverted: bool = False
-    target_stain: str | None = None
-    exclusion_stain: str | None = None
+PRESET_DEFAULT = "preset_default"
+USER = "user"
+"""Values of the provenance entry ``stain_vectors_source``."""
+WHITE_RESCALE = "clip(rint(I * 255 / white), 0, 255) as uint8, rint half to even"
+"""The rescaling applied by a ``luminance`` or ``cielab`` preset given a ``white``."""
 
 
 @dataclass(frozen=True)
@@ -153,122 +105,6 @@ class ScalarResult:
     provenance: Mapping[str, Any]
 
 
-def _hints(scaling: str, mask: str, measures: str) -> Mapping[str, str]:
-    """Return read-only consumer hints; every preset is ``bright``."""
-    return MappingProxyType(
-        {"polarity": "bright", "scaling": scaling, "mask": mask, "measures": measures}
-    )
-
-
-_HE_MASK = "exclude_nuclei_rbc_empty"
-_CUSTOM = frozenset({"white", "stain_vectors"})
-
-PRESETS: Mapping[str, StainPreset] = MappingProxyType(
-    {
-        preset.id: preset
-        for preset in (
-            StainPreset(
-                "he_eosin",
-                stain="he",
-                matrix="hed_from_rgb",
-                target_component=1,
-                exclusion_component=0,
-                hints=_hints("fixed", _HE_MASK, "eosin fibrillar texture, not collagen-specific"),
-            ),
-            StainPreset(
-                "he_hematoxylin",
-                stain="he",
-                matrix="hed_from_rgb",
-                target_component=0,
-                hints=_hints("fixed", "none", "haematoxylin, mainly nuclei"),
-            ),
-            StainPreset(
-                "luminance_inverted",
-                method="luminance",
-                inverted=True,
-                hints=_hints("fixed", _HE_MASK, "inverted brightness (baseline), nuclei-dominated"),
-            ),
-            StainPreset(
-                "lab_a",
-                method="cielab",
-                target_component=1,
-                hints=_hints("fixed", _HE_MASK, "CIELAB a* redness (comparator), low contrast"),
-            ),
-            StainPreset(
-                "fluorescence",
-                method="passthrough",
-                modality="fluorescence",
-                hints=_hints("per_image", "optional", "the labelled structure"),
-            ),
-            StainPreset(
-                "shg",
-                method="passthrough",
-                modality="shg",
-                hints=_hints("fixed", "none", "fibrillar collagen (mainly type I)"),
-            ),
-            StainPreset(
-                "psr_brightfield",
-                stain="picrosirius_red",
-                method="custom_od",
-                needs=_CUSTOM,
-                target_stain="psr",
-                exclusion_stain="counterstain",
-                hints=_hints("fixed", "exclude_counterstain", "collagen"),
-            ),
-            StainPreset(
-                "psr_polarized",
-                stain="picrosirius_red",
-                method="luminance",
-                modality="polarized",
-                needs=frozenset({"polarizer"}),
-                hints=_hints("fixed", "background", "birefringent packed collagen"),
-            ),
-            StainPreset(
-                "trichrome_blue",
-                stain="trichrome_blue",
-                matrix="bpx_from_rgb",
-                target_component=0,
-                hints=_hints("fixed", "exclude_nuclei", "collagen (methyl blue)"),
-            ),
-            StainPreset(
-                "trichrome_green",
-                stain="trichrome_green",
-                method="cielab",
-                target_component=1,
-                inverted=True,
-                hints=_hints("fixed", "exclude_nuclei", "collagen (green, minus CIELAB a*)"),
-            ),
-            StainPreset(
-                "he_custom",
-                stain="he",
-                method="custom_od",
-                needs=_CUSTOM,
-                target_stain="eosin",
-                exclusion_stain="hematoxylin",
-                hints=_hints("fixed", _HE_MASK, "eosin fibrillar texture, not collagen-specific"),
-            ),
-            StainPreset(
-                "trichrome_custom",
-                method="custom_od",
-                needs=_CUSTOM,
-                target_stain="collagen",
-                exclusion_stain="nuclei",
-                hints=_hints("fixed", "exclude_nuclei", "collagen"),
-            ),
-        )
-    }
-)
-"""The preset catalogue (issue #94, owner decision of 13 November 2026), read-only."""
-
-PRESETS_BY_MODALITY: Mapping[str, tuple[str, ...]] = MappingProxyType(
-    {
-        modality: tuple(key for key, preset in PRESETS.items() if preset.modality == modality)
-        for modality in MODALITIES
-    }
-)
-"""Preset ids by modality, read-only, in registry order."""
-
-
 def _skimage_color() -> tuple[ModuleType, ModuleType]:
     """Import ``skimage`` and ``skimage.color`` lazily; name the extra when missing."""
     try:
@@ -277,6 +113,24 @@ def _skimage_color() -> tuple[ModuleType, ModuleType]:
     except ImportError as error:
         raise ImportError(f"RGB-to-scalar presets need scikit-image: {INSTALL_HINT}") from error
     return skimage, color
+
+
+def _white_rescaled(rgb: np.ndarray, white: object) -> tuple[np.ndarray, dict[str, Any]]:
+    """Rescale ``rgb`` to a declared ``white`` if given; return it and the provenance entries."""
+    if white is None:
+        entries = {"white": None, "white_applied": False, "white_rescale": None}
+        entries |= {"white_clipped_fraction": None, "above_white_fraction": None}
+        return rgb, entries
+    values = od.check_white(white)
+    rescaled, clipped = od.rescale_to_white(rgb, values)
+    entries = {
+        "white": tuple(values.tolist()),
+        "white_applied": True,
+        "white_rescale": WHITE_RESCALE,
+        "white_clipped_fraction": clipped,
+        "above_white_fraction": od.above_white_fraction(rgb, values),
+    }
+    return rescaled, entries
 
 
 def _convert(rgb: np.ndarray, preset: StainPreset) -> tuple[np.ndarray, np.ndarray | None, str]:
@@ -305,8 +159,16 @@ def _convert(rgb: np.ndarray, preset: StainPreset) -> tuple[np.ndarray, np.ndarr
 def _custom_od(
     rgb: np.ndarray, preset: StainPreset, white: object, stain_vectors: object
 ) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
-    """Unmix ``rgb`` with the declared white and vectors; return image, exclusion, provenance."""
+    """Unmix ``rgb`` with the declared white and vectors; return image, exclusion, provenance.
+
+    Without ``stain_vectors`` the preset's published defaults are used (checked as user
+    vectors are); a preset without defaults never gets here without them.
+    """
     white_values = od.check_white(white)
+    source, citation = USER, None
+    if stain_vectors is None:
+        stain_vectors = preset.default_stain_vectors
+        source, citation = PRESET_DEFAULT, preset.default_stain_vectors_citation
     matrix = od.stain_matrix(stain_vectors, preset.target_stain, preset.exclusion_stain)
     density, floored = od.optical_density(rgb, white_values)
     amounts = od.concentrations(density, matrix)
@@ -314,6 +176,8 @@ def _custom_od(
     exclusion = np.ascontiguousarray(amounts[..., 1], dtype=np.float32)
     extra = {
         "white": tuple(white_values.tolist()),
+        "stain_vectors_source": source,
+        "stain_vectors_citation": citation,
         "stain_names": matrix.names,
         "stain_matrix": matrix.rows,
         "condition_number": matrix.condition,
@@ -331,7 +195,8 @@ def _check_arguments(recipe: StainPreset, given: Mapping[str, Any]) -> None:
     for name in OPTIONAL_ARGUMENTS:
         if name in recipe.needs and given[name] is None:
             raise ValueError(f"Preset {recipe.id!r} needs {name}; it has no default.")
-        if name not in recipe.needs and given[name] is not None:
+        used = recipe.needs | recipe.accepts
+        if name not in used and given[name] is not None:
             raise ValueError(
                 f"Preset {recipe.id!r} does not use {name}; it is refused rather than ignored."
             )
@@ -390,12 +255,15 @@ def to_scalar(
     preset
         A key of :data:`PRESETS`.
     white
-        ``custom_od`` only: background R, G, B of the 8-bit image, three finite values in
-        ``(0, 255]`` (see :func:`white_from_region`).
+        Background R, G, B of the 8-bit image, three finite values in ``(0, 255]`` (see
+        :func:`white_from_region`). Required for ``custom_od``; optional for ``luminance`` and
+        ``cielab`` (the RGB is then rescaled to it, :data:`WHITE_RESCALE`); refused otherwise.
     stain_vectors
         ``custom_od`` only: mapping stain name -> three R, G, B optical-density components; the
         preset's target and exclusion names, and optionally ``"residual"`` (otherwise the cross
-        product of the first two). See :func:`stain_vectors_from_regions`.
+        product of the first two). See :func:`stain_vectors_from_regions`. Optional for
+        ``he_custom`` and ``trichrome_custom`` (published defaults), required for
+        ``psr_brightfield``.
     polarizer
         ``psr_polarized`` only: ``"circular"`` or ``"linear"``.
 
@@ -406,8 +274,11 @@ def to_scalar(
         (contract §3.4): preset id, version, stain, modality, method, matrix, components,
         polarity, hints, input dtype, axes, colour space, scikit-image version (``None`` when
         not used), ``zero_fraction``, and the method's own entries (``custom_od``: white,
-        stain names, matrix, condition number, floored, negative and above-white fractions;
-        ``psr_polarized``: polarizer; ``passthrough``: ``float32_exact``).
+        ``stain_vectors_source`` and citation, stain names, matrix, condition number, floored,
+        negative and above-white fractions; ``luminance`` and ``cielab``: ``white``,
+        ``white_applied``, ``white_rescale``, ``white_clipped_fraction``,
+        ``above_white_fraction``; ``psr_polarized``: polarizer; ``passthrough``:
+        ``float32_exact``).
 
     Raises
     ------
@@ -432,9 +303,13 @@ def to_scalar(
             inputs.rgb_yxc(pixels, axes), recipe, white, stain_vectors
         )
     else:
-        image, exclusion, version = _convert(inputs.rgb_yxc(pixels, axes), recipe)
+        rgb = inputs.rgb_yxc(pixels, axes)
+        white_entries: dict[str, Any] = {}
+        if "white" in recipe.accepts:
+            rgb, white_entries = _white_rescaled(rgb, white)
+        image, exclusion, version = _convert(rgb, recipe)
         clipped = float(np.mean(image == 0)) if recipe.method == "fixed_deconvolution" else None
-        extra = {"skimage_version": version, "zero_fraction": clipped}
+        extra = {"skimage_version": version, "zero_fraction": clipped, **white_entries}
         if "polarizer" in recipe.needs:
             extra["polarizer"] = polarizer
     provenance = _provenance(recipe, pixels, axes, extra)

@@ -16,6 +16,8 @@ EOSIN = (0.07, 0.99, 0.11)  # Ruifrok-Johnston
 DAB = (0.27, 0.57, 0.78)  # Ruifrok-Johnston
 PSR = (0.10, 0.80, 0.55)  # picrosirius red: absorbs green and blue, passes red
 COUNTERSTAIN = HEMATOXYLIN
+METHYL_BLUE = (0.80, 0.59, 0.11)  # Masson trichrome, about rgb_from_bpx row 0
+PONCEAU_FUCHSIN = (0.10, 0.74, 0.67)  # about rgb_from_bpx row 1
 
 
 def unit(vector):

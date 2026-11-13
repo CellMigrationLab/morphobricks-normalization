@@ -225,6 +225,21 @@ def above_white_fraction(rgb: np.ndarray, white: np.ndarray) -> float:
     return float(np.mean((rgb.astype(np.float64) > white).any(axis=-1)))
 
 
+def rescale_to_white(rgb: np.ndarray, white: np.ndarray) -> tuple[np.ndarray, float]:
+    """Return ``(rescaled, clipped_fraction)``: ``rgb`` rescaled per channel so ``white`` is 255.
+
+    ``rescaled = clip(rint(I * 255 / white), 0, 255)`` as ``uint8``, computed in float64 in
+    that order; ``rint`` rounds half to even. With ``white = (255, 255, 255)`` it is the
+    identity (``I * 255 / 255`` is exact in float64). ``clipped_fraction`` is the fraction of
+    pixels with at least one channel above 255 after rounding (brighter than the white by more
+    than half a grey level), set to 255.
+    """
+    scaled = np.rint(rgb.astype(np.float64) * WHITE_MAX / white)
+    clipped = scaled > WHITE_MAX
+    rescaled = np.clip(scaled, 0.0, WHITE_MAX).astype(np.uint8)
+    return rescaled, float(np.mean(clipped.any(axis=-1)))
+
+
 def concentrations(od: np.ndarray, matrix: StainMatrix) -> np.ndarray:
     """Return ``OD @ inv(M)``: one float64 concentration per stain, signed, never clipped."""
     return od @ np.linalg.inv(matrix.array())

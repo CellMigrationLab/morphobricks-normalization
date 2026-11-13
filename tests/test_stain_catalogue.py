@@ -23,6 +23,8 @@ from stain_simulation import (
     DAB,
     EOSIN,
     HEMATOXYLIN,
+    METHYL_BLUE,
+    PONCEAU_FUCHSIN,
     PSR,
     WHITE,
     beer_lambert,
@@ -35,7 +37,7 @@ from stain_simulation import (
 CUSTOM = {
     "psr_brightfield": ("psr", "counterstain", PSR, COUNTERSTAIN),
     "he_custom": ("eosin", "hematoxylin", EOSIN, HEMATOXYLIN),
-    "trichrome_custom": ("collagen", "nuclei", (0.80, 0.59, 0.11), HEMATOXYLIN),
+    "trichrome_custom": ("collagen", "ponceau_fuchsin", METHYL_BLUE, PONCEAU_FUCHSIN),
 }
 SKIMAGE_RGB = ["he_eosin", "he_hematoxylin", "luminance_inverted", "lab_a"]
 SKIMAGE_RGB += ["psr_polarized", "trichrome_blue", "trichrome_green"]
@@ -191,12 +193,17 @@ def test_passthrough_refusals(plane, axes, error, message):
 # --- arguments ----------------------------------------------------------------------------
 
 UNUSED = [
-    ("lab_a", "white"),
+    ("lab_a", "polarizer"),
+    ("lab_a", "stain_vectors"),
+    ("luminance_inverted", "polarizer"),
+    ("he_eosin", "white"),
+    ("he_hematoxylin", "white"),
     ("he_eosin", "polarizer"),
     ("he_eosin", "stain_vectors"),
     ("fluorescence", "white"),
+    ("shg", "white"),
     ("shg", "polarizer"),
-    ("psr_polarized", "white"),
+    ("trichrome_blue", "white"),
     ("psr_brightfield", "polarizer"),
     ("trichrome_blue", "stain_vectors"),
 ]
@@ -212,9 +219,12 @@ def test_unused_arguments_are_refused_not_ignored(preset, name):
         to_scalar(pixels, axes=axes, preset=preset, **given)
 
 
-@pytest.mark.parametrize("preset", list(CUSTOM))
-@pytest.mark.parametrize("missing", ["white", "stain_vectors"])
-def test_custom_presets_need_white_and_vectors(preset, missing):
+@pytest.mark.parametrize(
+    ("preset", "missing"),
+    [(preset, "white") for preset in CUSTOM] + [("psr_brightfield", "stain_vectors")],
+)
+def test_custom_presets_need_white_and_psr_needs_vectors(preset, missing):
+    # he_custom and trichrome_custom have default vectors (N69); white is never assumed.
     given = arguments(preset)
     del given[missing]
     with pytest.raises(ValueError, match=f"needs {missing}"):

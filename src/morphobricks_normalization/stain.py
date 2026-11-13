@@ -122,7 +122,10 @@ PRESETS: Mapping[str, StainPreset] = MappingProxyType(
 
 
 def _to_yxc(pixels: np.ndarray, axes: str) -> np.ndarray:
-    """Return a C-contiguous ``(Y, X, 3)`` copy after checking the input contract."""
+    """Return a new C-contiguous ``(Y, X, 3)`` array after checking the input contract.
+
+    Always a copy, never a view of ``pixels``, so no later step can modify the caller's array.
+    """
     if not isinstance(pixels, np.ndarray):
         raise TypeError(f"pixels must be a NumPy array; got {type(pixels).__name__}.")
     if not isinstance(axes, str) or axes not in AXES:
@@ -143,7 +146,7 @@ def _to_yxc(pixels: np.ndarray, axes: str) -> np.ndarray:
             f"Only 8-bit sRGB (uint8) is supported; got {pixels.dtype}. "
             "Nothing is rescaled or converted silently."
         )
-    return np.ascontiguousarray(np.moveaxis(pixels, colour_axis, 2))
+    return np.array(np.moveaxis(pixels, colour_axis, 2), order="C", copy=True)
 
 
 def _skimage_color() -> tuple[ModuleType, ModuleType]:

@@ -343,3 +343,53 @@ def test_a_reference_region_with_a_floored_pixel_is_refused_and_zeros_outside_do
     rgb[3, 3, 0] = 0  # inside the region: its OD would be taken at the floor
     with pytest.raises(ValueError, match="holds 1 pixel"):
         stain_vectors_from_regions(rgb, axes="YXC", white=WHITE, regions={"eosin": region})
+
+
+# --- Review of 8cc45da: he_custom is a two-stain model, tested without scikit-image ------------
+
+# Literal reference values (Ruifrok & Johnston 2001, p. 293, normalised OD rows; Landini's
+# Masson Trichrome), independent of scikit-image, so an upstream change cannot move them.
+LITERAL_HE = {"hematoxylin": (0.65, 0.70, 0.29), "eosin": (0.07, 0.99, 0.11)}
+LITERAL_BPX = {
+    "collagen": (0.7995107, 0.5913521, 0.10528667),
+    "ponceau_fuchsin": (0.09997159, 0.73738605, 0.6680326),
+}
+# he_custom's unit matrix rows: eosin, haematoxylin, their normalised cross product (computed once
+# by hand from the literal rows above; not scikit-image's DAB row 0.27, 0.57, 0.78).
+HE_CUSTOM_ROWS = np.array(
+    [
+        [0.07010172, 0.99143863, 0.11015985],
+        [0.65110783, 0.70119304, 0.29049426],
+        [0.33211686, 0.08093471, -0.93975952],
+    ]
+)
+
+
+def test_default_vectors_equal_the_literal_published_values():
+    assert dict(HE_DEFAULT_VECTORS) == LITERAL_HE
+    assert dict(BPX_DEFAULT_VECTORS) == LITERAL_BPX
+
+
+def test_he_custom_is_the_two_stain_model_on_a_reference_pixel():
+    """One pixel by hand: log10 OD against the declared white, then OD @ inv(rows above)."""
+    pixel = np.array([[[180, 90, 170]]], np.uint8)
+    white = (250.0, 250.0, 250.0)
+    od = -np.log10(np.array([180.0, 90.0, 170.0]) / 250.0)
+    expected = od @ np.linalg.inv(HE_CUSTOM_ROWS)
+    result = to_scalar(pixel, axes="YXC", preset="he_custom", white=white)
+    np.testing.assert_allclose(result.image.ravel(), expected[0], rtol=1e-6)
+    np.testing.assert_allclose(result.exclusion.ravel(), expected[1], rtol=1e-6)
+    np.testing.assert_allclose(result.provenance["stain_matrix"], HE_CUSTOM_ROWS, atol=1e-8)
+
+
+def test_he_custom_is_not_the_three_stain_hed_conversion():
+    """Same H and E vectors, different model: scikit-image's HED has a DAB row, natural-log OD
+    scaled by log(1e-6), white 255 and clipping; its eosin differs from he_custom's."""
+    color = pytest.importorskip("skimage.color")
+    pixel = np.array([[[180, 90, 170]]], np.uint8)
+    ours = to_scalar(pixel, axes="YXC", preset="he_custom", white=(255.0, 255.0, 255.0)).image
+    hed = color.separate_stains(pixel, color.hed_from_rgb)[..., 1]
+    assert not np.allclose(ours, hed, rtol=0.1)
+    assert not np.allclose(
+        color.rgb_from_hed[2], np.cross(color.rgb_from_hed[0], color.rgb_from_hed[1])
+    )

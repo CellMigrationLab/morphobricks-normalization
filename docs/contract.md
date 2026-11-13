@@ -585,7 +585,8 @@ told apart); it is `None` for every other method.
   the preset's target and exclusion names, plus optionally `"residual"`. Missing or other names
   are refused. Each vector is normalised to unit length (non-finite values, a wrong length or
   a norm below 1e-6 are refused). Without `"residual"` the third row is the normalised cross
-  product of the first two (scikit-image's completion of `rgb_from_hed`).
+  product of the first two (as scikit-image completes `rgb_from_bpx`; `rgb_from_hed` has an explicit
+  DAB third row instead).
 - Rows of `M`: target, exclusion, residual. Two vectors closer than 5 degrees (either
   direction) are refused as collinear; for two vectors completed by the cross product
   `cond(M) = cot(angle / 2)`, so 5 degrees gives 22.9. A 2-norm condition number above 50 is
@@ -617,8 +618,14 @@ rows when it is installed. `white` stays required: it is never assumed to be 255
 | `psr_brightfield` | `psr` | `counterstain` | none: no reliable published picrosirius red vectors; `stain_vectors` is required | — |
 
 The residual is the normalised cross product of the two (scikit-image's `rgb_from_bpx` is
-completed the same way; `rgb_from_hed` has DAB as its third row, so `he_custom` with defaults is
-not `he_eosin`: other residual, OD in log10 against the declared white, no clipping).
+completed the same way). **`he_custom` is a two-stain model, deliberately not the three-stain HED
+conversion**: it shares Ruifrok & Johnston's haematoxylin and eosin vectors, but its third row is
+the cross product, not DAB (0.27, 0.57, 0.78); its optical density is log10 against the declared
+white, not scikit-image's natural log divided by `log(1e-6)` with white 255; and negative
+concentrations are kept, not clipped. Its eosin map therefore differs from `he_eosin`'s in scale
+and in value (tested on a reference pixel: 0.294 against scikit-image's 0.046). Use `he_eosin` for
+the published HED conversion, `he_custom` for a declared white or measured vectors. The literal
+published values are tested independently of scikit-image, as well as against it.
 `trichrome_custom`'s exclusion is Ponceau Fuchsin (cytoplasm, muscle, the red counterstain), not
 nuclei: the published Masson matrix has no nuclear stain (iron haematoxylin is near black and
 absorbs in all channels). The mask hint stays `exclude_nuclei`: a nuclear mask is built in
@@ -630,7 +637,10 @@ preprocessing, not taken from this exclusion map. User vectors for `trichrome_cu
 `(0, 255]`, checked as for `custom_od`). When given, the RGB is rescaled per channel before the
 scikit-image call to `clip(rint(I * 255 / white), 0, 255)` as `uint8`, computed in float64 in
 that order; `rint` rounds half to even, and a value above 255 after rounding (brighter than the
-white by more than half a grey level) is set to 255. `white_clipped_fraction` is the fraction of
+white by more than half a grey level) is set to 255. Re-quantising to `uint8` keeps scikit-image's
+colour conversions on the 8-bit input they are defined for and adds at most half a grey level of
+rounding per channel (plus the reported clipping); scikit-image would also accept float RGB, which
+would avoid this rounding, but the method is fixed as stated here. `white_clipped_fraction` is the fraction of
 pixels with at least one such clipped channel; `above_white_fraction` (as for `custom_od`) the
 fraction with a channel strictly above the white, which includes pixels within half a grey level
 of it that round to 255 without clipping. `white = (255, 255, 255)` is the identity, so the

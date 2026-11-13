@@ -21,6 +21,12 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   `target_stain` and `exclusion_stain`; the provenance gains `modality` and `hints`. New
   helpers `white_from_region`, `stain_vectors_from_regions`; new pure modules `optical_density`
   and `scalar_inputs`; `PRESETS_BY_MODALITY`.
+- **`he_custom` stated as a two-stain model** (review of `8cc45da`): contract §3.4 says plainly that it is not the
+  three-stain HED conversion (cross-product residual instead of DAB, log10 OD against the declared white, no
+  clipping); the wrong "completion of `rgb_from_hed`" sentence is corrected; the uint8 re-quantisation of the
+  declared-white path is documented (at most half a grey level per channel). New tests: the literal published
+  vectors independent of scikit-image, `he_custom` on a reference pixel computed by hand, and its difference from
+  scikit-image's HED eosin.
 - **Review fixes (ChatGPT review of `3a7af3e`)**: a masked `white`, a masked stain-vector component (or a masked
   value inside a list) and a masked region are refused (`TypeError`), never unmasked by `np.asarray`;
   `stain_vectors_from_regions` refuses a reference region holding a pixel with a channel at 0 (its optical density

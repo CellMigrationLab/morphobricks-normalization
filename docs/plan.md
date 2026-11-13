@@ -562,7 +562,11 @@ Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull reques
     from labelled regions (TWOMBLI). `psr_polarized` is luminance, not inverted, and requires a
     declared polarizer; only `"circular"` gives `orientation_valid` (linear polarizers darken
     fibres at some angles). Arguments a preset does not use are refused. Colour normalization
-    stays later, with a frozen reference only (contract §3.4).
+    stays later, with a frozen reference only (contract §3.4). Review fixes (13 November 2026, ChatGPT review of b152472): the P0 provenance key
+    `clipped_fraction` is renamed `zero_fraction` (it counts pixels whose component is exactly 0,
+    which includes pixels that were never clipped); masked arrays (`np.ma.MaskedArray`) and
+    images with no pixels are refused for every preset; `polarity = "bright"` means the
+    structure has higher values than its surroundings (the signal direction), not more stain.
 
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that

@@ -315,7 +315,7 @@ def test_custom_od_keeps_negative_concentrations_and_reports_the_fractions():
     assert (result.image[0, :2] < 0).all() and provenance["negative_fraction"] >= 0.2
     assert provenance["above_white_fraction"] == pytest.approx(2 / 10)
     assert provenance["floored_fraction"] == pytest.approx(2 / 10)
-    assert provenance["clipped_fraction"] is None
+    assert provenance["zero_fraction"] is None
     assert np.isfinite(result.image).all() and np.isfinite(result.exclusion).all()
 
 
@@ -358,7 +358,7 @@ def test_trichrome_blue_is_methyl_blue_of_bpx():
     expected = color.separate_stains(rgb, color.bpx_from_rgb)[..., 0].astype(np.float32)
     assert result.image.tobytes() == expected.tobytes()
     assert result.exclusion is None
-    assert result.provenance["clipped_fraction"] == float(np.mean(expected == 0))
+    assert result.provenance["zero_fraction"] == float(np.mean(expected == 0))
     assert result.provenance["matrix"] == "bpx_from_rgb"
     blue = to_scalar(
         np.full((2, 2, 3), (40, 90, 200), np.uint8), axes="YXC", preset="trichrome_blue"
@@ -376,7 +376,7 @@ def test_trichrome_green_is_minus_lab_a_signed():
     expected = (-color.rgb2lab(rgb)[..., 1]).astype(np.float32)
     assert result.image.tobytes() == expected.tobytes()
     assert result.image.min() < 0 < result.image.max()
-    assert result.provenance["clipped_fraction"] is None
+    assert result.provenance["zero_fraction"] is None
 
 
 # --- shared contract ----------------------------------------------------------------------
@@ -485,3 +485,47 @@ def test_numpy_only_presets_work_without_scikit_image():
     )
     assert result.returncode == 0, result.stderr
     assert result.stdout.split() == ["float32", "float32"]
+
+
+# Review fixes (ChatGPT review of b152472): masked arrays, empty images, fixed reference values.
+@pytest.mark.parametrize("axes", ["YXC", "CYX"])
+def test_a_masked_rgb_array_is_refused_not_unmasked(axes):
+    data = np.zeros((4, 5, 3) if axes == "YXC" else (3, 4, 5), dtype=np.uint8)
+    masked = np.ma.MaskedArray(data, mask=np.zeros(data.shape, dtype=bool))
+    with pytest.raises(TypeError, match="masked array"):
+        to_scalar(masked, axes=axes, preset="luminance_inverted")
+
+
+def test_a_masked_plane_is_refused():
+    masked = np.ma.MaskedArray(np.ones((4, 5), dtype=np.float32), mask=False)
+    with pytest.raises(TypeError, match="masked array"):
+        to_scalar(masked, axes="YX", preset="fluorescence")
+
+
+@pytest.mark.parametrize(
+    ("shape", "axes"),
+    [((0, 5, 3), "YXC"), ((4, 0, 3), "YXC"), ((3, 0, 5), "CYX"), ((3, 4, 0), "CYX")],
+)
+def test_an_rgb_image_without_pixels_is_refused(shape, axes):
+    with pytest.raises(ValueError, match="no pixels"):
+        to_scalar(np.zeros(shape, dtype=np.uint8), axes=axes, preset="he_eosin")
+
+
+@pytest.mark.parametrize("shape", [(0, 5), (4, 0)])
+def test_a_plane_without_pixels_is_refused(shape):
+    with pytest.raises(ValueError, match="no pixels"):
+        to_scalar(np.zeros(shape, dtype=np.float32), axes="YX", preset="shg")
+
+
+def test_fixed_reference_values_of_the_colour_projections():
+    pytest.importorskip("skimage")
+    rgb = np.array([[[255, 255, 255], [0, 0, 0], [128, 128, 128]]], dtype=np.uint8)
+    lum = to_scalar(rgb, axes="YXC", preset="luminance_inverted").image
+    assert lum[0, 0] == pytest.approx(0.0, abs=1e-6)  # white is not dark
+    assert lum[0, 1] == pytest.approx(1.0, abs=1e-6)  # black is fully dark
+    lab = to_scalar(rgb, axes="YXC", preset="lab_a").image
+    # neutral greys have no redness; scikit-image gives |a*| ~ 0.002 from its D65 white point
+    assert np.abs(lab).max() < 1e-2
+    eosin = to_scalar(rgb, axes="YXC", preset="he_eosin")
+    assert eosin.image[0, 0] == 0.0  # white: no stain
+    assert eosin.provenance["zero_fraction"] >= 1 / 3

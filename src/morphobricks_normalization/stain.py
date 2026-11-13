@@ -15,7 +15,7 @@ Methods (a new stain is a new preset record, not a new code path):
 - ``fixed_deconvolution`` (``he_eosin``, ``he_hematoxylin``, ``trichrome_blue``):
   ``skimage.color.separate_stains`` with a fixed scikit-image matrix. It floors every pixel at
   1e-6, treats 255 as white, divides by ``-log(1e-6)`` and **sets negative component values to
-  0**; ``clipped_fraction`` is the fraction of pixels whose target component is exactly 0
+  0**; ``zero_fraction`` is the fraction of pixels whose target component is exactly 0
   after the call (a pixel clipped from a negative value and one that was 0 cannot be told
   apart).
 - ``luminance`` (``luminance_inverted``: ``1 - rgb2gray``; ``psr_polarized``: ``rgb2gray``, not
@@ -97,7 +97,9 @@ class StainPreset:
     exclusion_component
         Component returned as the optional exclusion map (haematoxylin), or ``None``.
     polarity
-        ``"bright"``: a higher value means more of the measured structure.
+        ``"bright"``: the structure of interest has higher values than its surroundings. It
+        is the signal direction for ridge detection, not a stain amount (``lab_a`` is redness,
+        ``luminance_inverted`` darkness).
     fixed_range
         Range for fixed intensity scaling; ``None`` until calibrated from a reference set.
     modality
@@ -361,7 +363,7 @@ def _provenance(
         "axes": axes,
         "colour_space": None if recipe.method == "passthrough" else COLOUR_SPACE,
         "skimage_version": None,
-        "clipped_fraction": None,
+        "zero_fraction": None,
     }
     record.update(extra)
     return MappingProxyType(record)
@@ -403,7 +405,7 @@ def to_scalar(
         ``image`` float32 ``(Y, X)``; ``exclusion`` or ``None``; read-only ``provenance``
         (contract §3.4): preset id, version, stain, modality, method, matrix, components,
         polarity, hints, input dtype, axes, colour space, scikit-image version (``None`` when
-        not used), ``clipped_fraction``, and the method's own entries (``custom_od``: white,
+        not used), ``zero_fraction``, and the method's own entries (``custom_od``: white,
         stain names, matrix, condition number, floored, negative and above-white fractions;
         ``psr_polarized``: polarizer; ``passthrough``: ``float32_exact``).
 
@@ -432,7 +434,7 @@ def to_scalar(
     else:
         image, exclusion, version = _convert(inputs.rgb_yxc(pixels, axes), recipe)
         clipped = float(np.mean(image == 0)) if recipe.method == "fixed_deconvolution" else None
-        extra = {"skimage_version": version, "clipped_fraction": clipped}
+        extra = {"skimage_version": version, "zero_fraction": clipped}
         if "polarizer" in recipe.needs:
             extra["polarizer"] = polarizer
     provenance = _provenance(recipe, pixels, axes, extra)

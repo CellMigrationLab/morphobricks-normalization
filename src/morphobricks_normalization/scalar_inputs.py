@@ -17,6 +17,17 @@ PLANE_AXES = "YX"
 SAMPLE_COUNT = 3
 
 
+def _refuse_masked_or_empty(pixels: np.ndarray, spatial: tuple[int, int]) -> None:
+    """Refuse a masked array (its mask would be dropped) and an image with no pixels."""
+    if isinstance(pixels, np.ma.MaskedArray):
+        raise TypeError(
+            "A masked array is refused: its mask would be dropped silently. Pass the data and "
+            "an explicit mask to the consumer instead."
+        )
+    if 0 in spatial:
+        raise ValueError(f"The image has no pixels (Y, X = {spatial}); it is refused.")
+
+
 def rgb_yxc(pixels: np.ndarray, axes: str) -> np.ndarray:
     """Return a new C-contiguous ``(Y, X, 3)`` array after checking the RGB input contract.
 
@@ -37,6 +48,7 @@ def rgb_yxc(pixels: np.ndarray, axes: str) -> np.ndarray:
             f"Expected exactly 3 samples (R, G, B) on the colour axis of {axes}; "
             f"got {pixels.shape[colour_axis]}.{extra}"
         )
+    _refuse_masked_or_empty(pixels, tuple(np.delete(np.array(pixels.shape), colour_axis)))
     if pixels.dtype != np.uint8:
         raise TypeError(
             f"Only 8-bit sRGB (uint8) is supported; got {pixels.dtype}. "
@@ -61,6 +73,7 @@ def plane_float32(pixels: np.ndarray, axes: str) -> tuple[np.ndarray, dict[str, 
         raise ValueError(f"axes must be exactly 'YX' for a single plane; got {axes!r}.")
     if pixels.ndim != 2:
         raise ValueError(f"Expected a 2-D array with axes YX; got {pixels.ndim}-D.")
+    _refuse_masked_or_empty(pixels, pixels.shape)
     if pixels.dtype.kind not in "iuf":
         raise TypeError(
             f"Expected a real numeric dtype (integer or float); got {pixels.dtype}. "

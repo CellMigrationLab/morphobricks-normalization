@@ -114,7 +114,7 @@ def test_yxc_and_cyx_give_bitwise_identical_outputs(preset):
     assert a.image.tobytes() == b.image.tobytes()
     if a.exclusion is not None:
         assert a.exclusion.tobytes() == b.exclusion.tobytes()
-    assert a.provenance["clipped_fraction"] == b.provenance["clipped_fraction"]
+    assert a.provenance["zero_fraction"] == b.provenance["zero_fraction"]
 
 
 @pytest.mark.parametrize("axes", ["yxc", "XYC", "YXCZ", "", "CXY", None, ("Y", "X", "C")])
@@ -210,7 +210,7 @@ def test_lab_a_is_signed_and_not_clipped():
     pytest.importorskip("skimage")
     result = rgb_to_scalar(patches(EOSIN, (60, 160, 60)), axes="YXC", preset="lab_a")
     assert result.image.min() < 0 < result.image.max()
-    assert result.provenance["clipped_fraction"] is None
+    assert result.provenance["zero_fraction"] is None
 
 
 def test_he_eosin_exclusion_is_the_hematoxylin_image_and_others_have_none():
@@ -224,7 +224,7 @@ def test_he_eosin_exclusion_is_the_hematoxylin_image_and_others_have_none():
         assert rgb_to_scalar(image, axes="YXC", preset=preset).exclusion is None
 
 
-def test_provenance_contents_and_clipped_fraction():
+def test_provenance_contents_and_zero_fraction():
     skimage = pytest.importorskip("skimage")
     image = patches(EOSIN, HEMATOXYLIN)
     result = rgb_to_scalar(image, axes="YXC", preset="he_eosin")
@@ -248,10 +248,10 @@ def test_provenance_contents_and_clipped_fraction():
         "axes": "YXC",
         "colour_space": "srgb",
         "skimage_version": skimage.__version__,
-        "clipped_fraction": float(np.mean(result.image == 0)),
+        "zero_fraction": float(np.mean(result.image == 0)),
     }
     assert dict(result.provenance) == expected
-    assert 0.0 <= result.provenance["clipped_fraction"] <= 1.0
+    assert 0.0 <= result.provenance["zero_fraction"] <= 1.0
     lab = rgb_to_scalar(image, axes="YXC", preset="lab_a").provenance
     assert lab["stain"] is None and lab["matrix"] is None and lab["method"] == "cielab"
     assert (
@@ -260,12 +260,12 @@ def test_provenance_contents_and_clipped_fraction():
     )
 
 
-def test_the_clipped_fraction_counts_zeros_of_the_target_component():
+def test_the_zero_fraction_counts_zeros_of_the_target_component():
     pytest.importorskip("skimage")
     # Left half pure white: every component is 0 there; right half the haematoxylin colour.
     image = patches((255, 255, 255), HEMATOXYLIN)
     result = rgb_to_scalar(image, axes="YXC", preset="he_hematoxylin")
-    assert result.provenance["clipped_fraction"] == pytest.approx(0.5)
+    assert result.provenance["zero_fraction"] == pytest.approx(0.5)
 
 
 def test_provenance_is_immutable():

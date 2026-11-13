@@ -522,7 +522,9 @@ proposed in MorphoBricks-Spec #36) or `None` (colour projections, passthrough,
 scikit-image's Methyl Blue/Ponceau Fuchsin matrix, not a universal Masson profile; for a
 slide-specific profile use `trichrome_custom`.
 
-**Hints** (`preset.hints`, read-only, recorded in the provenance): `polarity` (`"bright"`),
+**Hints** (`preset.hints`, read-only, recorded in the provenance): `polarity` (`"bright"`: the
+structure of interest has higher values than its surroundings; a signal direction, not a stain
+amount),
 `scaling` (`"per_image"` or `"fixed"`), `mask` (`exclude_nuclei_rbc_empty`, `exclude_nuclei`,
 `exclude_counterstain`, `background`, `none`, `optional`) and `measures` (short text). They
 are recommendations for consumers (FiberFeatures #214), **never applied here**.
@@ -538,7 +540,8 @@ Hue is not used (later, as a separate feature).
 the array is 3-D with exactly three samples (R, G, B) on the colour axis (an alpha channel, or
 any other count, is refused with a message, never dropped); the dtype is `uint8` (8-bit sRGB
 only; 16-bit and ICC handling are later); an unknown preset is refused with the known ones
-listed. The source array is never modified and the result is deterministic; `YXC` and `CYX` of
+listed. For every preset, RGB or plane, a masked array (`np.ma.MaskedArray`, whose mask would be
+dropped) and an image with no pixels (Y or X of 0) are refused. The source array is never modified and the result is deterministic; `YXC` and `CYX` of
 the same image give bitwise identical outputs. `image` and `exclusion` are float32 `(Y, X)` and
 finite.
 
@@ -550,7 +553,7 @@ float64 values; the provenance reports `float32_exact`.
 
 **scikit-image behaviour accepted (`fixed_deconvolution`).** `separate_stains` floors every pixel
 value at 1e-6, treats 255 as white, divides by `-log(1e-6)` and sets negative component values
-to 0. The `clipped_fraction` of the provenance is the fraction of pixels whose target component
+to 0. The `zero_fraction` of the provenance is the fraction of pixels whose target component
 is exactly 0 after the call (a pixel clipped from a negative value and one that was 0 cannot be
 told apart); it is `None` for every other method.
 
@@ -587,7 +590,7 @@ told apart); it is `None` for every other method.
 **Provenance** (read-only mapping): `preset`, `preset_version`, `stain`, `modality`, `method`,
 `matrix`, `target_component`, `exclusion_component`, `polarity`, `hints` (read-only),
 `input_dtype`, `axes`, `colour_space` (`"srgb"`, `None` for passthrough), `skimage_version`
-(`None` when scikit-image is not called), `clipped_fraction`; plus, for `custom_od`: `white`,
+(`None` when scikit-image is not called), `zero_fraction`; plus, for `custom_od`: `white`,
 `stain_names`, `stain_matrix` (unit rows), `condition_number`, `residual_completed`,
 `od_definition`, `floored_fraction`, `negative_fraction`, `above_white_fraction`; for
 `psr_polarized`: `polarizer` (and `hints["orientation_valid"]`); for passthrough:

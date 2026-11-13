@@ -21,6 +21,16 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   `target_stain` and `exclusion_stain`; the provenance gains `modality` and `hints`. New
   helpers `white_from_region`, `stain_vectors_from_regions`; new pure modules `optical_density`
   and `scalar_inputs`; `PRESETS_BY_MODALITY`.
+- **Default stain vectors and declared white** (issue #94, plan N69, contract §3.4):
+  `he_custom` (Ruifrok & Johnston H&E) and `trichrome_custom` (Methyl Blue / Ponceau Fuchsin of
+  `rgb_from_bpx`) use published default vectors when `stain_vectors` is not given;
+  `psr_brightfield` still needs them. New `StainPreset` fields `accepts`,
+  `default_stain_vectors`, `default_stain_vectors_citation`; provenance `stain_vectors_source`,
+  `stain_vectors_citation`. `trichrome_custom`'s exclusion stain is renamed `nuclei` ->
+  `ponceau_fuchsin`. `luminance_inverted`, `lab_a`, `psr_polarized`, `trichrome_green` accept an
+  optional `white` (rescale to `clip(rint(I * 255 / white), 0, 255)`, `white_clipped_fraction`
+  reported); without it outputs are bitwise unchanged. The registry moves to `stain_presets.py`
+  (re-exported by `stain.py`).
 
 ## v0.5.0 (2026-11-11)
 

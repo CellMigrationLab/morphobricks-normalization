@@ -488,7 +488,7 @@ y_c    = (x_c − offset) / scale          for c = R, G, B
 
 ---
 
-### 3.4 Image-to-scalar presets (`stain.py`, issue #94, plan N67, N68)
+### 3.4 Image-to-scalar presets (`stain.py`, issue #94, plan N67, N68, N69)
 
 A method family of its own, separate from §3.3 (which is unchanged): `to_scalar(pixels, *,
 axes, preset, white=None, stain_vectors=None, polarizer=None)` returns `ScalarResult(image,
@@ -496,8 +496,8 @@ exclusion, provenance)`, one float32 `(Y, X)` map of one declared imaging unit, 
 that need one channel (FiberFeatures first). normalization owns the conversion; consumers call
 it and never reimplement it. `rgb_to_scalar(pixels, *, axes, preset)` (N67) is `to_scalar`
 without the optional arguments. No file reading, tiling, segmentation or WSI handling is done
-here. Modules: `stain.py` (API, registry), `optical_density.py` (OD maths, NumPy),
-`scalar_inputs.py` (input checks).
+here. Modules: `stain.py` (API), `stain_presets.py` (registry, hints, default vectors; re-exported
+by `stain.py`), `optical_density.py` (OD maths, NumPy), `scalar_inputs.py` (input checks).
 
 **Catalogue** (every preset version 1, `polarity = "bright"`, `fixed_range = None`):
 
@@ -505,16 +505,16 @@ here. Modules: `stain.py` (API, registry), `optical_density.py` (OD maths, NumPy
 |---|---|---|---|---|---|---|---|---|
 | `he_eosin` | brightfield | `fixed_deconvolution` | `separate_stains(rgb, hed_from_rgb)[..., 1]` | component 0 (haematoxylin) | — | fixed | `exclude_nuclei_rbc_empty` | eosin fibrillar texture, not collagen-specific |
 | `he_hematoxylin` | brightfield | `fixed_deconvolution` | the same call, component 0 | `None` | — | fixed | `none` | haematoxylin, mainly nuclei |
-| `luminance_inverted` | brightfield | `luminance` | `1 - rgb2gray(rgb)` (baseline) | `None` | — | fixed | `exclude_nuclei_rbc_empty` | inverted brightness, nuclei-dominated |
-| `lab_a` | brightfield | `cielab` | `rgb2lab(rgb)[..., 1]` (a*, signed; comparator) | `None` | — | fixed | `exclude_nuclei_rbc_empty` | a* redness, low contrast |
+| `luminance_inverted` | brightfield | `luminance` | `1 - rgb2gray(rgb)` (baseline) | `None` | — (white optional) | fixed | `exclude_nuclei_rbc_empty` | inverted brightness, nuclei-dominated |
+| `lab_a` | brightfield | `cielab` | `rgb2lab(rgb)[..., 1]` (a*, signed; comparator) | `None` | — (white optional) | fixed | `exclude_nuclei_rbc_empty` | a* redness, low contrast |
 | `fluorescence` | fluorescence | `passthrough` | the `"YX"` plane as float32 | `None` | — | per_image | `optional` | the labelled structure |
 | `shg` | shg | `passthrough` | the `"YX"` plane as float32 | `None` | — | fixed | `none` | fibrillar collagen (mainly type I) |
 | `psr_brightfield` | brightfield | `custom_od` | concentration of `"psr"` | concentration of `"counterstain"` | white, stain_vectors | fixed | `exclude_counterstain` | collagen |
-| `psr_polarized` | polarized | `luminance` | `rgb2gray(rgb)`, **not inverted** | `None` | polarizer | fixed | `background` | birefringent packed collagen |
+| `psr_polarized` | polarized | `luminance` | `rgb2gray(rgb)`, **not inverted** | `None` | polarizer (white optional) | fixed | `background` | birefringent packed collagen |
 | `trichrome_blue` | brightfield | `fixed_deconvolution` | `separate_stains(rgb, bpx_from_rgb)[..., 0]` (Methyl Blue) | `None` | — | fixed | `exclude_nuclei` | collagen (methyl blue) |
-| `trichrome_green` | brightfield | `cielab` | `-rgb2lab(rgb)[..., 1]` (minus a*, signed) | `None` | — | fixed | `exclude_nuclei` | collagen (green) |
-| `he_custom` | brightfield | `custom_od` | concentration of `"eosin"` | concentration of `"hematoxylin"` | white, stain_vectors | fixed | `exclude_nuclei_rbc_empty` | eosin fibrillar texture, not collagen-specific |
-| `trichrome_custom` | brightfield | `custom_od` | concentration of `"collagen"` | concentration of `"nuclei"` | white, stain_vectors | fixed | `exclude_nuclei` | collagen |
+| `trichrome_green` | brightfield | `cielab` | `-rgb2lab(rgb)[..., 1]` (minus a*, signed) | `None` | — (white optional) | fixed | `exclude_nuclei` | collagen (green) |
+| `he_custom` | brightfield | `custom_od` | concentration of `"eosin"` | concentration of `"hematoxylin"` | white (stain_vectors optional: defaults) | fixed | `exclude_nuclei_rbc_empty` | eosin fibrillar texture, not collagen-specific |
+| `trichrome_custom` | brightfield | `custom_od` | concentration of `"collagen"` | concentration of `"ponceau_fuchsin"` | white (stain_vectors optional: defaults) | fixed | `exclude_nuclei` | collagen |
 
 `stain` is `"he"`, `"picrosirius_red"`, `"trichrome_blue"`, `"trichrome_green"` (the values
 proposed in MorphoBricks-Spec #36) or `None` (colour projections, passthrough,
@@ -529,9 +529,10 @@ amount),
 `exclude_counterstain`, `background`, `none`, `optional`) and `measures` (short text). They
 are recommendations for consumers (FiberFeatures #214), **never applied here**.
 
-**Arguments.** A preset's `needs` lists the optional arguments it requires: each one missing is
-refused, and each argument it does not use (`white` for `lab_a`, `polarizer` for `he_eosin`) is
-refused, never ignored. `polarizer` is `"circular"` or `"linear"`; the provenance hints of
+**Arguments.** A preset's `needs` lists the optional arguments it requires (each one missing is
+refused) and its `accepts` those it uses when given; every other argument (`white` for
+`he_eosin` or the passthrough presets, `polarizer` for `lab_a`, `stain_vectors` for
+`trichrome_blue`) is refused, never ignored. `polarizer` is `"circular"` or `"linear"`; the provenance hints of
 `psr_polarized` record `orientation_valid = (polarizer == "circular")`: a linear polarizer
 darkens fibres at some angles to its axis, so consumers must refuse orientation features then.
 Hue is not used (later, as a separate feature).
@@ -587,13 +588,53 @@ told apart); it is `None` for every other method.
   background region; an empty or wrongly shaped region, or a median of 0 or 255 (dark or
   saturated, so the true white is unknown), is refused.
 
+**Default stain vectors** (N69, owner decision of 13 November 2026). Where published values
+exist, a `custom_od` preset carries them as read-only data (`default_stain_vectors`,
+`default_stain_vectors_citation`); they are used when `stain_vectors` is not given, and a
+given `stain_vectors` (for example from `stain_vectors_from_regions`) overrides them. They are
+checked like user vectors (unit length, cross-product residual, angle and condition limits).
+The numbers are copied into the code (no scikit-image needed) and tested equal to scikit-image's
+rows when it is installed. `white` stays required: it is never assumed to be 255.
+
+| `preset` | target | exclusion | R, G, B OD (before normalisation) | source |
+|---|---|---|---|---|
+| `he_custom` | `eosin` | `hematoxylin` | eosin (0.07, 0.99, 0.11); haematoxylin (0.65, 0.70, 0.29) | Ruifrok & Johnston, *Anal Quant Cytol Histol* 23:291-299 (2001); `skimage.color.rgb_from_hed` rows 1 and 0 |
+| `trichrome_custom` | `collagen` (Methyl Blue) | `ponceau_fuchsin` | methyl blue (0.7995107, 0.5913521, 0.10528667); ponceau fuchsin (0.09997159, 0.73738605, 0.6680326) | Masson Trichrome vectors of Landini's Colour Deconvolution (Fiji), Ruifrok & Johnston method; `skimage.color.rgb_from_bpx` rows 0 and 1 |
+| `psr_brightfield` | `psr` | `counterstain` | none: no reliable published picrosirius red vectors; `stain_vectors` is required | — |
+
+The residual is the normalised cross product of the two (scikit-image's `rgb_from_bpx` is
+completed the same way; `rgb_from_hed` has DAB as its third row, so `he_custom` with defaults is
+not `he_eosin`: other residual, OD in log10 against the declared white, no clipping).
+`trichrome_custom`'s exclusion is Ponceau Fuchsin (cytoplasm, muscle, the red counterstain), not
+nuclei: the published Masson matrix has no nuclear stain (iron haematoxylin is near black and
+absorbs in all channels). The mask hint stays `exclude_nuclei`: a nuclear mask is built in
+preprocessing, not taken from this exclusion map. User vectors for `trichrome_custom` name
+`collagen` and `ponceau_fuchsin`. Green trichrome stays user-measured (no default).
+
+**Declared white for the colour projections** (N69). `luminance_inverted`, `lab_a`,
+`psr_polarized` and `trichrome_green` accept an optional `white` (three finite values in
+`(0, 255]`, checked as for `custom_od`). When given, the RGB is rescaled per channel before the
+scikit-image call to `clip(rint(I * 255 / white), 0, 255)` as `uint8`, computed in float64 in
+that order; `rint` rounds half to even, and a value above 255 after rounding (brighter than the
+white by more than half a grey level) is set to 255. `white_clipped_fraction` is the fraction of
+pixels with at least one such clipped channel; `above_white_fraction` (as for `custom_od`) the
+fraction with a channel strictly above the white, which includes pixels within half a grey level
+of it that round to 255 without clipping. `white = (255, 255, 255)` is the identity, so the
+outputs are bitwise those without `white`; without `white` nothing changes. The
+`fixed_deconvolution` presets (`he_eosin`, `he_hematoxylin`, `trichrome_blue`) do not accept
+`white` (scikit-image's `separate_stains` fixes white at 255): use `he_custom` or
+`trichrome_custom` with a declared white instead.
+
 **Provenance** (read-only mapping): `preset`, `preset_version`, `stain`, `modality`, `method`,
 `matrix`, `target_component`, `exclusion_component`, `polarity`, `hints` (read-only),
 `input_dtype`, `axes`, `colour_space` (`"srgb"`, `None` for passthrough), `skimage_version`
 (`None` when scikit-image is not called), `zero_fraction`; plus, for `custom_od`: `white`,
-`stain_names`, `stain_matrix` (unit rows), `condition_number`, `residual_completed`,
+`stain_vectors_source` (`"preset_default"` or `"user"`), `stain_vectors_citation` (the
+default's citation, `None` for user vectors), `stain_names`, `stain_matrix` (unit rows), `condition_number`, `residual_completed`,
 `od_definition`, `floored_fraction`, `negative_fraction`, `above_white_fraction`; for
-`psr_polarized`: `polarizer` (and `hints["orientation_valid"]`); for passthrough:
+`luminance` and `cielab`: `white` (`None` when not given), `white_applied`, `white_rescale` (the
+formula, or `None`), `white_clipped_fraction` and `above_white_fraction` (`None` without white);
+for `psr_polarized`: `polarizer` (and `hints["orientation_valid"]`); for passthrough:
 `float32_exact`.
 
 **Dependency.** scikit-image is the optional extra `histology`

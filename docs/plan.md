@@ -567,6 +567,26 @@ Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull reques
     which includes pixels that were never clipped); masked arrays (`np.ma.MaskedArray`) and
     images with no pixels are refused for every preset; `polarity = "bright"` means the
     structure has higher values than its surroundings (the signal direction), not more stain.
+63. **N69** (13 November 2026, issue #94, owner decisions "default stain vectors per preset")
+    Custom-vector presets carry published **default stain vectors** where they exist, as frozen
+    read-only data in the preset record (`default_stain_vectors`, with a citation): `he_custom`
+    the Ruifrok & Johnston haematoxylin and eosin rows of `rgb_from_hed`, `trichrome_custom` the
+    Methyl Blue (`collagen`) and Ponceau Fuchsin (`ponceau_fuchsin`) rows of `rgb_from_bpx` (the
+    values of Fiji's Masson Trichrome). The numbers are copied into the code and tested equal to
+    scikit-image's. `psr_brightfield` and green trichrome stay user-measured (no reliable
+    published vectors). A given `stain_vectors` overrides the default; the provenance records
+    `stain_vectors_source` (`"preset_default"` with the citation, or `"user"`). User vectors are
+    measured in preprocessing from marked regions with a declared white and registered with the
+    experiment description (MorphoBricks-Spec #36). `white` stays required for every
+    `custom_od` preset. `trichrome_custom`'s exclusion stain becomes `ponceau_fuchsin` (it was
+    `nuclei`): the published matrix has no nuclear stain, so the exclusion map is the red
+    counterstain and the `exclude_nuclei` mask hint is met by a mask built in preprocessing.
+    `luminance_inverted`, `lab_a`, `psr_polarized` and `trichrome_green` accept an optional
+    declared **white**: the RGB is rescaled to `clip(rint(I * 255 / white), 0, 255)` as uint8
+    before scikit-image, `white_clipped_fraction` is reported, and without `white` (or with
+    255) outputs are bitwise unchanged. The `fixed_deconvolution` presets do not take `white`
+    (`custom_od` is the path for deconvolution against a declared white). Masks are built in
+    preprocessing, never in an analysis brick (contract §3.4).
 
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that

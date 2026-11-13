@@ -7,6 +7,7 @@ import pytest
 
 from morphobricks_normalization.stain import PRESETS, ScalarResult, StainPreset, rgb_to_scalar
 
+P0 = ["he_eosin", "he_hematoxylin", "luminance_inverted", "lab_a"]
 EOSIN = (230, 130, 190)
 HEMATOXYLIN = (80, 60, 150)
 
@@ -47,12 +48,53 @@ def test_the_module_imports_and_fails_clearly_without_skimage():
     assert "pip install morphobricks-normalization[histology]" in result.stdout
 
 
-def test_the_registry_has_exactly_the_four_p0_presets():
-    assert list(PRESETS) == ["he_eosin", "he_hematoxylin", "luminance_inverted", "lab_a"]
+def test_the_four_p0_presets_are_unchanged():
+    assert list(PRESETS)[:4] == P0
+    numbers = {
+        key: (p.version, p.stain, p.method, p.matrix, p.target_component, p.exclusion_component)
+        for key, p in PRESETS.items()
+        if key in P0
+    }
+    assert numbers == {
+        "he_eosin": (1, "he", "fixed_deconvolution", "hed_from_rgb", 1, 0),
+        "he_hematoxylin": (1, "he", "fixed_deconvolution", "hed_from_rgb", 0, None),
+        "luminance_inverted": (1, None, "luminance", None, None, None),
+        "lab_a": (1, None, "cielab", None, 1, None),
+    }
     assert all(
-        p.version == 1 and p.polarity == "bright" and p.fixed_range is None
-        for p in PRESETS.values()
+        p.polarity == "bright" and p.fixed_range is None and not p.needs
+        for key, p in PRESETS.items()
+        if key in P0
     )
+
+
+@pytest.mark.parametrize("preset", P0)
+def test_p0_outputs_equal_the_direct_scikit_image_calls(preset):
+    # Regression for N68: the outputs of b152472 were these calls cast to float32.
+    color = pytest.importorskip("skimage.color")
+    rgb = random_image(5, shape=(13, 17))
+    hed = color.separate_stains(rgb, color.hed_from_rgb)
+    expected = {
+        "he_eosin": (hed[..., 1], hed[..., 0]),
+        "he_hematoxylin": (hed[..., 0], None),
+        "luminance_inverted": (1.0 - color.rgb2gray(rgb), None),
+        "lab_a": (color.rgb2lab(rgb)[..., 1], None),
+    }[preset]
+    result = rgb_to_scalar(rgb, axes="YXC", preset=preset)
+    assert result.image.tobytes() == expected[0].astype(np.float32).tobytes()
+    if expected[1] is None:
+        assert result.exclusion is None
+    else:
+        assert result.exclusion.tobytes() == expected[1].astype(np.float32).tobytes()
+
+
+@pytest.mark.parametrize(
+    ("preset", "needed"),
+    [("psr_brightfield", "white"), ("he_custom", "white"), ("psr_polarized", "polarizer")],
+)
+def test_rgb_to_scalar_refuses_presets_that_need_an_argument(preset, needed):
+    with pytest.raises(ValueError, match=f"needs {needed}"):
+        rgb_to_scalar(random_image(), axes="YXC", preset=preset)
 
 
 def test_presets_are_immutable():
@@ -62,7 +104,7 @@ def test_presets_are_immutable():
         PRESETS["he_eosin"].version = 2  # type: ignore[misc]
 
 
-@pytest.mark.parametrize("preset", list(PRESETS))
+@pytest.mark.parametrize("preset", P0)
 def test_yxc_and_cyx_give_bitwise_identical_outputs(preset):
     pytest.importorskip("skimage")
     yxc = random_image()
@@ -118,7 +160,7 @@ def test_unknown_preset_is_refused_listing_the_known_ones():
         rgb_to_scalar(random_image(), axes="YXC", preset="trichrome_blue_bpx")
 
 
-@pytest.mark.parametrize("preset", list(PRESETS))
+@pytest.mark.parametrize("preset", P0)
 def test_input_is_unchanged_and_output_is_float32_yx_finite(preset):
     pytest.importorskip("skimage")
     image = random_image(shape=(6, 11))
@@ -190,11 +232,18 @@ def test_provenance_contents_and_clipped_fraction():
         "preset": "he_eosin",
         "preset_version": 1,
         "stain": "he",
+        "modality": "brightfield",
         "method": "fixed_deconvolution",
         "matrix": "hed_from_rgb",
         "target_component": 1,
         "exclusion_component": 0,
         "polarity": "bright",
+        "hints": {
+            "polarity": "bright",
+            "scaling": "fixed",
+            "mask": "exclude_nuclei_rbc_empty",
+            "measures": "eosin fibrillar texture, not collagen-specific",
+        },
         "input_dtype": "uint8",
         "axes": "YXC",
         "colour_space": "srgb",
@@ -224,9 +273,11 @@ def test_provenance_is_immutable():
     provenance = rgb_to_scalar(random_image(), axes="YXC", preset="he_eosin").provenance
     with pytest.raises(TypeError):
         provenance["preset"] = "other"  # type: ignore[index]
+    with pytest.raises(TypeError):
+        provenance["hints"]["scaling"] = "per_image"  # type: ignore[index]
 
 
-@pytest.mark.parametrize("preset", list(PRESETS))
+@pytest.mark.parametrize("preset", P0)
 def test_the_conversion_is_deterministic(preset):
     pytest.importorskip("skimage")
     image = random_image(3)

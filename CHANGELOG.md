@@ -4,7 +4,29 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
-## Unreleased
+## v0.6.0 (2026-11-13)
+
+Additive release (issue #94, PR #95; plan N67-N69, contract §3.4): a new `stain` module turns one
+declared imaging unit into one scalar map with a named preset; scikit-image is the new optional extra
+`histology`. Nothing that existed changes: `rgb.py`, `NormalizationParameters`,
+`plane_histograms.csv`, the CSBDeep parity path and every public name and output of v0.5.0 are
+untouched, and the package still imports with NumPy only. Reviewed independently at `3a7af3e`,
+`8cc45da` and `2506e51` (all findings fixed).
+
+**Known limitations** (state them with results):
+- RGB inputs are declared 8-bit sRGB only, three samples and no alpha; 16-bit, ICC profiles and
+  scanner colour management are not handled.
+- `he_custom` is a two-stain model (cross-product residual, declared white), not scikit-image's
+  three-stain HED deconvolution; use `he_eosin` for the published conversion.
+- The fixed HED/BPX deconvolution keeps scikit-image's floor and zero-clipping; `zero_fraction`
+  cannot tell naturally zero components from clipped negatives.
+- With a declared white, the luminance and CIELAB projections re-quantise to uint8 (clipping
+  reported); `custom_od` floors zero intensity to 1 and keeps negative concentrations.
+- The trichrome vectors are one Masson profile, not every protocol; a linear polarizer makes
+  orientation unreliable; eosin-derived maps are not collagen-specific.
+- Beer–Lambert on scanner sRGB values is an approximation; preset scaling hints are recorded, never
+  applied.
+
 
 - **RGB-to-scalar stain presets** (issue #94, plan N67, contract §3.4): new `stain` module with
   `rgb_to_scalar(pixels, *, axes, preset)` and the preset registry `PRESETS` (`he_eosin`,

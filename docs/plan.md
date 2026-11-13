@@ -2,7 +2,7 @@
 
 > See also: [Preprocessing follow-up](archive/followup_preprocessing.md) (done) · [CellPatcher follow-up](archive/followup_cellpatcher.md) (done)
 
-**Status:** implemented through v0.5.0 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
+**Status:** implemented through v0.6.0 (Milestones 0 to 5 done; later changes in [CHANGELOG.md](../CHANGELOG.md)); design brief simplified on 26 October 2026 (decisions N29–N40, §12), with
 channels moved into columns on 27 October 2026 (N41–N45). The earlier
 design with six modalities, two purposes, colour and stain methods and reference targets
 (N4–N28) is withdrawn where §12 says so. A robust histogram range was added on 28 October

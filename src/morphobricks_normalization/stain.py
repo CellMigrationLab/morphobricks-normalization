@@ -124,7 +124,7 @@ class StainPreset:
     polarity: str = "bright"
     fixed_range: tuple[float, float] | None = None
     modality: str = "brightfield"
-    hints: Mapping[str, str] = field(default=EMPTY, hash=False)
+    hints: Mapping[str, str] = field(default_factory=lambda: EMPTY, hash=False)
     needs: frozenset[str] = frozenset()
     inverted: bool = False
     target_stain: str | None = None

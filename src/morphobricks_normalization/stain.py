@@ -322,7 +322,7 @@ def _provenance(
         "polarity": recipe.polarity,
         "hints": MappingProxyType(hints),
         "input_dtype": str(pixels.dtype),
-        "axes": axes,
+        "axes": str(axes),  # plain str in provenance (np.str_ accepted, #99)
         "colour_space": None if recipe.method == "passthrough" else COLOUR_SPACE,
         "skimage_version": None,
         "zero_fraction": None,

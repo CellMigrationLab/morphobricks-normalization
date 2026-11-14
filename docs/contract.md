@@ -551,6 +551,32 @@ fibres) that look equally bright can get different values, which can bias detect
 fibre colours even with a circular polarizer.
 Hue is not used (later, as a separate feature).
 
+**Checking a request without pixels** (issue #97). `check_options(preset, *, white=None,
+stain_vectors=None, polarizer=None) -> None` makes, without any pixel, every check `to_scalar`
+makes of the preset and of these arguments, so a consumer (FiberFeatures, MorphoFeature) refuses
+an unusable conversion request when planning, before it reads an image:
+
+- an unknown preset, refused with the known ones listed;
+- the presence rules above: each argument in `needs` given, every argument in neither `needs`
+  nor `accepts` refused (never ignored), `polarizer` a `str` (anything else, an array, bytes or
+  a list included, is refused with a `ValueError` naming its type, never compared) and one of
+  `POLARIZERS`;
+- `white`: three finite values in `(0, 255]` (`custom_od` below); a masked array (even with an
+  all-false mask), and a masked value (`np.ma.masked` or a masked array) anywhere inside nested
+  lists, tuples or object arrays, are refused with a `TypeError` before `np.asarray` would drop
+  the mask;
+- `stain_vectors` (`custom_od`; the preset's default vectors when not given): the names, three
+  finite numbers per vector, a norm of at least 1e-6, masked values refused as for `white`, two
+  vectors closer than 5 degrees in either direction refused as collinear, a condition number
+  above 50 refused (`custom_od` below).
+
+It raises the exceptions `to_scalar` raises for these inputs, with the same messages, and
+returns `None` when the request is usable. The types and messages are those of v0.6.0 except for
+the two safety fixes of PR #98 (a polarizer that is not a `str`; masked content nested in object
+arrays or sequences), which v0.6.0 accepted or refused later with another message. `to_scalar` runs the same code first, so there is one
+implementation: an argument error is reported before any pixel or `axes` check, and only the
+pixels and `axes` are checked after it. `check_options` needs NumPy only, whatever the preset.
+
 **RGB inputs (refused, never repaired).** `axes` is exactly `"YXC"` or `"CYX"`, with no default;
 the array is 3-D with exactly three samples (R, G, B) on the colour axis (an alpha channel, or
 any other count, is refused with a message, never dropped); the dtype is `uint8` (8-bit sRGB

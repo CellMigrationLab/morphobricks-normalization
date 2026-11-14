@@ -37,9 +37,12 @@ refused, never dropped); the dtype is ``uint8`` (sRGB; 16-bit and ICC handling a
 Nothing is reordered, rescaled or repaired silently, and the input array is never modified.
 
 Arguments a preset does not use (``white`` for ``he_eosin``, ``polarizer`` for ``lab_a``) are
-refused, never ignored. ``psr_polarized`` needs ``polarizer`` (``"circular"`` or ``"linear"``):
-a linear polarizer darkens fibres at some angles to its axis, so the provenance hints record
-``orientation_valid = False`` for it and consumers must refuse orientation features then.
+refused, never ignored. :func:`check_options` makes every check of the preset and of these
+arguments without pixels, so a consumer can refuse a conversion before reading an image;
+:func:`to_scalar` runs it first (one implementation, the same messages). ``psr_polarized``
+needs ``polarizer`` (``"circular"`` or ``"linear"``): a linear polarizer darkens fibres at some
+angles to its axis, so the provenance hints record ``orientation_valid = False`` for it and
+consumers must refuse orientation features then.
 
 Each preset carries consumer ``hints`` (``polarity``, ``scaling``, ``mask``, ``measures``):
 recommendations for consumers such as FiberFeatures (#214), recorded in the provenance and
@@ -115,13 +118,37 @@ def _skimage_color() -> tuple[ModuleType, ModuleType]:
     return skimage, color
 
 
-def _white_rescaled(rgb: np.ndarray, white: object) -> tuple[np.ndarray, dict[str, Any]]:
-    """Rescale ``rgb`` to a declared ``white`` if given; return it and the provenance entries."""
-    if white is None:
+@dataclass(frozen=True)
+class _Options:
+    """The checked options of one conversion (:func:`_checked_options`).
+
+    Attributes
+    ----------
+    recipe
+        The preset.
+    white
+        The checked white as float64 ``(3,)``, or ``None`` if not given.
+    matrix
+        ``custom_od`` only: the checked stain matrix (user or default vectors), else ``None``.
+    vectors_source, vectors_citation
+        ``custom_od`` only: :data:`USER` or :data:`PRESET_DEFAULT`, and the default's citation.
+    """
+
+    recipe: StainPreset
+    white: np.ndarray | None
+    matrix: od.StainMatrix | None
+    vectors_source: str | None
+    vectors_citation: str | None
+
+
+def _white_rescaled(
+    rgb: np.ndarray, values: np.ndarray | None
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Rescale ``rgb`` to a checked white if given; return it and the provenance entries."""
+    if values is None:
         entries = {"white": None, "white_applied": False, "white_rescale": None}
         entries |= {"white_clipped_fraction": None, "above_white_fraction": None}
         return rgb, entries
-    values = od.check_white(white)
     rescaled, clipped = od.rescale_to_white(rgb, values)
     entries = {
         "white": tuple(values.tolist()),
@@ -156,20 +183,10 @@ def _convert(rgb: np.ndarray, preset: StainPreset) -> tuple[np.ndarray, np.ndarr
     return as_float32, excluded, skimage.__version__
 
 
-def _custom_od(
-    rgb: np.ndarray, preset: StainPreset, white: object, stain_vectors: object
-) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
-    """Unmix ``rgb`` with the declared white and vectors; return image, exclusion, provenance.
-
-    Without ``stain_vectors`` the preset's published defaults are used (checked as user
-    vectors are); a preset without defaults never gets here without them.
-    """
-    white_values = od.check_white(white)
-    source, citation = USER, None
-    if stain_vectors is None:
-        stain_vectors = preset.default_stain_vectors
-        source, citation = PRESET_DEFAULT, preset.default_stain_vectors_citation
-    matrix = od.stain_matrix(stain_vectors, preset.target_stain, preset.exclusion_stain)
+def _custom_od(rgb: np.ndarray, options: _Options) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
+    """Unmix ``rgb`` with the checked white and matrix; return image, exclusion, provenance."""
+    white_values, matrix = options.white, options.matrix
+    source, citation = options.vectors_source, options.vectors_citation
     density, floored = od.optical_density(rgb, white_values)
     amounts = od.concentrations(density, matrix)
     image = np.ascontiguousarray(amounts[..., 0], dtype=np.float32)
@@ -191,7 +208,7 @@ def _custom_od(
 
 
 def _check_arguments(recipe: StainPreset, given: Mapping[str, Any]) -> None:
-    """Refuse a missing required argument, an unused one, or an unknown polarizer."""
+    """Refuse a missing required argument, an unused one, or a polarizer not in POLARIZERS."""
     for name in OPTIONAL_ARGUMENTS:
         if name in recipe.needs and given[name] is None:
             raise ValueError(f"Preset {recipe.id!r} needs {name}; it has no default.")
@@ -201,8 +218,87 @@ def _check_arguments(recipe: StainPreset, given: Mapping[str, Any]) -> None:
                 f"Preset {recipe.id!r} does not use {name}; it is refused rather than ignored."
             )
     polarizer = given["polarizer"]
-    if "polarizer" in recipe.needs and polarizer not in POLARIZERS:
+    if "polarizer" not in recipe.needs:
+        return
+    # A str first: an array would compare element-wise, so np.array(["linear"]) would pass the
+    # membership test and make orientation_valid an array (PR #98, B1).
+    if not isinstance(polarizer, str):
+        kind = type(polarizer)
+        type_name = (
+            kind.__qualname__
+            if kind.__module__ == "builtins"
+            else f"{kind.__module__}.{kind.__qualname__}"
+        )
+        raise ValueError(
+            f"polarizer must be the text 'circular' or 'linear'; got {type_name} {polarizer!r}."
+        )
+    if polarizer not in POLARIZERS:
         raise ValueError(f"polarizer must be 'circular' or 'linear'; got {polarizer!r}.")
+
+
+def _checked_options(
+    preset: str, white: object, stain_vectors: object, polarizer: object
+) -> _Options:
+    """Make every check of :func:`check_options` and return the checked values.
+
+    The order among these checks is the one :func:`to_scalar` had before #97 (the preset, the
+    presence rules, ``white``, then the stain matrix); they now all come before the pixels.
+    Without ``stain_vectors`` a ``custom_od`` preset's published defaults are checked as user
+    vectors are; a preset without defaults never gets here without them (the presence rules
+    refuse it).
+    """
+    if preset not in PRESETS:
+        raise ValueError(f"Unknown preset {preset!r}; known presets: {', '.join(PRESETS)}.")
+    recipe = PRESETS[preset]
+    given = {"white": white, "stain_vectors": stain_vectors, "polarizer": polarizer}
+    _check_arguments(recipe, given)
+    values = None if white is None else od.check_white(white)
+    matrix, source, citation = None, None, None
+    if recipe.method == "custom_od":
+        source = USER
+        if stain_vectors is None:
+            stain_vectors = recipe.default_stain_vectors
+            source, citation = PRESET_DEFAULT, recipe.default_stain_vectors_citation
+        matrix = od.stain_matrix(stain_vectors, recipe.target_stain, recipe.exclusion_stain)
+    return _Options(recipe, values, matrix, source, citation)
+
+
+def check_options(
+    preset: str,
+    *,
+    white: object = None,
+    stain_vectors: Mapping[str, Any] | None = None,
+    polarizer: str | None = None,
+) -> None:
+    """Check a conversion request without pixels: every check :func:`to_scalar` makes of these.
+
+    A consumer calls it when planning, before reading any image, so that an unusable request
+    (``white`` for ``he_eosin``, an unknown polarizer, collinear stain vectors) is refused
+    before any pixel is read. :func:`to_scalar` runs the same checks first, with the same
+    exceptions and messages; it then checks only the pixels and ``axes``.
+
+    Parameters
+    ----------
+    preset
+        A key of :data:`PRESETS`.
+    white, stain_vectors, polarizer
+        As for :func:`to_scalar`.
+
+    Raises
+    ------
+    ValueError
+        Unknown preset (the known ones are listed); a needed argument missing; an argument the
+        preset does not use given (refused, never ignored); a polarizer not in
+        :data:`POLARIZERS` or not a ``str`` (an array, bytes or a list is refused with its type
+        named, never compared); ``white`` not three finite values in ``(0, 255]``; stain
+        vectors with missing or other names, not three finite numbers, of (almost) zero length,
+        closer than 5 degrees (either sign) or with a condition number above 50 (contract §3.4).
+    TypeError
+        ``white`` or a stain vector is a masked array or holds a masked value, at any depth of
+        nested lists, tuples or object arrays (refused before ``np.asarray`` would drop the
+        mask); ``stain_vectors`` is not a mapping.
+    """
+    _checked_options(preset, white, stain_vectors, polarizer)
 
 
 def _provenance(
@@ -212,7 +308,7 @@ def _provenance(
     hints = dict(recipe.hints)
     if "polarizer" in recipe.needs:
         # A linear polarizer darkens fibres at some angles to its axis (orientation bias).
-        hints["orientation_valid"] = extra["polarizer"] == "circular"
+        hints["orientation_valid"] = bool(extra["polarizer"] == "circular")
     record = {
         "preset": recipe.id,
         "preset_version": recipe.version,
@@ -285,34 +381,32 @@ def to_scalar(
     ------
     ValueError
         Unknown preset; wrong axes, shape or values; a missing, unused or invalid optional
-        argument; stain vectors that are missing, extra, collinear or ill-conditioned.
+        argument; stain vectors that are missing, extra, collinear or ill-conditioned. The
+        checks of :func:`check_options` come first, before any pixel is looked at.
     TypeError
-        ``pixels`` is not a NumPy array or has a refused dtype.
+        ``pixels`` is not a NumPy array or has a refused dtype; a masked optional argument
+        (as for :func:`check_options`).
     ImportError
         The preset needs scikit-image and it is not installed.
     """
-    if preset not in PRESETS:
-        raise ValueError(f"Unknown preset {preset!r}; known presets: {', '.join(PRESETS)}.")
-    recipe = PRESETS[preset]
-    given = {"white": white, "stain_vectors": stain_vectors, "polarizer": polarizer}
-    _check_arguments(recipe, given)
+    # check_options' checks, before any pixel is looked at (#97); their values are used below.
+    options = _checked_options(preset, white, stain_vectors, polarizer)
+    recipe = options.recipe
     exclusion = None
     if recipe.method == "passthrough":
         image, extra = inputs.plane_float32(pixels, axes)
     elif recipe.method == "custom_od":
-        image, exclusion, extra = _custom_od(
-            inputs.rgb_yxc(pixels, axes), recipe, white, stain_vectors
-        )
+        image, exclusion, extra = _custom_od(inputs.rgb_yxc(pixels, axes), options)
     else:
         rgb = inputs.rgb_yxc(pixels, axes)
         white_entries: dict[str, Any] = {}
         if "white" in recipe.accepts:
-            rgb, white_entries = _white_rescaled(rgb, white)
+            rgb, white_entries = _white_rescaled(rgb, options.white)
         image, exclusion, version = _convert(rgb, recipe)
         clipped = float(np.mean(image == 0)) if recipe.method == "fixed_deconvolution" else None
         extra = {"skimage_version": version, "zero_fraction": clipped, **white_entries}
         if "polarizer" in recipe.needs:
-            extra["polarizer"] = polarizer
+            extra["polarizer"] = str(polarizer)  # plain str in provenance (np.str_ accepted)
     provenance = _provenance(recipe, pixels, axes, extra)
     return ScalarResult(image=image, exclusion=exclusion, provenance=provenance)
 

@@ -4,7 +4,15 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
-## Unreleased
+## v0.6.1 (2026-11-14)
+
+Additive release (issue #97, PR #98; #99, PR #100; contract §3.4): consumers can check an
+RGB-to-scalar request before reading any pixel with `stain.check_options`, the checks `to_scalar`
+already makes. Every output of v0.6.0 is unchanged (frozen in `tests/data/stain_v060_parity.json`).
+So are the refusal messages, except for two safety fixes on malformed inputs (a non-`str`
+polarizer, nested masked values), listed below with their v0.6.0 outcomes. The package still
+imports with NumPy only; the `histology` extra is unchanged. Reviewed independently at `b6ce256`,
+`a731a75`, `2605721` and `43e6110` (all findings fixed). The known limitations of v0.6.0 still apply.
 
 - **Pixel-free check of a conversion request** (issue #97, contract §3.4): new
   `stain.check_options(preset, *, white=None, stain_vectors=None, polarizer=None) -> None` makes,

@@ -484,3 +484,17 @@ def test_regions_refuse_a_masked_white_before_np_asarray(monkeypatch):
         stain.stain_vectors_from_regions(
             pixels, axes="YXC", white=[240, np.ma.masked, 245], regions=regions
         )
+
+
+@pytest.mark.parametrize(
+    "preset, axes, pixels, options",
+    [
+        ("he_custom", np.str_("YXC"), np.full((2, 3, 3), 90, np.uint8), {"white": WHITE}),
+        ("fluorescence", np.str_("YX"), np.full((2, 3), 7.0), {}),
+    ],
+)
+def test_axes_provenance_is_a_python_str(preset, axes, pixels, options):
+    """An accepted np.str_ axes is recorded as a plain str (#99)."""
+    result = to_scalar(pixels, axes=axes, preset=preset, **options)
+    assert type(result.provenance["axes"]) is str
+    assert result.provenance["axes"] == str(axes)

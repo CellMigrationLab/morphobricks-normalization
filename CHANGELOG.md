@@ -33,6 +33,8 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
     or tuple, so these inputs reached `np.asarray` and were refused later as not three numbers or as
     an inhomogeneous sequence (NumPy turned a nested `np.ma.masked` into NaN on the way). The same
     check covers `stain_vectors_from_regions`' `white`.
+- **Provenance `axes` is a plain `str`** (issue #99): an accepted `np.str_` axes was recorded as
+  given; it is now `str(axes)`, as the polarizer since #98. Outputs are unchanged.
 
 ## v0.6.0 (2026-11-13)
 

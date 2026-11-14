@@ -90,10 +90,32 @@ class StainMatrix:
         return np.array(self.rows, dtype=np.float64)
 
 
+def _holds_masked(value: object) -> bool:
+    """Return whether ``value`` is or holds, at any depth, a masked array or ``np.ma.masked``.
+
+    Lists, tuples and object arrays are searched element by element (``np.ma.masked`` is a
+    masked array too); numeric arrays cannot hold a masked value. Each container is visited
+    once, so a list that holds itself ends the search.
+    """
+    pending, seen = [value], set()
+    while pending:
+        item = pending.pop()
+        if isinstance(item, np.ma.MaskedArray):
+            return True
+        is_sequence = isinstance(item, (list, tuple))
+        is_object_array = isinstance(item, np.ndarray) and item.dtype == object
+        if (is_sequence or is_object_array) and id(item) not in seen:
+            seen.add(id(item))
+            pending.extend(item.flat if is_object_array else item)
+    return False
+
+
 def _refuse_masked(value: object, what: str) -> None:
-    """Refuse a masked array, or a sequence holding a masked value: ``np.asarray`` drops masks."""
-    items = value if isinstance(value, (list, tuple)) else ()
-    if isinstance(value, np.ma.MaskedArray) or any(isinstance(v, np.ma.MaskedArray) for v in items):
+    """Refuse a masked array or any masked content, before ``np.asarray`` drops the mask.
+
+    Masked content is found in nested lists and tuples and in object arrays too (PR #98, B2).
+    """
+    if _holds_masked(value):
         raise TypeError(
             f"{what} is a masked array (or holds a masked value): its mask would be dropped "
             "silently. Pass plain numbers."

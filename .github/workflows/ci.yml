@@ -69,4 +69,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -e ".[dev,histology]"
-      - run: python -m pytest tests/test_stain.py tests/test_stain_catalogue.py tests/test_stain_defaults.py tests/test_optical_density.py -rs
+      - run: python -m pytest tests/test_stain.py tests/test_stain_catalogue.py tests/test_stain_defaults.py tests/test_stain_check_options.py tests/test_optical_density.py -rs

@@ -76,7 +76,9 @@ src/morphobricks_normalization/
                     from_columns checks against the settings
   issues.py         Issue: warnings returned to the calling brick (channel for the checks)
 tests/              pytest with simulated planes (tests/simulation.py); tests/data holds
-                    the golden pixels and fitted parameters of tests/test_fit_goldens.py
+                    the golden pixels and fitted parameters of tests/test_fit_goldens.py and
+                    stain_v060_parity.json, the v0.6.0 refusals and output digests of
+                    tests/test_stain_check_options.py (recorded by tests/stain_parity_cases.py)
 tools/check.py      the release gate: ruff format, pytest and the code standards (design v0.4 §9);
                     `--rules` runs only the standards (CI); tools/code_rules.py is the shared
                     copy (SHA-256 pinned in tests/test_code_rules.py), tools/code_rules_baseline.json

@@ -1,276 +1,237 @@
 """check_options: every to_scalar check of the preset and its options, without pixels (#97)."""
 
-import math
+import dataclasses
+import json
 import subprocess
 import sys
 import textwrap
+from pathlib import Path
+from types import MappingProxyType
 
 import numpy as np
 import pytest
 
 from morphobricks_normalization import stain
 from morphobricks_normalization.stain import PRESETS, check_options, to_scalar
+from stain_parity_cases import (
+    CHANGED,
+    HE_VECTORS,
+    NEAR_PLANE,
+    PSR_VECTORS,
+    REFUSALS,
+    WHITE,
+    conversion_id,
+    conversions,
+    output_digests,
+    valid_pixels,
+)
 
-WHITE = (240.0, 235.0, 245.0)
-PSR_VECTORS = {"psr": (0.10, 0.80, 0.55), "counterstain": (0.65, 0.70, 0.29)}
-HE_VECTORS = {"eosin": (0.07, 0.99, 0.11), "hematoxylin": (0.65, 0.70, 0.29)}
-COLLINEAR = math.radians(stain.od.MIN_ANGLE_DEGREES - 0.5)
-NEAR_PLANE = (1.0, 1.0, 0.02)  # 45 degrees from x and y, but almost in their plane
-
-
-def psr(**vectors):
-    """psr_brightfield options with the given stain vectors."""
-    return {"white": WHITE, "stain_vectors": vectors}
-
-
-# (preset, options, exception, message pattern): every refusal check_options shares with
-# to_scalar. The messages are the ones to_scalar gave before #97 (test_messages_are_unchanged).
-REFUSALS = {
-    "unknown preset": (
-        "he_eosine",
-        {},
-        ValueError,
-        r"Unknown preset 'he_eosine'; known presets: he_eosin, ",
-    ),
-    "white missing (custom_od)": ("he_custom", {}, ValueError, "needs white; it has no default"),
-    "vectors missing (psr)": (
-        "psr_brightfield",
-        {"white": WHITE},
-        ValueError,
-        "needs stain_vectors",
-    ),
-    "polarizer missing": ("psr_polarized", {}, ValueError, "needs polarizer"),
-    "white unused (he_eosin)": ("he_eosin", {"white": WHITE}, ValueError, "does not use white"),
-    "white unused (passthrough)": (
-        "fluorescence",
-        {"white": WHITE},
-        ValueError,
-        "does not use white",
-    ),
-    "polarizer unused (lab_a)": (
-        "lab_a",
-        {"polarizer": "circular"},
-        ValueError,
-        "does not use polarizer",
-    ),
-    "vectors unused (trichrome_blue)": (
-        "trichrome_blue",
-        {"stain_vectors": PSR_VECTORS},
-        ValueError,
-        "does not use stain_vectors",
-    ),
-    "vectors unused (luminance)": (
-        "luminance_inverted",
-        {"stain_vectors": PSR_VECTORS},
-        ValueError,
-        "does not use stain_vectors",
-    ),
-    "polarizer unused (he_custom)": (
-        "he_custom",
-        {"white": WHITE, "polarizer": "linear"},
-        ValueError,
-        "does not use polarizer",
-    ),
-    "unknown polarizer": (
-        "psr_polarized",
-        {"polarizer": "crossed"},
-        ValueError,
-        "'circular' or 'linear'",
-    ),
-    "polarizer wrong case": (
-        "psr_polarized",
-        {"polarizer": "Circular"},
-        ValueError,
-        "'circular' or 'linear'",
-    ),
-    "white zero": ("he_custom", {"white": (0, 200, 200)}, ValueError, r"finite and in \(0, 255\]"),
-    "white above 255": (
-        "lab_a",
-        {"white": (256, 200, 200)},
-        ValueError,
-        r"finite and in \(0, 255\]",
-    ),
-    "white negative": (
-        "psr_polarized",
-        {"white": (-1, 200, 200), "polarizer": "circular"},
-        ValueError,
-        r"\(0, 255\]",
-    ),
-    "white nan": (
-        "trichrome_custom",
-        {"white": (np.nan, 200, 200)},
-        ValueError,
-        r"finite and in \(0, 255\]",
-    ),
-    "white inf": (
-        "luminance_inverted",
-        {"white": (np.inf, 1, 1)},
-        ValueError,
-        r"finite and in \(0, 255\]",
-    ),
-    "white two values": (
-        "he_custom",
-        {"white": (200, 200)},
-        ValueError,
-        "white must be three numbers",
-    ),
-    "white text": (
-        "he_custom",
-        {"white": ("a", "b", "c")},
-        ValueError,
-        "white must be three numbers",
-    ),
-    "white scalar": ("trichrome_green", {"white": 240}, ValueError, "white must be three numbers"),
-    "white masked array": (
-        "he_custom",
-        {"white": np.ma.MaskedArray(WHITE, mask=[False, True, False])},
-        TypeError,
-        "masked",
-    ),
-    "white all-false mask": (
-        "lab_a",
-        {"white": np.ma.MaskedArray(WHITE, mask=False)},
-        TypeError,
-        "white is a masked array",
-    ),
-    "white list holding masked": (
-        "psr_brightfield",
-        {"white": [240, np.ma.masked, 245], "stain_vectors": PSR_VECTORS},
-        TypeError,
-        "white is a masked array",
-    ),
-    "white tuple holding masked": (
-        "luminance_inverted",
-        {"white": (np.ma.masked, 235, 245)},
-        TypeError,
-        "white is a masked array",
-    ),
-    "vectors not a mapping": (
-        "psr_brightfield",
-        {"white": WHITE, "stain_vectors": [(1, 0, 0), (0, 1, 0)]},
-        TypeError,
-        "mapping",
-    ),
-    "vector name missing": (
-        "psr_brightfield",
-        psr(psr=(1, 0, 0)),
-        ValueError,
-        r"missing \['counterstain'\]",
-    ),
-    "vector name extra": (
-        "psr_brightfield",
-        psr(**PSR_VECTORS, dab=(0, 0, 1)),
-        ValueError,
-        r"not allowed \['dab'\]",
-    ),
-    "vector two values": (
-        "psr_brightfield",
-        psr(psr=(1, 0), counterstain=(0, 1, 0)),
-        ValueError,
-        "three numbers",
-    ),
-    "vector text": (
-        "he_custom",
-        {"white": WHITE, "stain_vectors": {**HE_VECTORS, "eosin": "red"}},
-        ValueError,
-        "three numbers",
-    ),
-    "vector nan": (
-        "psr_brightfield",
-        psr(psr=(np.nan, 1, 0), counterstain=(0, 1, 0)),
-        ValueError,
-        "not finite",
-    ),
-    "vector inf": (
-        "trichrome_custom",
-        {
-            "white": WHITE,
-            "stain_vectors": {"collagen": (np.inf, 0, 0), "ponceau_fuchsin": (0, 1, 0)},
-        },
-        ValueError,
-        "not finite",
-    ),
-    "vector zero length": (
-        "psr_brightfield",
-        psr(psr=(0, 0, 0), counterstain=(0, 1, 0)),
-        ValueError,
-        "zero length",
-    ),
-    "vector masked array": (
-        "psr_brightfield",
-        psr(psr=np.ma.MaskedArray((1.0, 0, 0), mask=False), counterstain=(0, 1, 0)),
-        TypeError,
-        "Stain vector 'psr' is a masked array",
-    ),
-    "vector list holding masked": (
-        "he_custom",
-        {"white": WHITE, "stain_vectors": {**HE_VECTORS, "hematoxylin": [0.6, np.ma.masked, 0.3]}},
-        TypeError,
-        "Stain vector 'hematoxylin' is a masked array",
-    ),
-    "residual masked": (
-        "psr_brightfield",
-        psr(**PSR_VECTORS, residual=np.ma.MaskedArray((0, 0, 1.0), mask=True)),
-        TypeError,
-        "Stain vector 'residual' is a masked array",
-    ),
-    "collinear": (
-        "psr_brightfield",
-        psr(psr=(1, 0, 0), counterstain=(math.cos(COLLINEAR), math.sin(COLLINEAR), 0)),
-        ValueError,
-        "4.50 degrees apart",
-    ),
-    "collinear opposite sign": (
-        "psr_brightfield",
-        psr(psr=(1, 0, 0), counterstain=(-math.cos(COLLINEAR), -math.sin(COLLINEAR), 0)),
-        ValueError,
-        "4.50 degrees apart",
-    ),
-    "collinear identical": (
-        "he_custom",
-        {"white": WHITE, "stain_vectors": {"eosin": (0, 1, 0), "hematoxylin": (0, 2, 0)}},
-        ValueError,
-        "collinear",
-    ),
-    "residual collinear": (
-        "psr_brightfield",
-        psr(**PSR_VECTORS, residual=(0.20, 1.60, 1.10)),
-        ValueError,
-        "'psr' and 'residual'",
-    ),
-    "ill-conditioned": (
-        "psr_brightfield",
-        psr(psr=(1, 0, 0), counterstain=(0, 1, 0), residual=NEAR_PLANE),
-        ValueError,
-        "ill-conditioned",
-    ),
-}
+# What to_scalar of v0.6.0 (commit 95e1d6d) did with the inputs of tests/stain_parity_cases.py:
+# full exception type and message of every refusal, digests of every conversion. Recorded on that
+# commit in a temporary worktree (the command is in the docstring of stain_parity_cases.py), so
+# the expected values do not come from the code under test.
+V060 = json.loads((Path(__file__).parent / "data" / "stain_v060_parity.json").read_text())
 CASES = [pytest.param(*case, id=name) for name, case in REFUSALS.items()]
 
 
-def valid_pixels(preset):
-    """Pixels to_scalar accepts for ``preset``, so only the options can be refused."""
-    rng = np.random.default_rng(3)
-    if PRESETS[preset].method == "passthrough":
-        return rng.normal(100, 10, (5, 6)), "YX"
-    return rng.integers(1, 256, (5, 6, 3), dtype=np.uint8), "YXC"
+def object_values(*items):
+    """An object array holding ``items`` as they are (``np.array`` would convert masked ones)."""
+    if len(items) == 1:
+        value = np.empty((), dtype=object)
+        value[()] = items[0]
+        return value
+    values = np.empty(len(items), dtype=object)
+    values[:] = items
+    return values
 
 
-@pytest.mark.parametrize(("preset", "options", "error", "message"), CASES)
-def test_check_options_refuses_without_pixels(preset, options, error, message):
-    with pytest.raises(error, match=message):
+def v060_refusal(name):
+    """The v0.6.0 refusal of REFUSALS[name] as ``(exception type, full message)``."""
+    expected = V060["refusals"][name]
+    return {"ValueError": ValueError, "TypeError": TypeError}[expected["type"]], expected["message"]
+
+
+def test_the_frozen_table_covers_every_case():
+    assert len(REFUSALS) == 40
+    assert V060["refusals"].keys() == REFUSALS.keys()
+    assert V060["changed"].keys() == CHANGED.keys()
+    assert len(V060["conversions"]) == 33
+    assert all(outcome["type"] != "accepted" for outcome in V060["refusals"].values())
+
+
+@pytest.mark.parametrize("name", list(REFUSALS))
+def test_check_options_refuses_without_pixels_with_the_v060_message(name):
+    preset, options = REFUSALS[name]
+    error, message = v060_refusal(name)
+    with pytest.raises(Exception) as refused:
         check_options(preset, **options)
+    assert type(refused.value) is error
+    assert str(refused.value) == message
 
 
-@pytest.mark.parametrize(("preset", "options", "error", "message"), CASES)
-def test_to_scalar_refuses_the_same_inputs_with_the_same_message(preset, options, error, message):
-    pixels, axes = valid_pixels(preset if preset in PRESETS else "fluorescence")
-    with pytest.raises(error) as planned:
-        check_options(preset, **options)
-    with pytest.raises(error) as converted:
+@pytest.mark.parametrize("name", list(REFUSALS))
+def test_to_scalar_refuses_with_the_v060_message(name):
+    preset, options = REFUSALS[name]
+    error, message = v060_refusal(name)
+    pixels, axes = valid_pixels(preset)
+    with pytest.raises(Exception) as refused:
         to_scalar(pixels, axes=axes, preset=preset, **options)
-    assert type(converted.value) is type(planned.value)
-    assert str(converted.value) == str(planned.value)
+    assert type(refused.value) is error
+    assert str(refused.value) == message
+
+
+MASKED = "is a masked array (or holds a masked value): its mask would be dropped silently. "
+# The inputs whose outcome changed on purpose after v0.6.0 (PR #98 review blockers). B1: a
+# polarizer that is not a str is refused, its type named, before the membership test (v0.6.0
+# accepted a one-element array and raised NumPy's "truth value is ambiguous" for longer ones; for
+# bytes, numbers and lists only the message changes, still a ValueError). B2: masked content inside
+# object arrays and nested sequences is refused as masked before np.asarray (v0.6.0 refused these
+# later, as not three numbers or as an inhomogeneous sequence). Every other refusal keeps its
+# v0.6.0 type and message (above).
+NOW = {
+    "B1 polarizer one-element array": (
+        ValueError,
+        "polarizer must be the text 'circular' or 'linear'; got numpy.ndarray "
+        "array(['linear'], dtype='<U6').",
+    ),
+    "B1 polarizer two-element array": (
+        ValueError,
+        "polarizer must be the text 'circular' or 'linear'; got numpy.ndarray "
+        "array(['linear', 'circular'], dtype='<U8').",
+    ),
+    "B1 polarizer bytes": (
+        ValueError,
+        "polarizer must be the text 'circular' or 'linear'; got bytes b'linear'.",
+    ),
+    "B1 polarizer number": (
+        ValueError,
+        "polarizer must be the text 'circular' or 'linear'; got int 1.",
+    ),
+    "B1 polarizer list": (
+        ValueError,
+        "polarizer must be the text 'circular' or 'linear'; got list ['circular'].",
+    ),
+    "B2 white object array holding masked": (TypeError, f"white {MASKED}Pass plain numbers."),
+    "B2 white nested list holding masked": (TypeError, f"white {MASKED}Pass plain numbers."),
+    "B2 white list holding a 0-d object array of masked": (
+        TypeError,
+        f"white {MASKED}Pass plain numbers.",
+    ),
+    "B2 vector object array holding masked": (
+        TypeError,
+        f"Stain vector 'eosin' {MASKED}Pass plain numbers.",
+    ),
+    "B2 vector nested list holding masked": (
+        TypeError,
+        f"Stain vector 'psr' {MASKED}Pass plain numbers.",
+    ),
+    "B2 residual tuple of a masked array": (
+        TypeError,
+        f"Stain vector 'residual' {MASKED}Pass plain numbers.",
+    ),
+}
+
+
+def test_every_changed_case_has_its_new_outcome():
+    assert NOW.keys() == CHANGED.keys()
+
+
+@pytest.mark.parametrize("name", list(CHANGED))
+def test_the_intentionally_changed_refusals(name):
+    preset, options = CHANGED[name]
+    error, message = NOW[name]
+    before = V060["changed"][name]
+    assert (before["type"], before["message"]) != (error.__name__, message)
+    pixels, axes = valid_pixels(preset)
+    for call in (
+        lambda: check_options(preset, **options),
+        lambda: to_scalar(pixels, axes=axes, preset=preset, **options),
+    ):
+        with pytest.raises(Exception) as refused:
+            call()
+        assert type(refused.value) is error
+        assert str(refused.value) == message
+
+
+def test_a_none_polarizer_is_refused_as_missing_not_by_type():
+    with pytest.raises(ValueError) as refused:
+        check_options("psr_polarized", polarizer=None)
+    assert str(refused.value) == "Preset 'psr_polarized' needs polarizer; it has no default."
+
+
+@pytest.mark.parametrize("polarizer", ["circular", "linear", np.str_("circular")])
+def test_orientation_valid_is_a_python_bool(polarizer):
+    pytest.importorskip("skimage")
+    result = to_scalar(
+        np.full((2, 3, 3), 90, np.uint8), axes="YXC", preset="psr_polarized", polarizer=polarizer
+    )
+    assert result.provenance["hints"]["orientation_valid"] is (polarizer == "circular")
+
+
+# Default stain vectors replaced by ones that must be refused: the default path is shown to run
+# the same checks as user vectors, with the same exception and message.
+BAD_DEFAULTS = {
+    "collinear": {"eosin": (0, 1, 0), "hematoxylin": (0, 2, 0)},
+    "opposite sign": {"eosin": (0, 1, 0), "hematoxylin": (0, -1, 0.05)},
+    "ill-conditioned": {"eosin": (1, 0, 0), "hematoxylin": (0, 1, 0), "residual": NEAR_PLANE},
+    "residual collinear": {**HE_VECTORS, "residual": (0.07, 0.99, 0.12)},
+    "zero length": {"eosin": (0, 0, 0), "hematoxylin": (0, 1, 0)},
+    "not finite": {"eosin": (np.nan, 1, 0), "hematoxylin": (0, 1, 0)},
+    "masked": {"eosin": [0.07, np.ma.masked, 0.11], "hematoxylin": (0.65, 0.70, 0.29)},
+    "name missing": {"eosin": (0.07, 0.99, 0.11)},
+}
+
+
+def with_he_defaults(monkeypatch, vectors):
+    """Replace he_custom's default vectors in a copy of the presets that stain uses."""
+    replaced = dataclasses.replace(PRESETS["he_custom"], default_stain_vectors=vectors)
+    monkeypatch.setattr(stain, "PRESETS", MappingProxyType({**PRESETS, "he_custom": replaced}))
+
+
+@pytest.mark.parametrize("vectors", BAD_DEFAULTS.values(), ids=list(BAD_DEFAULTS))
+def test_default_vectors_are_refused_as_user_vectors_are(monkeypatch, vectors):
+    with pytest.raises(Exception) as as_user:
+        check_options("he_custom", white=WHITE, stain_vectors=vectors)
+    with_he_defaults(monkeypatch, vectors)
+    pixels, axes = valid_pixels("he_custom")
+    for call in (
+        lambda: check_options("he_custom", white=WHITE),
+        lambda: to_scalar(pixels, axes=axes, preset="he_custom", white=WHITE),
+    ):
+        with pytest.raises(Exception) as as_default:
+            call()
+        assert type(as_default.value) is type(as_user.value)
+        assert str(as_default.value) == str(as_user.value)
+
+
+def test_the_replaced_default_vectors_are_the_ones_used(monkeypatch):
+    vectors = {"eosin": (0.1, 0.9, 0.2), "hematoxylin": (0.7, 0.6, 0.3)}
+    with_he_defaults(monkeypatch, vectors)
+    pixels, axes = valid_pixels("he_custom")
+    result = to_scalar(pixels, axes=axes, preset="he_custom", white=WHITE)
+    rows = np.array(result.provenance["stain_matrix"][:2])
+    expected = np.array([vectors["eosin"], vectors["hematoxylin"]])
+    np.testing.assert_allclose(rows, expected / np.linalg.norm(expected, axis=1)[:, None])
+    assert result.provenance["stain_vectors_source"] == stain.PRESET_DEFAULT
+
+
+CONVERSIONS = [
+    pytest.param(case, id=conversion_id(index, case[0], case[2], case[3]))
+    for index, case in enumerate(conversions())
+]
+
+
+@pytest.mark.parametrize("case", CONVERSIONS)
+def test_outputs_are_bitwise_those_of_v060(request, case):
+    preset, pixels, axes, options = case
+    skimage = None
+    if PRESETS[preset].method not in ("passthrough", "custom_od"):
+        skimage = pytest.importorskip("skimage")
+    result = to_scalar(pixels, axes=axes, preset=preset, **options)
+    if result.provenance["skimage_version"] is not None:
+        # Hashed as a marker (it names the installed scikit-image, not this code).
+        assert result.provenance["skimage_version"] == skimage.__version__
+    assert output_digests(result) == V060["conversions"][request.node.callspec.id]
 
 
 def test_the_unknown_preset_message_lists_every_known_preset():
@@ -326,6 +287,12 @@ def test_every_preset_has_an_accepted_case():
         np.ma.MaskedArray(WHITE, mask=[True, False, False]),
         [240, np.ma.masked, 245],
         (240, 235, np.ma.masked),
+        object_values(240, np.ma.masked, 245),
+        object_values(240, np.ma.MaskedArray(235.0, mask=False), 245),
+        [[240, np.ma.masked, 245]],
+        (240, [235, (np.ma.masked,)], 245),
+        [240, object_values(np.ma.masked), 245],
+        [np.float64(240), object_values(object_values(np.ma.masked)), 245],
     ],
 )
 @pytest.mark.parametrize("preset", ["he_custom", "lab_a"])
@@ -338,24 +305,49 @@ def test_a_masked_white_is_refused_before_np_asarray(monkeypatch, preset, white)
         check_options(preset, white=white)
 
 
+def holds_masked(value):
+    """Whether ``value`` holds a masked array at any depth (the test's own search)."""
+    if isinstance(value, np.ma.MaskedArray):
+        return True
+    if isinstance(value, np.ndarray) and value.dtype == object:
+        return any(holds_masked(item) for item in value.ravel().tolist())
+    return isinstance(value, list | tuple) and any(holds_masked(item) for item in value)
+
+
 @pytest.mark.parametrize(
     "vector",
-    [np.ma.MaskedArray((0.65, 0.70, 0.29), mask=False), [0.65, np.ma.masked, 0.29]],
+    [
+        np.ma.MaskedArray((0.65, 0.70, 0.29), mask=False),
+        [0.65, np.ma.masked, 0.29],
+        object_values(0.65, np.ma.masked, 0.29),
+        object_values(0.65, np.ma.MaskedArray(0.7, mask=True), 0.29),
+        [[0.65, np.ma.masked, 0.29]],
+        (0.65, (0.70, [np.ma.masked]), 0.29),
+        [0.65, object_values(np.ma.masked), 0.29],
+    ],
 )
-def test_a_masked_stain_vector_is_refused_before_np_asarray(monkeypatch, vector):
+@pytest.mark.parametrize("name", ["counterstain", "residual"])
+def test_a_masked_stain_vector_is_refused_before_np_asarray(monkeypatch, name, vector):
     real_asarray = np.asarray
 
     def asarray(value, *args, **kwargs):
-        if isinstance(value, np.ma.MaskedArray) or (
-            isinstance(value, list) and any(v is np.ma.masked for v in value)
-        ):
+        if holds_masked(value):
             raise AssertionError("np.asarray was called on a masked stain vector")
         return real_asarray(value, *args, **kwargs)
 
     monkeypatch.setattr(np, "asarray", asarray)
-    vectors = {"psr": (0.10, 0.80, 0.55), "counterstain": vector}
-    with pytest.raises(TypeError, match="Stain vector 'counterstain' is a masked array"):
+    vectors = {"psr": (0.10, 0.80, 0.55), "counterstain": (0.65, 0.70, 0.29), name: vector}
+    with pytest.raises(TypeError, match=f"Stain vector '{name}' is a masked array"):
         check_options("psr_brightfield", white=WHITE, stain_vectors=vectors)
+
+
+def test_masked_content_is_not_searched_in_strings_or_numeric_arrays():
+    # Only lists, tuples and object arrays can hold a masked value; these reach the usual checks.
+    with pytest.raises(ValueError, match="white must be three numbers"):
+        check_options("lab_a", white="masked")
+    with pytest.raises(ValueError, match="white must be three numbers"):
+        check_options("lab_a", white=object_values(240, 235.5, np.float32(245)))
+    assert check_options("lab_a", white=np.array([240, 235.5, 245], dtype=np.float32)) is None
 
 
 def test_to_scalar_checks_the_options_before_the_pixels():

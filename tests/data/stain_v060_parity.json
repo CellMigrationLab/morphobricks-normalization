@@ -1,0 +1,380 @@
+{
+ "changed": {
+  "B1 polarizer bytes": {
+   "message": "polarizer must be 'circular' or 'linear'; got b'linear'.",
+   "type": "ValueError"
+  },
+  "B1 polarizer list": {
+   "message": "polarizer must be 'circular' or 'linear'; got ['circular'].",
+   "type": "ValueError"
+  },
+  "B1 polarizer number": {
+   "message": "polarizer must be 'circular' or 'linear'; got 1.",
+   "type": "ValueError"
+  },
+  "B1 polarizer one-element array": {
+   "message": "",
+   "type": "accepted"
+  },
+  "B1 polarizer two-element array": {
+   "message": "The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()",
+   "type": "ValueError"
+  },
+  "B2 residual tuple of a masked array": {
+   "message": "setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (3,) + inhomogeneous part.",
+   "type": "ValueError"
+  },
+  "B2 vector nested list holding masked": {
+   "message": "Stain vector 'psr' must be three numbers (R, G, B optical densities); got [[0.1, masked, 0.5]].",
+   "type": "ValueError"
+  },
+  "B2 vector object array holding masked": {
+   "message": "Stain vector 'eosin' must be three numbers (R, G, B optical densities); got array([0.6, masked, 0.3], dtype=object).",
+   "type": "ValueError"
+  },
+  "B2 white list holding a 0-d object array of masked": {
+   "message": "white must be three numbers (the background R, G, B of the 8-bit image); got [240, array(masked, dtype=object), 245].",
+   "type": "ValueError"
+  },
+  "B2 white nested list holding masked": {
+   "message": "white must be three numbers (the background R, G, B of the 8-bit image); got [[240, masked, 245]].",
+   "type": "ValueError"
+  },
+  "B2 white object array holding masked": {
+   "message": "white must be three numbers (the background R, G, B of the 8-bit image); got array([240, masked, 245], dtype=object).",
+   "type": "ValueError"
+  }
+ },
+ "conversions": {
+  "00 he_eosin YXC plain": {
+   "exclusion": "22e63105d9d55b05e0edaa37ecb89192f77d30fb9abac740ba130ba26e893859",
+   "image": "f135d253652aad4aee1e433d5851335f3b4d3a021b42961efc433b73dcb8860f",
+   "provenance": "2d74d31d23c6e7c931006a5c53678c9f57c907c13bbe3d1f0381adfa74aab3ac"
+  },
+  "01 he_eosin CYX plain": {
+   "exclusion": "22e63105d9d55b05e0edaa37ecb89192f77d30fb9abac740ba130ba26e893859",
+   "image": "f135d253652aad4aee1e433d5851335f3b4d3a021b42961efc433b73dcb8860f",
+   "provenance": "d053d8269ff25562bce75ec479caa6142a58785748aa10108e32b2b5bdb7648a"
+  },
+  "02 he_hematoxylin YXC plain": {
+   "exclusion": null,
+   "image": "22e63105d9d55b05e0edaa37ecb89192f77d30fb9abac740ba130ba26e893859",
+   "provenance": "1f7da7ab40a98bc7d524e942529d9c114a2c5b49688152c98c7409cec9b656cf"
+  },
+  "03 he_hematoxylin CYX plain": {
+   "exclusion": null,
+   "image": "22e63105d9d55b05e0edaa37ecb89192f77d30fb9abac740ba130ba26e893859",
+   "provenance": "6ec73b63e8ba8ea85e5bf7696354d4ddb21a16ef100ecc0336c345c74e8eea7a"
+  },
+  "04 luminance_inverted YXC plain": {
+   "exclusion": null,
+   "image": "9b8c0ff16a65ed0890a38a7cd9ecd37747bfd736df69fdc9e5c6db22cd861adc",
+   "provenance": "25f6b6e835a2c352f3242a84b15513cc397dc6ad7409ffe93dcc761705addd49"
+  },
+  "05 luminance_inverted CYX plain": {
+   "exclusion": null,
+   "image": "9b8c0ff16a65ed0890a38a7cd9ecd37747bfd736df69fdc9e5c6db22cd861adc",
+   "provenance": "d2cfacfeae19375b003e61f18139b046a32e261b8ab1dea8123e9abe9659d0ee"
+  },
+  "06 luminance_inverted YXC white": {
+   "exclusion": null,
+   "image": "e71692b6d10f0bb9b203a641ca25c5f9cf278103b3a4aabb42c29a1f4f352fa4",
+   "provenance": "3569ec3f65751743fe76792de1243ac7757b5a9d283850e1fc1871e497304d70"
+  },
+  "07 luminance_inverted YXC white": {
+   "exclusion": null,
+   "image": "9b8c0ff16a65ed0890a38a7cd9ecd37747bfd736df69fdc9e5c6db22cd861adc",
+   "provenance": "5baca8cf4d13630a79759136312184e9649f7fc9c58df5b5fbff979e6d631d01"
+  },
+  "08 lab_a YXC plain": {
+   "exclusion": null,
+   "image": "bb6c35d7196fb2fe8208ba3475285185d007ec0108855b50f84cfc14587dab43",
+   "provenance": "c42db5ab1a42a9e7891a7709147829ca558fabb57cbfd67d400b486d4021f0bb"
+  },
+  "09 lab_a CYX plain": {
+   "exclusion": null,
+   "image": "bb6c35d7196fb2fe8208ba3475285185d007ec0108855b50f84cfc14587dab43",
+   "provenance": "b36a7366d6d0a03f90876dc9b9e3b24185d9ba375b6a1140607fc9c6b72ad95d"
+  },
+  "10 lab_a YXC white": {
+   "exclusion": null,
+   "image": "029956ebc3ab611868fe9f00f07c9665e68c45ac7857f075cf8a4cdca94ee429",
+   "provenance": "98d6a2ba1d71f0a337d98773ffbbf937211f7c765a2796480d1d6b0ba73b0bcd"
+  },
+  "11 lab_a YXC white": {
+   "exclusion": null,
+   "image": "bb6c35d7196fb2fe8208ba3475285185d007ec0108855b50f84cfc14587dab43",
+   "provenance": "8aa8e44722c47f8738fc650e13c446164775886d17e11c7bf460d07407df0942"
+  },
+  "12 fluorescence YX plain": {
+   "exclusion": null,
+   "image": "035ac21257eac4f6cb4d7c006cde252cab3cb5e2c218c06b0c5c6f75d242e93e",
+   "provenance": "5da7265713ca86c035b079f8c7f5b974c767f6990325027286532bcd6fba167e"
+  },
+  "13 fluorescence YX plain": {
+   "exclusion": null,
+   "image": "5d0cc9fe28e96eaf769b6d91c9aa842f8f7768717e68a13e0829e0457f6bddfc",
+   "provenance": "efce1a5e2a0577921323967b8a2d4319f0c17c012f8765273676942ce12a67f3"
+  },
+  "14 shg YX plain": {
+   "exclusion": null,
+   "image": "035ac21257eac4f6cb4d7c006cde252cab3cb5e2c218c06b0c5c6f75d242e93e",
+   "provenance": "006e6b86fcecfea5e32ad4807a0e38b4c7e34999513d69a48d6226815a27dcc4"
+  },
+  "15 shg YX plain": {
+   "exclusion": null,
+   "image": "5d0cc9fe28e96eaf769b6d91c9aa842f8f7768717e68a13e0829e0457f6bddfc",
+   "provenance": "7b06146cb7074a09ee5d8061a655ca34a377c8008045ccbb461af616defcdcc2"
+  },
+  "16 psr_brightfield YXC white+stain_vectors": {
+   "exclusion": "cb9a3e3e6d86170209eb31f5e4c624bce52d28600c4f0cb6bd821f814c79ac47",
+   "image": "d50f20d7824f3eba8a14ae54c5542be68ea523853421daf6beddce7bd57bde14",
+   "provenance": "d2391e8e04019abe1aefb2d085c4b0fd4458d0d16f1e9db84e94c954f2a9c2b7"
+  },
+  "17 psr_brightfield YXC white+stain_vectors": {
+   "exclusion": "b6211402ff4f720d61876691a3336bb1da660287fedf36ab9e23694036cee5fb",
+   "image": "9e3da13901c3a943f792697802e3d5b87fc7d07a159c108be5d3b34bc32a1de4",
+   "provenance": "b23ef44fb2b92d59e946353e90158cce9f1162055e4c3deb03bd0a71ec445f7f"
+  },
+  "18 psr_polarized YXC polarizer": {
+   "exclusion": null,
+   "image": "b671241d1a43af9da5fa4fd9d75a62821e40bf5202fcdb3c478e96dc539c44b5",
+   "provenance": "6fb944a9ca5ff6f95123b5fec325102ec28781a9f65c6b26e397c0ebbd16b7e2"
+  },
+  "19 psr_polarized CYX polarizer": {
+   "exclusion": null,
+   "image": "b671241d1a43af9da5fa4fd9d75a62821e40bf5202fcdb3c478e96dc539c44b5",
+   "provenance": "1ca65e8389288a8f2ce92d12b2b43f4b9007fb4f21d63ec7e7635fc723f897fe"
+  },
+  "20 psr_polarized YXC polarizer+white": {
+   "exclusion": null,
+   "image": "5abc50c647e360eac117ac21f83f55c946e5594cc455170ce3787b5c4dcdc15a",
+   "provenance": "988528dda553da0768158e38f251b3f4dd0a71b3143c1499863c6b4299fdb2ca"
+  },
+  "21 psr_polarized YXC polarizer+white": {
+   "exclusion": null,
+   "image": "b671241d1a43af9da5fa4fd9d75a62821e40bf5202fcdb3c478e96dc539c44b5",
+   "provenance": "2d45c882392805a8127ca72ef74a3d7e6b3869060ddd76a9de4002abb80ee905"
+  },
+  "22 psr_polarized YXC polarizer": {
+   "exclusion": null,
+   "image": "b671241d1a43af9da5fa4fd9d75a62821e40bf5202fcdb3c478e96dc539c44b5",
+   "provenance": "d166f03780831a8567d6e496cafc26cfd5a7c70a4ff3f68c110e0dbb723d0a7d"
+  },
+  "23 trichrome_blue YXC plain": {
+   "exclusion": null,
+   "image": "8ce205b4cae44e90b7362d99263a01bfdc88ab38fc3d1f75d9596e83b6bb0f69",
+   "provenance": "e3dbb1eab2b2a204e822a46e39e893fb0396a67f9cd137ec9d85b2149a91070e"
+  },
+  "24 trichrome_blue CYX plain": {
+   "exclusion": null,
+   "image": "8ce205b4cae44e90b7362d99263a01bfdc88ab38fc3d1f75d9596e83b6bb0f69",
+   "provenance": "10c2ea6c0ffd9bcbb9040bee62dcbe67a83632c098365fd2b4fdc0cbeee74d3c"
+  },
+  "25 trichrome_green YXC plain": {
+   "exclusion": null,
+   "image": "dbf6064cbb3d4b31d67dcad3d383e343ee9e0b372bf4d704fd243a8281188c7e",
+   "provenance": "0a1db4db1b2aac6d75fb5e94be57ed4f49eedf17aa0de246b4ff2dc341e263e2"
+  },
+  "26 trichrome_green CYX plain": {
+   "exclusion": null,
+   "image": "dbf6064cbb3d4b31d67dcad3d383e343ee9e0b372bf4d704fd243a8281188c7e",
+   "provenance": "f8863f29210f6562365ff39e1aae1dc50d533e03bf72c1bb564427a7ae458f5d"
+  },
+  "27 trichrome_green YXC white": {
+   "exclusion": null,
+   "image": "32520819aae27a3e30e13812165cfac832bc83da8e5ecfd295d9c86edec33849",
+   "provenance": "f2bcb434dd7f6ccf1454ad52fc9020ef7902dd5538a71fc01bab9023835da087"
+  },
+  "28 trichrome_green YXC white": {
+   "exclusion": null,
+   "image": "dbf6064cbb3d4b31d67dcad3d383e343ee9e0b372bf4d704fd243a8281188c7e",
+   "provenance": "04b14d551f8008f08d1ee01f8e12d620c92d83ea8f3a8b34dcdd832ca7d2401f"
+  },
+  "29 he_custom YXC white": {
+   "exclusion": "84f378d8796a4052fffab0f46f2c375718e0aa4003fa75f7f3579fe58309ecc2",
+   "image": "c8ceb8e52149b7d22e4ae0cf3d102b935302eab6bc624d09262c20d6e5536b49",
+   "provenance": "0e4f08d8d6e3a395966b8357295c4ba5241cbd4aae8f1031a2f6ac769985d1f6"
+  },
+  "30 he_custom YXC white+stain_vectors": {
+   "exclusion": "b6211402ff4f720d61876691a3336bb1da660287fedf36ab9e23694036cee5fb",
+   "image": "9e3da13901c3a943f792697802e3d5b87fc7d07a159c108be5d3b34bc32a1de4",
+   "provenance": "1b826b392efa762c984da67da0ce0eb7f54d5b7e21faec6ca848afc0baac6782"
+  },
+  "31 trichrome_custom YXC white": {
+   "exclusion": "5563208d3c7c55d4d061f7d521f51c3fd31fb293320eec44d0009c7a950d9959",
+   "image": "2631650f44a8a2d795ce9fd32343efbff1ae7bc40c7f98cc6bf6cf56bef6375a",
+   "provenance": "5fd4e6b435a528be9b693fd5cffb888c2d2f1bcceeaae3411483e6439a16fac7"
+  },
+  "32 trichrome_custom YXC white+stain_vectors": {
+   "exclusion": "b6211402ff4f720d61876691a3336bb1da660287fedf36ab9e23694036cee5fb",
+   "image": "9e3da13901c3a943f792697802e3d5b87fc7d07a159c108be5d3b34bc32a1de4",
+   "provenance": "5fa150cd439a25c72cde89b8aa6f0ce59203bbbf10f762b479b268a13f4a03f2"
+  }
+ },
+ "numpy": "2.5.4",
+ "produced_by": "tests/stain_parity_cases.py on commit 95e1d6d (v0.6.0), to_scalar with valid pixels; see the module docstring",
+ "refusals": {
+  "collinear": {
+   "message": "Stain vectors 'psr' and 'counterstain' are 4.50 degrees apart (minimum 5.0); collinear stains cannot be separated.",
+   "type": "ValueError"
+  },
+  "collinear identical": {
+   "message": "Stain vectors 'eosin' and 'hematoxylin' are 0.00 degrees apart (minimum 5.0); collinear stains cannot be separated.",
+   "type": "ValueError"
+  },
+  "collinear opposite sign": {
+   "message": "Stain vectors 'psr' and 'counterstain' are 4.50 degrees apart (minimum 5.0); collinear stains cannot be separated.",
+   "type": "ValueError"
+  },
+  "ill-conditioned": {
+   "message": "The stain matrix is ill-conditioned (condition number 141, maximum 50.0); the vectors are too close to a plane to be separated.",
+   "type": "ValueError"
+  },
+  "polarizer missing": {
+   "message": "Preset 'psr_polarized' needs polarizer; it has no default.",
+   "type": "ValueError"
+  },
+  "polarizer unused (he_custom)": {
+   "message": "Preset 'he_custom' does not use polarizer; it is refused rather than ignored.",
+   "type": "ValueError"
+  },
+  "polarizer unused (lab_a)": {
+   "message": "Preset 'lab_a' does not use polarizer; it is refused rather than ignored.",
+   "type": "ValueError"
+  },
+  "polarizer wrong case": {
+   "message": "polarizer must be 'circular' or 'linear'; got 'Circular'.",
+   "type": "ValueError"
+  },
+  "residual collinear": {
+   "message": "Stain vectors 'psr' and 'residual' are 0.00 degrees apart (minimum 5.0); collinear stains cannot be separated.",
+   "type": "ValueError"
+  },
+  "residual masked": {
+   "message": "Stain vector 'residual' is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.",
+   "type": "TypeError"
+  },
+  "unknown polarizer": {
+   "message": "polarizer must be 'circular' or 'linear'; got 'crossed'.",
+   "type": "ValueError"
+  },
+  "unknown preset": {
+   "message": "Unknown preset 'he_eosine'; known presets: he_eosin, he_hematoxylin, luminance_inverted, lab_a, fluorescence, shg, psr_brightfield, psr_polarized, trichrome_blue, trichrome_green, he_custom, trichrome_custom.",
+   "type": "ValueError"
+  },
+  "vector inf": {
+   "message": "Stain vector 'collagen' is not finite: (inf, 0.0, 0.0).",
+   "type": "ValueError"
+  },
+  "vector list holding masked": {
+   "message": "Stain vector 'hematoxylin' is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.",
+   "type": "TypeError"
+  },
+  "vector masked array": {
+   "message": "Stain vector 'psr' is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.",
+   "type": "TypeError"
+  },
+  "vector name extra": {
+   "message": "stain_vectors must name 'psr' and 'counterstain', and optionally 'residual'; missing [], not allowed ['dab'].",
+   "type": "ValueError"
+  },
+  "vector name missing": {
+   "message": "stain_vectors must name 'psr' and 'counterstain', and optionally 'residual'; missing ['counterstain'], not allowed [].",
+   "type": "ValueError"
+  },
+  "vector nan": {
+   "message": "Stain vector 'psr' is not finite: (nan, 1.0, 0.0).",
+   "type": "ValueError"
+  },
+  "vector text": {
+   "message": "Stain vector 'eosin' must be three numbers (R, G, B optical densities); got 'red'.",
+   "type": "ValueError"
+  },
+  "vector two values": {
+   "message": "Stain vector 'psr' must be three numbers (R, G, B optical densities); got (1, 0).",
+   "type": "ValueError"
+  },
+  "vector zero length": {
+   "message": "Stain vector 'psr' has (almost) zero length (0); it has no direction.",
+   "type": "ValueError"
+  },
+  "vectors missing (psr)": {
+   "message": "Preset 'psr_brightfield' needs stain_vectors; it has no default.",
+   "type": "ValueError"
+  },
+  "vectors not a mapping": {
+   "message": "stain_vectors must be a mapping name -> 3 values; got [(1, 0, 0), (0, 1, 0)].",
+   "type": "TypeError"
+  },
+  "vectors unused (luminance)": {
+   "message": "Preset 'luminance_inverted' does not use stain_vectors; it is refused rather than ignored.",
+   "type": "ValueError"
+  },
+  "vectors unused (trichrome_blue)": {
+   "message": "Preset 'trichrome_blue' does not use stain_vectors; it is refused rather than ignored.",
+   "type": "ValueError"
+  },
+  "white above 255": {
+   "message": "Each value of white must be finite and in (0, 255]; got (256.0, 200.0, 200.0). Measure it on background, for example with white_from_region.",
+   "type": "ValueError"
+  },
+  "white all-false mask": {
+   "message": "white is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.",
+   "type": "TypeError"
+  },
+  "white inf": {
+   "message": "Each value of white must be finite and in (0, 255]; got (inf, 1.0, 1.0). Measure it on background, for example with white_from_region.",
+   "type": "ValueError"
+  },
+  "white list holding masked": {
+   "message": "white is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.",
+   "type": "TypeError"
+  },
+  "white masked array": {
+   "message": "white is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.",
+   "type": "TypeError"
+  },
+  "white missing (custom_od)": {
+   "message": "Preset 'he_custom' needs white; it has no default.",
+   "type": "ValueError"
+  },
+  "white nan": {
+   "message": "Each value of white must be finite and in (0, 255]; got (nan, 200.0, 200.0). Measure it on background, for example with white_from_region.",
+   "type": "ValueError"
+  },
+  "white negative": {
+   "message": "Each value of white must be finite and in (0, 255]; got (-1.0, 200.0, 200.0). Measure it on background, for example with white_from_region.",
+   "type": "ValueError"
+  },
+  "white scalar": {
+   "message": "white must be three numbers (the background R, G, B of the 8-bit image); got 240.",
+   "type": "ValueError"
+  },
+  "white text": {
+   "message": "white must be three numbers (the background R, G, B of the 8-bit image); got ('a', 'b', 'c').",
+   "type": "ValueError"
+  },
+  "white tuple holding masked": {
+   "message": "white is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.",
+   "type": "TypeError"
+  },
+  "white two values": {
+   "message": "white must be three numbers (the background R, G, B of the 8-bit image); got (200, 200).",
+   "type": "ValueError"
+  },
+  "white unused (he_eosin)": {
+   "message": "Preset 'he_eosin' does not use white; it is refused rather than ignored.",
+   "type": "ValueError"
+  },
+  "white unused (passthrough)": {
+   "message": "Preset 'fluorescence' does not use white; it is refused rather than ignored.",
+   "type": "ValueError"
+  },
+  "white zero": {
+   "message": "Each value of white must be finite and in (0, 255]; got (0.0, 200.0, 200.0). Measure it on background, for example with white_from_region.",
+   "type": "ValueError"
+  }
+ },
+ "skimage": "0.26.0"
+}

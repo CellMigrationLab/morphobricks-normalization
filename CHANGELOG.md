@@ -11,9 +11,24 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   without pixels, every check `to_scalar` makes of the preset and these arguments (unknown preset,
   needed and unused arguments, polarizer, `white` range and masked values, stain-vector names,
   shape, finiteness, masked values, collinearity and conditioning), so consumers can refuse a
-  request before reading an image. `to_scalar` runs it first (one implementation): exception types,
-  messages and outputs are unchanged; an argument error is now reported before a pixel error when
-  both are present.
+  request before reading an image. `to_scalar` runs it first (one implementation): outputs are
+  unchanged (33 conversions pinned by SHA-256 against v0.6.0), and so are the exception types and
+  full messages of the 40 refusals frozen from v0.6.0 in `tests/data/stain_v060_parity.json`, apart
+  from the two safety fixes below; an argument error is now reported before a pixel error when both
+  are present.
+- **Safety fixes to the refusal parity** (PR #98 review). These inputs change classification on
+  purpose; each is listed with its v0.6.0 outcome in the frozen table:
+  - a `polarizer` that is not a `str` is refused with a `ValueError` naming its type, before the
+    membership test. v0.6.0 accepted `np.array(["linear"])` (element-wise comparison) and recorded
+    `orientation_valid` as a NumPy array, and raised NumPy's "truth value is ambiguous"
+    `ValueError` for a longer array; for bytes, numbers and lists it already raised a `ValueError`,
+    and only the message changes (it now names the type);
+  - masked content (`np.ma.masked` or a masked array) at any depth of nested lists, tuples or object
+    arrays, in `white` or a stain vector (residual included), is refused as masked (`TypeError`)
+    before `np.asarray`. v0.6.0 checked only a top-level masked array and the direct items of a list
+    or tuple, so these inputs reached `np.asarray` and were refused later as not three numbers or as
+    an inhomogeneous sequence (NumPy turned a nested `np.ma.masked` into NaN on the way). The same
+    check covers `stain_vectors_from_regions`' `white`.
 
 ## v0.6.0 (2026-11-13)
 

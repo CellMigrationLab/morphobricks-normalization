@@ -208,7 +208,7 @@ def _custom_od(rgb: np.ndarray, options: _Options) -> tuple[np.ndarray, np.ndarr
 
 
 def _check_arguments(recipe: StainPreset, given: Mapping[str, Any]) -> None:
-    """Refuse a missing required argument, an unused one, or an unknown polarizer."""
+    """Refuse a missing required argument, an unused one, or a polarizer not in POLARIZERS."""
     for name in OPTIONAL_ARGUMENTS:
         if name in recipe.needs and given[name] is None:
             raise ValueError(f"Preset {recipe.id!r} needs {name}; it has no default.")
@@ -218,7 +218,21 @@ def _check_arguments(recipe: StainPreset, given: Mapping[str, Any]) -> None:
                 f"Preset {recipe.id!r} does not use {name}; it is refused rather than ignored."
             )
     polarizer = given["polarizer"]
-    if "polarizer" in recipe.needs and polarizer not in POLARIZERS:
+    if "polarizer" not in recipe.needs:
+        return
+    # A str first: an array would compare element-wise, so np.array(["linear"]) would pass the
+    # membership test and make orientation_valid an array (PR #98, B1).
+    if not isinstance(polarizer, str):
+        kind = type(polarizer)
+        type_name = (
+            kind.__qualname__
+            if kind.__module__ == "builtins"
+            else f"{kind.__module__}.{kind.__qualname__}"
+        )
+        raise ValueError(
+            f"polarizer must be the text 'circular' or 'linear'; got {type_name} {polarizer!r}."
+        )
+    if polarizer not in POLARIZERS:
         raise ValueError(f"polarizer must be 'circular' or 'linear'; got {polarizer!r}.")
 
 
@@ -275,12 +289,14 @@ def check_options(
     ValueError
         Unknown preset (the known ones are listed); a needed argument missing; an argument the
         preset does not use given (refused, never ignored); a polarizer not in
-        :data:`POLARIZERS`; ``white`` not three finite values in ``(0, 255]``; stain vectors
-        with missing or other names, not three finite numbers, of (almost) zero length, closer
-        than 5 degrees (either sign) or with a condition number above 50 (contract §3.4).
+        :data:`POLARIZERS` or not a ``str`` (an array, bytes or a list is refused with its type
+        named, never compared); ``white`` not three finite values in ``(0, 255]``; stain
+        vectors with missing or other names, not three finite numbers, of (almost) zero length,
+        closer than 5 degrees (either sign) or with a condition number above 50 (contract §3.4).
     TypeError
-        ``white`` or a stain vector is a masked array or holds a masked value (refused before
-        ``np.asarray`` would drop the mask); ``stain_vectors`` is not a mapping.
+        ``white`` or a stain vector is a masked array or holds a masked value, at any depth of
+        nested lists, tuples or object arrays (refused before ``np.asarray`` would drop the
+        mask); ``stain_vectors`` is not a mapping.
     """
     _checked_options(preset, white, stain_vectors, polarizer)
 

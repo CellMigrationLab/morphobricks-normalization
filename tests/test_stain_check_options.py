@@ -22,6 +22,7 @@ from stain_parity_cases import (
     WHITE,
     conversion_id,
     conversions,
+    frozen_output,
     output_digests,
     valid_pixels,
 )
@@ -222,7 +223,7 @@ CONVERSIONS = [
 
 
 @pytest.mark.parametrize("case", CONVERSIONS)
-def test_outputs_are_bitwise_those_of_v060(request, case):
+def test_outputs_are_those_of_v060(request, case):
     preset, pixels, axes, options = case
     skimage = None
     if PRESETS[preset].method not in ("passthrough", "custom_od"):
@@ -231,7 +232,41 @@ def test_outputs_are_bitwise_those_of_v060(request, case):
     if result.provenance["skimage_version"] is not None:
         # Hashed as a marker (it names the installed scikit-image, not this code).
         assert result.provenance["skimage_version"] == skimage.__version__
-    assert output_digests(result) == V060["conversions"][request.node.callspec.id]
+    frozen = V060["conversions"][request.node.callspec.id]
+    if PRESETS[preset].method != "custom_od":
+        assert output_digests(result) == frozen
+        return
+    # custom_od solves a stain matrix through LAPACK: its last bits depend on the CPU kernel.
+    values = frozen_output(preset, result)
+    assert values.keys() == frozen.keys()
+    assert values["exclusion"] == frozen["exclusion"]
+    assert (values["image_dtype"], values["image_shape"]) == (
+        frozen["image_dtype"],
+        frozen["image_shape"],
+    )
+    np.testing.assert_allclose(values["image_values"], frozen["image_values"], rtol=RTOL, atol=0)
+    assert_close(values["provenance"], frozen["provenance"])
+
+
+RTOL = 1e-9
+"""Relative tolerance of a custom_od value: far above LAPACK's last-bit differences."""
+
+
+def assert_close(actual: object, expected: object) -> None:
+    """Assert that two plain JSON values are equal, floats within :data:`RTOL`."""
+    if isinstance(expected, dict):
+        assert isinstance(actual, dict) and actual.keys() == expected.keys()
+        for key in expected:
+            assert_close(actual[key], expected[key])
+    elif isinstance(expected, list):
+        assert isinstance(actual, list) and len(actual) == len(expected)
+        for item, frozen_item in zip(actual, expected, strict=True):
+            assert_close(item, frozen_item)
+    elif type(expected) is float:
+        assert type(actual) is float
+        assert actual == pytest.approx(expected, rel=RTOL, abs=1e-12)
+    else:
+        assert type(actual) is type(expected) and actual == expected
 
 
 def test_the_unknown_preset_message_lists_every_known_preset():

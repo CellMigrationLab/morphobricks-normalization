@@ -12,7 +12,9 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   needed and unused arguments, polarizer, `white` range and masked values, stain-vector names,
   shape, finiteness, masked values, collinearity and conditioning), so consumers can refuse a
   request before reading an image. `to_scalar` runs it first (one implementation): outputs are
-  unchanged (33 conversions pinned by SHA-256 against v0.6.0), and so are the exception types and
+  unchanged (33 conversions pinned against v0.6.0: by SHA-256, except the six `custom_od` images
+  and provenances, compared with a relative tolerance of 1e-9 because LAPACK's last bits depend
+  on the CPU), and so are the exception types and
   full messages of the 40 refusals frozen from v0.6.0 in `tests/data/stain_v060_parity.json`, apart
   from the two safety fixes below; an argument error is now reported before a pixel error when both
   are present.

@@ -3,8 +3,10 @@
 ``tests/data/stain_v060_parity.json`` freezes what ``stain.to_scalar`` of v0.6.0 (commit
 ``95e1d6d``) did with these inputs: the exception type and full message of every refusal in
 :data:`REFUSALS` and :data:`CHANGED`, and the SHA-256 digests of the outputs of every conversion
-in :data:`CONVERSIONS`. This module uses only names that existed in v0.6.0, so the table can be
-recorded on that commit. To record it again (``<venv>`` with the ``histology`` extra)::
+in :data:`CONVERSIONS` (for ``custom_od``, the image values and provenance, compared with a
+tolerance, and the exclusion's digest: :func:`frozen_output`). This module uses only names that
+existed in v0.6.0, so the table can be recorded on that commit. To record it again (``<venv>``
+with the ``histology`` extra)::
 
     git worktree add /tmp/v060 95e1d6d
     PYTHONPATH=/tmp/v060/src <venv>/bin/python tests/stain_parity_cases.py \\
@@ -266,6 +268,29 @@ def output_digests(result: Any) -> dict[str, str | None]:
     }
 
 
+def output_values(result: Any) -> dict[str, Any]:
+    """Return a ScalarResult's image values and plain provenance, with the exclusion's digest.
+
+    Used for ``custom_od`` conversions: they solve a stain matrix through LAPACK, whose last
+    bits depend on the CPU kernel OpenBLAS selects, so they are compared with a tolerance.
+    """
+    image = np.asarray(result.image)
+    return {
+        "exclusion": array_digest(result.exclusion),
+        "image_dtype": image.dtype.str,
+        "image_shape": list(image.shape),
+        "image_values": image.ravel().tolist(),
+        "provenance": json.loads(provenance_json(result.provenance)),
+    }
+
+
+def frozen_output(preset: str, result: Any) -> dict[str, Any]:
+    """Return what the table freezes for one conversion: digests, or values for custom_od."""
+    if stain.PRESETS[preset].method == "custom_od":
+        return output_values(result)
+    return output_digests(result)
+
+
 def outcome(call: Callable[[], object]) -> dict[str, str]:
     """Return the exception type and full message of ``call``, or ``accepted``."""
     try:
@@ -297,7 +322,7 @@ def record() -> dict[str, Any]:
     converted = {}
     for index, (preset, pixels, axes, options) in enumerate(conversions()):
         result = stain.to_scalar(pixels, axes=axes, preset=preset, **options)
-        converted[conversion_id(index, preset, axes, options)] = output_digests(result)
+        converted[conversion_id(index, preset, axes, options)] = frozen_output(preset, result)
     return {
         "produced_by": (
             f"tests/stain_parity_cases.py on commit {BASE_COMMIT} (v0.6.0), to_scalar with "

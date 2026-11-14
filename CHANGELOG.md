@@ -4,6 +4,17 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## Unreleased
+
+- **Pixel-free check of a conversion request** (issue #97, contract §3.4): new
+  `stain.check_options(preset, *, white=None, stain_vectors=None, polarizer=None) -> None` makes,
+  without pixels, every check `to_scalar` makes of the preset and these arguments (unknown preset,
+  needed and unused arguments, polarizer, `white` range and masked values, stain-vector names,
+  shape, finiteness, masked values, collinearity and conditioning), so consumers can refuse a
+  request before reading an image. `to_scalar` runs it first (one implementation): exception types,
+  messages and outputs are unchanged; an argument error is now reported before a pixel error when
+  both are present.
+
 ## v0.6.0 (2026-11-13)
 
 Additive release (issue #94, PR #95; plan N67-N69, contract §3.4): a new `stain` module turns one

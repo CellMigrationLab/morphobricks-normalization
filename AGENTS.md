@@ -56,7 +56,8 @@ src/morphobricks_normalization/
   scopes.py         group_key, group_name, scope_groups: groups at each scope, repeat groups
   rgb.py            StarDist's percentile normalization: rgb_percentile, apply_rgb
                     (CSBDeep's float32 arithmetic), check_rgb
-  stain.py          image-to-scalar presets: to_scalar, rgb_to_scalar, PRESETS (catalogue with
+  stain.py          image-to-scalar presets: to_scalar, rgb_to_scalar, check_options (the
+                    pixel-free check of a request, run first by to_scalar), PRESETS (catalogue with
                     modality and consumer hints), white_from_region, stain_vectors_from_regions
                     (optional scikit-image extra `histology`; contract §3.4, N67, N68)
   optical_density.py  optical density against a declared white, stain matrices (normalised,

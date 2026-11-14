@@ -12,9 +12,9 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
   needed and unused arguments, polarizer, `white` range and masked values, stain-vector names,
   shape, finiteness, masked values, collinearity and conditioning), so consumers can refuse a
   request before reading an image. `to_scalar` runs it first (one implementation): outputs are
-  unchanged (33 conversions pinned against v0.6.0: by SHA-256, except the six `custom_od` images
-  and provenances, compared with a relative tolerance of 1e-9 because LAPACK's last bits depend
-  on the CPU), and so are the exception types and
+  unchanged (33 conversions pinned against v0.6.0: by SHA-256, except the six `custom_od` conversions,
+  whose float32 image and exclusion values (relative tolerance 1e-6) and float64 provenance (1e-9) are
+  compared with a tolerance because LAPACK's last bits depend on the CPU), and so are the exception types and
   full messages of the 40 refusals frozen from v0.6.0 in `tests/data/stain_v060_parity.json`, apart
   from the two safety fixes below; an argument error is now reported before a pixel error when both
   are present.
@@ -24,7 +24,9 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
     membership test. v0.6.0 accepted `np.array(["linear"])` (element-wise comparison) and recorded
     `orientation_valid` as a NumPy array, and raised NumPy's "truth value is ambiguous"
     `ValueError` for a longer array; for bytes, numbers and lists it already raised a `ValueError`,
-    and only the message changes (it now names the type);
+    and only the message changes (it now names the type). An accepted `str` subclass such as
+    `np.str_` is recorded in the provenance as a plain `str`, and `orientation_valid` is always a
+    Python `bool` (v0.6.0 kept the `np.str_`);
   - masked content (`np.ma.masked` or a masked array) at any depth of nested lists, tuples or object
     arrays, in `white` or a stain vector (residual included), is refused as masked (`TypeError`)
     before `np.asarray`. v0.6.0 checked only a top-level masked array and the direct items of a list

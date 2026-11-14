@@ -3,8 +3,8 @@
 ``tests/data/stain_v060_parity.json`` freezes what ``stain.to_scalar`` of v0.6.0 (commit
 ``95e1d6d``) did with these inputs: the exception type and full message of every refusal in
 :data:`REFUSALS` and :data:`CHANGED`, and the SHA-256 digests of the outputs of every conversion
-in :data:`CONVERSIONS` (for ``custom_od``, the image values and provenance, compared with a
-tolerance, and the exclusion's digest: :func:`frozen_output`). This module uses only names that
+in :data:`CONVERSIONS` (for ``custom_od``, the image and exclusion values and the provenance,
+compared with a tolerance: :func:`frozen_output`). This module uses only names that
 existed in v0.6.0, so the table can be recorded on that commit. To record it again (``<venv>``
 with the ``histology`` extra)::
 
@@ -269,19 +269,24 @@ def output_digests(result: Any) -> dict[str, str | None]:
 
 
 def output_values(result: Any) -> dict[str, Any]:
-    """Return a ScalarResult's image values and plain provenance, with the exclusion's digest.
+    """Return a ScalarResult's image and exclusion values and its plain provenance.
 
     Used for ``custom_od`` conversions: they solve a stain matrix through LAPACK, whose last
     bits depend on the CPU kernel OpenBLAS selects, so they are compared with a tolerance.
     """
-    image = np.asarray(result.image)
-    return {
-        "exclusion": array_digest(result.exclusion),
-        "image_dtype": image.dtype.str,
-        "image_shape": list(image.shape),
-        "image_values": image.ravel().tolist(),
-        "provenance": json.loads(provenance_json(result.provenance)),
-    }
+    record: dict[str, Any] = {"provenance": json.loads(provenance_json(result.provenance))}
+    for name in ("image", "exclusion"):
+        values = getattr(result, name)
+        if values is None:
+            record[name] = None
+            continue
+        values = np.asarray(values)
+        record[name] = {
+            "dtype": values.dtype.str,
+            "shape": list(values.shape),
+            "values": values.ravel().tolist(),
+        }
+    return record
 
 
 def frozen_output(preset: str, result: Any) -> dict[str, Any]:

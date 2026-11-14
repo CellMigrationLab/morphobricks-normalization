@@ -160,13 +160,19 @@ def test_a_none_polarizer_is_refused_as_missing_not_by_type():
     assert str(refused.value) == "Preset 'psr_polarized' needs polarizer; it has no default."
 
 
-@pytest.mark.parametrize("polarizer", ["circular", "linear", np.str_("circular")])
-def test_orientation_valid_is_a_python_bool(polarizer):
+@pytest.mark.parametrize(
+    "polarizer", ["circular", "linear", np.str_("circular"), np.str_("linear")]
+)
+def test_polarizer_provenance_holds_a_python_str_and_bool(polarizer):
     pytest.importorskip("skimage")
     result = to_scalar(
         np.full((2, 3, 3), 90, np.uint8), axes="YXC", preset="psr_polarized", polarizer=polarizer
     )
-    assert result.provenance["hints"]["orientation_valid"] is (polarizer == "circular")
+    assert type(result.provenance["polarizer"]) is str
+    assert result.provenance["polarizer"] == str(polarizer)
+    orientation_valid = result.provenance["hints"]["orientation_valid"]
+    assert type(orientation_valid) is bool
+    assert orientation_valid is (str(polarizer) == "circular")
 
 
 # Default stain vectors replaced by ones that must be refused: the default path is shown to run
@@ -239,17 +245,23 @@ def test_outputs_are_those_of_v060(request, case):
     # custom_od solves a stain matrix through LAPACK: its last bits depend on the CPU kernel.
     values = frozen_output(preset, result)
     assert values.keys() == frozen.keys()
-    assert values["exclusion"] == frozen["exclusion"]
-    assert (values["image_dtype"], values["image_shape"]) == (
-        frozen["image_dtype"],
-        frozen["image_shape"],
-    )
-    np.testing.assert_allclose(values["image_values"], frozen["image_values"], rtol=RTOL, atol=0)
+    for name in ("image", "exclusion"):
+        if frozen[name] is None:
+            assert values[name] is None
+            continue
+        got, want = values[name], frozen[name]
+        assert (got["dtype"], got["shape"]) == (want["dtype"], want["shape"])
+        np.testing.assert_allclose(
+            got["values"], want["values"], rtol=FLOAT32_RTOL, atol=FLOAT32_ATOL
+        )
     assert_close(values["provenance"], frozen["provenance"])
 
 
+FLOAT32_RTOL, FLOAT32_ATOL = 1e-6, 1e-7
+"""Tolerance of a custom_od float32 image or exclusion value: a few float32 ULPs."""
+
 RTOL = 1e-9
-"""Relative tolerance of a custom_od value: far above LAPACK's last-bit differences."""
+"""Relative tolerance of a custom_od float64 provenance value (stain matrix, condition number)."""
 
 
 def assert_close(actual: object, expected: object) -> None:
@@ -426,3 +438,49 @@ def test_check_options_needs_no_scikit_image():
     )
     assert result.returncode == 0, result.stderr
     assert "does not use white" in result.stdout
+
+
+def self_referencing_list(*items):
+    """A list that holds itself after ``items``."""
+    values = list(items)
+    values.append(values)
+    return values
+
+
+def self_referencing_object_array(item):
+    """A 2-element object array holding ``item`` and itself."""
+    values = np.empty(2, dtype=object)
+    values[0], values[1] = item, values
+    return values
+
+
+@pytest.mark.parametrize(
+    "value, holds",
+    [
+        (self_referencing_list(240, 235), False),
+        (self_referencing_list(240, np.ma.masked), True),
+        (self_referencing_object_array(240), False),
+        (self_referencing_object_array(np.ma.masked), True),
+        ([self_referencing_list(1), (np.ma.masked,)], True),
+        (np.arange(6.0).reshape(2, 3), False),
+    ],
+    ids=["list", "list masked", "object array", "object array masked", "nested", "numeric"],
+)
+def test_the_masked_search_ends_on_containers_that_hold_themselves(value, holds):
+    from morphobricks_normalization.optical_density import _holds_masked
+
+    assert _holds_masked(value) is holds
+
+
+def test_regions_refuse_a_masked_white_before_np_asarray(monkeypatch):
+    pixels = np.full((4, 4, 3), 120, np.uint8)
+    regions = {"eosin": np.ones((4, 4), bool), "hematoxylin": np.ones((4, 4), bool)}
+
+    def asarray(*args, **kwargs):
+        raise AssertionError("np.asarray was called before the masked white was refused")
+
+    monkeypatch.setattr(np, "asarray", asarray)
+    with pytest.raises(TypeError, match="white is a masked array"):
+        stain.stain_vectors_from_regions(
+            pixels, axes="YXC", white=[240, np.ma.masked, 245], regions=regions
+        )

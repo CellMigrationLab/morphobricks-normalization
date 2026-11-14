@@ -308,7 +308,7 @@ def _provenance(
     hints = dict(recipe.hints)
     if "polarizer" in recipe.needs:
         # A linear polarizer darkens fibres at some angles to its axis (orientation bias).
-        hints["orientation_valid"] = extra["polarizer"] == "circular"
+        hints["orientation_valid"] = bool(extra["polarizer"] == "circular")
     record = {
         "preset": recipe.id,
         "preset_version": recipe.version,
@@ -406,7 +406,7 @@ def to_scalar(
         clipped = float(np.mean(image == 0)) if recipe.method == "fixed_deconvolution" else None
         extra = {"skimage_version": version, "zero_fraction": clipped, **white_entries}
         if "polarizer" in recipe.needs:
-            extra["polarizer"] = polarizer
+            extra["polarizer"] = str(polarizer)  # plain str in provenance (np.str_ accepted)
     provenance = _provenance(recipe, pixels, axes, extra)
     return ScalarResult(image=image, exclusion=exclusion, provenance=provenance)
 

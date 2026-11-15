@@ -4,6 +4,54 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## Unreleased
+
+Step 1 of MorphoBricks-Spec [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md)
+("one policy for binary masks", accepted 15 November 2026, Spec commit `bf68d30`; plan N70,
+contract §3.5). **Breaking** for the region functions; every value of a non-empty boolean region
+is unchanged (below). The package still imports with NumPy only.
+
+- **One region checker for every brick** (BM3, BM7): new module `regions` with
+  `check_region(mask, shape, *, name)`, which returns the foreground `mask != 0` as a new boolean
+  array, or raises `RegionMaskError` (a `ValueError`, `code = "MASK_REGION_INVALID"`, `reason` one
+  of `not_an_array`, `masked_array`, `not_2d`, `shape`, `dtype`) with the ADR's fixed message. It
+  never labels, casts, thresholds, squeezes or resizes; negative values are inside; an empty region
+  is returned, not refused.
+- **Region estimates** (BM3, BM8): `RegionEstimate(value, reason)` with the reasons
+  `REGION_REASONS = ("empty_region",)` (`EMPTY_REGION`); exactly one of the two is set, the value is
+  a tuple of finite Python floats, never NaN.
+- **Resolver-version refusal** (BM10): new module `contracts` with
+  `refuse_resolver_version(found, supported) -> ResolverVersionError` (a `ValueError`,
+  `code = "RESOLVER_VERSION_UNSUPPORTED"`), the only constructor of that code, for the consumers
+  of preprocessing's `resolve_request`. It returns the error; the consumer raises it.
+
+**Migration notes** (the ADR's normalization row):
+
+- `optical_density.region_white` returns a `RegionEstimate` (was a tuple) and
+  `optical_density.region_vectors` a read-only mapping of `RegionEstimate` (was a mapping of
+  tuples): read `.value`. An empty region gives `RegionEstimate(None, "empty_region")` with no
+  exception and no NumPy warning (was a `ValueError`); handle `value is None` by not fitting or
+  converting with it.
+- The region rules of `region_white`, `region_vectors`, `stain.white_from_region` and
+  `stain.stain_vectors_from_regions` are `check_region`'s: an **integer** region is accepted (was a
+  `TypeError`); a float, complex or object region is `MASK_REGION_INVALID` `dtype` (`ValueError`,
+  was `TypeError`); a non-array is `not_an_array` and a masked array `masked_array` (`ValueError`,
+  were `TypeError`); a 3-D region is `not_2d` (`ValueError`, was a `TypeError` or a shape
+  `ValueError`); a wrong shape stays a `ValueError`, now `MASK_REGION_INVALID` `shape` with the
+  fixed message. Code that caught `TypeError` for a bad region catches `ValueError`
+  (`RegionMaskError`).
+- `stain.white_from_region` and `stain.stain_vectors_from_regions` keep their return types and
+  refuse an empty region with the ADR's fixed `empty_region` messages; `stain_vectors_from_regions`
+  names every empty region at once, in mapping order (it stopped at the first before). A
+  non-mapping or empty `regions` stays a `TypeError` (its message now says "integer or boolean").
+- **Unchanged values**: for every non-empty region, the whites and stain vectors are bitwise those
+  of v0.6.1 (`b8aa65b`). `tests/data/region_v061_parity.json`, recorded on that commit by
+  `tests/region_parity_cases.py` (96 cases, through the four functions and both axes orders), is
+  equal to the table the change computes (same SHA-256 on the recording machine); the tests compare
+  whites bitwise, and stain vectors bitwise against the v0.6.1 code on the same machine and within
+  4 ulps of the recorded values elsewhere (`log10` may differ in its last bits between CPUs). The
+  v0.6.0 `stain` parity table is unchanged.
+
 ## v0.6.1 (2026-11-14)
 
 Additive release (issue #97, PR #98; #99, PR #100; contract §3.4): consumers can check an

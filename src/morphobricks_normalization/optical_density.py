@@ -27,6 +27,8 @@ from typing import Any
 
 import numpy as np
 
+from .regions import EMPTY_REGION, RegionEstimate, check_region
+
 CHANNELS = 3
 WHITE_MAX = 255.0
 """Upper limit of a declared white: the largest 8-bit value."""
@@ -283,34 +285,29 @@ def concentrations(od: np.ndarray, matrix: StainMatrix) -> np.ndarray:
     return od @ np.linalg.inv(matrix.array())
 
 
-def _check_region(region: object, shape: tuple[int, int], name: str) -> np.ndarray:
-    """Return a boolean ``(Y, X)`` region; refuse a masked, mistyped, misshaped or empty one."""
-    if isinstance(region, np.ma.MaskedArray):
-        raise TypeError(
-            f"Region {name!r} is a masked array: which pixels belong to it would be ambiguous. "
-            "Pass a plain boolean array."
-        )
-    if not isinstance(region, np.ndarray) or region.dtype != np.bool_:
-        raise TypeError(f"Region {name!r} must be a boolean NumPy array (Y, X).")
-    if region.shape != shape:
-        raise ValueError(f"Region {name!r} has shape {region.shape}; the image is {shape} (Y, X).")
-    if not region.any():
-        raise ValueError(f"Region {name!r} is empty; select at least one pixel.")
-    return region
-
-
-def region_white(rgb: np.ndarray, region: object) -> tuple[float, float, float]:
+def region_white(rgb: np.ndarray, region: object) -> RegionEstimate:
     """Return the median R, G, B of a ``(Y, X, 3)`` image over a background region.
+
+    The region is checked by :func:`~morphobricks_normalization.regions.check_region` (its
+    pixels are ``region != 0``). An empty region gives ``RegionEstimate(None, "empty_region")``:
+    the median of no pixel is not taken, so no NumPy warning is emitted.
+
+    Returns
+    -------
+    RegionEstimate
+        The median as three Python floats, or undefined with ``empty_region``.
 
     Raises
     ------
+    RegionMaskError
+        ``MASK_REGION_INVALID``: the region is not a 2-D integer or boolean NumPy array of the
+        image's ``(Y, X)``.
     ValueError
-        Empty region, wrong shape, or a median of 0 or 255 (no light, or saturated: the
-        true white is then unknown).
-    TypeError
-        The region is not a boolean array.
+        A median of 0 or 255 (no light, or saturated: the true white is then unknown).
     """
-    mask = _check_region(region, rgb.shape[:2], "background")
+    mask = check_region(region, rgb.shape[:2], name="background")
+    if not mask.any():
+        return RegionEstimate(None, EMPTY_REGION)
     median = np.median(rgb[mask].astype(np.float64), axis=0)
     if (median <= 0).any() or (median >= WHITE_MAX).any():
         raise ValueError(
@@ -319,33 +316,48 @@ def region_white(rgb: np.ndarray, region: object) -> tuple[float, float, float]:
             "Lower the exposure or choose another background region; a white declared "
             "explicitly (for example 255 for a scanner that maps background to 255) is accepted."
         )
-    return tuple(float(v) for v in median)
+    return RegionEstimate(tuple(float(v) for v in median), None)
 
 
 def region_vectors(
     rgb: np.ndarray, white: np.ndarray, regions: Mapping[str, Any]
-) -> Mapping[str, tuple[float, float, float]]:
+) -> Mapping[str, RegionEstimate]:
     """Return the unit mean optical-density vector of each labelled region.
 
-    A selected pixel with a channel at 0 would enter at the floor (:data:`FLOOR`, intensity 1)
-    and bend the region's direction, so such a region is refused; zeros outside the regions do
-    not matter.
+    Each region is checked by :func:`~morphobricks_normalization.regions.check_region` (its
+    pixels are ``region != 0``). An empty region gives ``RegionEstimate(None, "empty_region")``
+    before any optical density is averaged over it. A selected pixel with a channel at 0 would
+    enter at the floor (:data:`FLOOR`, intensity 1) and bend the region's direction, so such a
+    region is refused; zeros outside the regions do not matter.
+
+    Returns
+    -------
+    Mapping
+        Read-only, in the order of ``regions``: name -> :class:`RegionEstimate` holding the
+        unit vector as three Python floats, or undefined with ``empty_region``.
 
     Raises
     ------
+    RegionMaskError
+        ``MASK_REGION_INVALID``: a region is not a 2-D integer or boolean NumPy array of the
+        image's ``(Y, X)``.
     ValueError
-        No regions, an empty or wrongly shaped region, a region holding a pixel with a channel at
-        0, or a region whose mean optical density is below :data:`MIN_REGION_OD` (background,
-        not stain).
+        A region holding a pixel with a channel at 0, or a region whose mean optical density is
+        below :data:`MIN_REGION_OD` (background, not stain).
     TypeError
-        ``regions`` is not a mapping, or a region is not a boolean array.
+        ``regions`` is not a non-empty mapping.
     """
     if not isinstance(regions, Mapping) or not regions:
-        raise TypeError("regions must be a non-empty mapping stain name -> boolean (Y, X) array.")
+        raise TypeError(
+            "regions must be a non-empty mapping stain name -> integer or boolean (Y, X) array."
+        )
     od, _ = optical_density(rgb, white)
     vectors = {}
     for name, region in regions.items():
-        mask = _check_region(region, rgb.shape[:2], name)
+        mask = check_region(region, rgb.shape[:2], name=name)
+        if not mask.any():
+            vectors[name] = RegionEstimate(None, EMPTY_REGION)
+            continue
         floored = int((rgb[mask] < FLOOR).any(axis=-1).sum())
         if floored:
             raise ValueError(
@@ -360,5 +372,5 @@ def region_vectors(
                 f"Region {name!r} has a mean optical density of {norm:.4f} (minimum "
                 f"{MIN_REGION_OD}); it looks like background, not stain."
             )
-        vectors[name] = tuple(float(v) for v in mean / norm)
+        vectors[name] = RegionEstimate(tuple(float(v) for v in mean / norm), None)
     return MappingProxyType(vectors)

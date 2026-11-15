@@ -37,7 +37,11 @@ Pre-alpha; the latest release is v0.6.1. The library offers:
 - per-image summaries and intensity checks, returned as `Issue` warnings;
 - since v0.6.0, image-to-scalar stain presets (`stain`: H&E, picrosirius red, trichrome, colour
   projections and passthrough; optional extra `histology` for scikit-image; contract §3.4);
-  since v0.6.1, `stain.check_options` checks a request before any pixel is read.
+  since v0.6.1, `stain.check_options` checks a request before any pixel is read;
+- unreleased: the one region checker of every MorphoBricks brick (`regions.check_region`,
+  `RegionEstimate` for a white or stain vector over an empty region) and the shared
+  resolver-version refusal (`contracts.refuse_resolver_version`), MorphoBricks-Spec ADR 0005
+  (contract §3.5).
 
 Release notes and migration notes are in [CHANGELOG.md](CHANGELOG.md).
 

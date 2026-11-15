@@ -588,6 +588,22 @@ Added with the project owner on 11 November 2026, for Stage 3 (S3.2, pull reques
     (`custom_od` is the path for deconvolution against a declared white). Masks are built in
     preprocessing, never in an analysis brick (contract §3.4).
 
+Added with the project owner on 15 November 2026 (MorphoBricks-Spec ADR 0005, "one policy for
+binary masks", accepted; decisions BM3, BM7, BM8 and BM10, step 1 of its implementation order):
+
+64. **N70** A mask used as a region is `mask != 0` in every brick, never labelled; the one
+    region checker is normalization's `regions.check_region(mask, shape, *, name)` (2-D, integer
+    or boolean, never cast, thresholded, squeezed or resized), refusing with `MASK_REGION_INVALID`
+    and one of five reasons, and returning an empty region instead of refusing it. `region_white`
+    and `region_vectors` use it (an integer region is accepted; their region errors become
+    `RegionMaskError`) and return `RegionEstimate`: the value, bitwise as before for a non-empty
+    region, or `None` with the reason `empty_region` (never NaN, no exception, no warning). The
+    `stain` helpers `white_from_region` and `stain_vectors_from_regions` keep their return types
+    and refuse an empty region with the ADR's fixed messages, so nothing is converted with an
+    undefined estimate. normalization holds the only constructor of `RESOLVER_VERSION_UNSUPPORTED`,
+    `contracts.refuse_resolver_version(found, supported)`, which every consumer of
+    preprocessing's resolver calls (contract §3.5).
+
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that
 pull request for the owner's review (not numbered decisions until the owner confirms them):

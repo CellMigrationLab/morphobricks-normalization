@@ -23,6 +23,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 7. Intensity checks | Milestone 4 (done) |
 | 1.4 Robust histogram range and range check; `plane_histograms.csv` schema version 4 (6.2) | Milestone 5 (done) |
 | 1.5 and 6. Channels by canonical channel ID (`plane_histograms.csv` schema version 5); per-channel columns of 7.1 and 8.1 by ID | Stage 3 S3.2 ([ADR 0003](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0003-plane-histograms-v5.md); draft, unreleased) |
+| 3.5 Regions (`check_region`, `RegionEstimate`) and the resolver-version refusal | [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md) step 1 (plan N70; unreleased) |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered
@@ -621,13 +622,23 @@ told apart); it is `None` for every other method.
 - Concentrations `C = OD @ inv(M)`; `image` is the target, `exclusion` the exclusion stain.
   **Negative concentrations are kept, not clipped**; `negative_fraction` is the fraction of
   pixels with a negative target.
-- `stain_vectors_from_regions(pixels, *, axes, white, regions)`: for each boolean region, the
-  mean OD over the region normalised to unit length (the TWOMBLI approach: the user labels the
-  matrix stain and the nuclear stain; the background gives `white`). An empty or wrongly
-  shaped region, or a mean OD norm below 0.01 (background-like), is refused.
-- `white_from_region(pixels, *, axes, region)`: the per-channel median over a boolean
-  background region; an empty or wrongly shaped region, or a median of 0 or 255 (dark or
-  saturated, so the true white is unknown), is refused.
+- `stain_vectors_from_regions(pixels, *, axes, white, regions)`: for each region (`!= 0`,
+  checked by `check_region`, §3.5), the mean OD over the region normalised to unit length (the
+  TWOMBLI approach: the user labels the matrix stain and the nuclear stain; the background gives
+  `white`). A region `check_region` refuses (`MASK_REGION_INVALID`), a region holding a pixel
+  with a channel at 0, or a mean OD norm below 0.01 (background-like), is refused. Empty regions
+  are refused together, naming every one in mapping order: "The regions {names} are empty
+  (empty_region): no stain vector can be estimated from them, so nothing is converted. Label at
+  least one pixel of each stain." (`{names}` a Python list, for example `['psr']`). It returns a
+  read-only mapping stain name -> three floats, as before.
+- `white_from_region(pixels, *, axes, region)`: the per-channel median over a background region
+  (`!= 0`, checked by `check_region`, §3.5). A region `check_region` refuses, or a median of 0 or
+  255 (dark or saturated, so the true white is unknown), is refused; an empty region is refused
+  with "The background region is empty (empty_region): no white can be estimated from it, so
+  nothing is converted. Choose a region with at least one pixel, or declare the white
+  explicitly." It returns three floats, as before. The two helpers refuse an undefined estimate
+  rather than return it because `to_scalar` reads an absent `white` as "not given" for the
+  `luminance` preset: an absent value passed on would change the conversion silently.
 
 **Default stain vectors** (N69, owner decision of 13 November 2026). Where published values
 exist, a `custom_od` preset carries them as read-only data (`default_stain_vectors`,
@@ -693,6 +704,78 @@ it (`fixed_deconvolution`, `luminance`, `cielab`); without it they raise `Import
 extra, while `passthrough` and `custom_od` work with NumPy only. `import
 morphobricks_normalization` needs NumPy only. The modules are not re-exported from the package
 root; import `morphobricks_normalization.stain`.
+
+### 3.5 Regions and the resolver-version refusal (MorphoBricks-Spec ADR 0005)
+
+MorphoBricks-Spec [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md)
+("one policy for binary masks", BM3, BM7, BM8, BM10; plan N70) puts the one region checker of
+every brick and one shared refusal here, because normalization is the one package every brick can
+import (NumPy only, nothing of preprocessing). The texts below are the ADR's, verbatim; each
+message is written only by its constructor (a source-scan test checks it). Neither module is
+re-exported from the package root: import `morphobricks_normalization.regions` and
+`morphobricks_normalization.contracts`.
+
+**Region checker.** A mask used as a region is `mask != 0`, whatever its representation
+(`instances`, `binary`, `parent_labels`), and is never labelled.
+`regions.check_region(mask, shape, *, name) -> numpy.ndarray` returns a new boolean `(Y, X)`
+array, `True` where `mask != 0` (the input is not changed), or raises `RegionMaskError` (a
+`ValueError` with `code = "MASK_REGION_INVALID"` and `reason`). The reasons are tested in this
+order:
+
+| Input | Result |
+|---|---|
+| a NumPy array, 2-D, of `shape` `(Y, X)`, dtype boolean or any signed or unsigned integer | `mask != 0`; negative values are inside; an **empty** region is returned, not refused |
+| not a `numpy.ndarray` (a list, None, a tensor) | reason `not_an_array`, detail `is not a NumPy array (got {type})`, `{type}` the type's name (`list`, `NoneType`) |
+| a `numpy.ma.MaskedArray` | reason `masked_array`, detail `is a masked array` |
+| not 2-D (a `(1, Y, X)` stack included: never squeezed) | reason `not_2d`, detail `has {ndim} dimensions` |
+| 2-D of another shape | reason `shape`, detail `has shape {shape}, not the plane's {plane}` (never resized or cropped) |
+| float, complex, object or any other dtype | reason `dtype`, detail `has pixel type {dtype}` (a probability map is thresholded by the user first) |
+
+Message: `MASK_REGION_INVALID ({reason}): the region {name!r} {detail}. A region is a 2-D integer
+or boolean array of the plane's shape (Y, X); its non-zero pixels are inside.` The checker never
+labels, casts, thresholds, squeezes or resizes. A subclass of `numpy.ndarray` other than a masked
+array (a memory map) is accepted and gives a plain boolean array. A `shape` that is not two
+non-negative integers is the caller's programming error: a plain `ValueError` without a code.
+
+**Region estimates.** An estimate over a region's pixels is a `regions.RegionEstimate(value,
+reason)` (frozen): exactly one of `value` (a non-empty tuple of finite Python floats, three for a
+white or a stain vector) and `reason` (one of `REGION_REASONS = ("empty_region",)`,
+`EMPTY_REGION`) is set, checked when made (`ValueError` otherwise). NaN never stands for an
+undefined estimate.
+
+- `optical_density.region_white(rgb, region) -> RegionEstimate`: `check_region` first (its
+  refusals stand); an empty region gives `RegionEstimate(None, "empty_region")` with no exception
+  and no NumPy warning (the median of no pixel is not taken); a non-empty region gives the median
+  R, G, B, **bitwise equal** to v0.6.1's tuple. The dark or saturated median (0 or 255) is still
+  refused with its `ValueError`: a non-empty region whose white is unknowable is not an empty one.
+- `optical_density.region_vectors(rgb, white, regions) -> Mapping[str, RegionEstimate]`
+  (read-only, in the order of `regions`): each region is checked by `check_region`; an empty one
+  gives `RegionEstimate(None, "empty_region")` before any optical density is averaged over it; a
+  non-empty one gives v0.6.1's unit vector, bitwise equal, and keeps its refusals (a pixel with a
+  channel at 0, a mean OD below `MIN_REGION_OD`). An empty or non-mapping `regions` stays a
+  `TypeError`.
+- Callers never fit or convert with an undefined estimate: the `stain` helpers refuse it (§3.4).
+  A brick that estimates per plane inside a run records the dependent features undefined with
+  `empty_region` and the plane still runs; the undefined estimate is never passed to a fit, a
+  conversion or a pooled estimate.
+
+The values of every non-empty region are frozen against v0.6.1 (commit `b8aa65b`) in
+`tests/data/region_v061_parity.json` (recorded by `tests/region_parity_cases.py`): whites bitwise;
+stain vectors bitwise against the v0.6.1 code on the same machine, and within 4 ulps of the
+recorded values on other CPUs (`log10` may differ in its last bits between SIMD builds).
+
+**Resolver-version refusal.** Every consumer of preprocessing's `resolve_request` (CellPatcher,
+MorphoRelate, fiberfeatures, MorphoFeature) holds `SUPPORTED_RESOLVER_VERSIONS` (`{3}` in this
+wave) and checks `provenance.resolver_version` against it right after `resolve_request` returns,
+before any pixel read, output, record or cache reuse; never as "at least". The error is built by
+`contracts.refuse_resolver_version(found, supported) -> ResolverVersionError` (a `ValueError` with
+`code = "RESOLVER_VERSION_UNSUPPORTED"`, `found` and `supported`), the only constructor of that
+code. It returns the error and does not raise it; the consumer raises it, or its own type with
+the code and message copied verbatim. Message: `RESOLVER_VERSION_UNSUPPORTED: the installed
+morphobricks-preprocessing resolver has contract version {found}; this consumer supports exactly
+{supported}. Install the morphobricks-preprocessing release it pins; nothing was read or
+written.` with `{supported}` the sorted list without repeats (`[3]`). An empty `supported`, or
+one holding anything but integers, is a programming error (`ValueError` without a code).
 
 ## 4. Scopes, groups and weights
 
@@ -1049,6 +1132,9 @@ Raised as exceptions before any pixel is normalized; the calling brick blocks th
 | `from_columns` with a `normalization_method` or `normalization_scope` other than the settings' | `ValueError` | Names the column, the row's value and the settings' value, and asks to read the parameters with the settings of the run that wrote them |
 | `NormalizationParameters.apply` with a result type other than float32 or float64, or clip limits that are not two finite numbers with `low < high` | `ValueError` | Names the type ("dtype must be float32 or float64; got 'uint8'") or the limits ("clip must be (low, high) with low < high; got low=1.0, high=0.0") |
 | `Parameters` or `NormalizationParameters` with a non-finite offset, or a scale that is not finite and above 0; a channel that is not a canonical channel ID | `ValueError` | Names the channel (or method) and the value |
+| A region that is not a 2-D integer or boolean NumPy array of the plane's shape (`check_region`, `region_white`, `region_vectors` and the two `stain` helpers; §3.5) | `RegionMaskError` (a `ValueError`; `code` `MASK_REGION_INVALID`, `reason`) | The fixed message of §3.5 |
+| An empty region given to `white_from_region` or `stain_vectors_from_regions` (§3.4) | `ValueError` | The fixed `empty_region` messages of §3.4 (`region_white` and `region_vectors` return `RegionEstimate(None, "empty_region")` instead) |
+| A resolver contract version a consumer does not support (built by `refuse_resolver_version`, raised by the consumer; §3.5) | `ResolverVersionError` (a `ValueError`; `code` `RESOLVER_VERSION_UNSUPPORTED`) | The fixed message of §3.5 |
 
 Tables of schema versions 1 to 4 are recognised by the `schema_version` value of their rows alone and
 refused with the messages above; no reader or converter of their layouts exists (the owner's ruling

@@ -6,7 +6,7 @@ Read it, and the documents below, before changing anything.
 
 | File | What it fixes |
 |---|---|
-| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N69 (§12) and what is still to be measured (§13) |
+| `docs/plan.md` | Goals, methods, scopes, milestones, the owner's decisions N1–N70 (§12) and what is still to be measured (§13) |
 | `docs/contract.md` | Rules other bricks rely on: methods and formulas, interface, scopes and repeat groups, image types, the statistics file, intensity checks, parameter columns, validation |
 | `CHANGELOG.md` | Release notes and migration notes |
 | `docs/archive/` | Historical record: the two done follow-ups for the calling bricks |
@@ -59,9 +59,17 @@ src/morphobricks_normalization/
   stain.py          image-to-scalar presets: to_scalar, rgb_to_scalar, check_options (the
                     pixel-free check of a request, run first by to_scalar), PRESETS (catalogue with
                     modality and consumer hints), white_from_region, stain_vectors_from_regions
-                    (optional scikit-image extra `histology`; contract §3.4, N67, N68)
+                    (optional scikit-image extra `histology`; contract §3.4, N67, N68); both
+                    refuse an empty region (N70)
+  regions.py        check_region: the one region checker of every brick (`mask != 0`,
+                    MASK_REGION_INVALID, RegionMaskError); RegionEstimate (value or
+                    `empty_region`) of region_white and region_vectors (Spec ADR 0005, N70)
+  contracts.py      refuse_resolver_version: the only constructor of
+                    RESOLVER_VERSION_UNSUPPORTED (ResolverVersionError) for the resolver's
+                    consumers (Spec ADR 0005, N70)
   optical_density.py  optical density against a declared white, stain matrices (normalised,
-                    cross-product completion, collinearity and conditioning checks), unmixing
+                    cross-product completion, collinearity and conditioning checks), unmixing,
+                    region_white and region_vectors (RegionEstimate, N70)
                     (NumPy only; the `custom_od` presets)
   scalar_inputs.py  input checks of the presets: RGB with declared axes, single YX planes
   fitting.py        fit, by channel ID
@@ -78,7 +86,9 @@ src/morphobricks_normalization/
 tests/              pytest with simulated planes (tests/simulation.py); tests/data holds
                     the golden pixels and fitted parameters of tests/test_fit_goldens.py and
                     stain_v060_parity.json, the v0.6.0 refusals and output digests of
-                    tests/test_stain_check_options.py (recorded by tests/stain_parity_cases.py)
+                    tests/test_stain_check_options.py (recorded by tests/stain_parity_cases.py),
+                    and region_v061_parity.json, the v0.6.1 region whites and stain vectors of
+                    tests/test_regions.py (recorded by tests/region_parity_cases.py)
 tools/check.py      the release gate: ruff format, pytest and the code standards (design v0.4 §9);
                     `--rules` runs only the standards (CI); tools/code_rules.py is the shared
                     copy (SHA-256 pinned in tests/test_code_rules.py), tools/code_rules_baseline.json
@@ -130,7 +140,7 @@ range check.
 ## 3. How we work
 
 1. **Read first:** the plan, the contract and the modules you touch.
-2. **Ask before deciding.** Decisions N1–N69 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
+2. **Ask before deciding.** Decisions N1–N70 are final (those marked withdrawn in plan §12 no longer apply); do not re-open them. A choice the
    plan and the contract leave open, and any change of product behaviour or file format,
    is the owner's: ask with 2–4 options, the recommended one first.
 3. **Outputs stay bit-identical** unless a change says otherwise. `tests/test_fit_goldens.py` keeps the fitted

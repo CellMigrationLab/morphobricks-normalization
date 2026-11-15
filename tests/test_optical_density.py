@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from morphobricks_normalization import optical_density as od
+from morphobricks_normalization.regions import RegionEstimate, RegionMaskError
 from stain_simulation import (
     COUNTERSTAIN,
     DAB,
@@ -167,8 +168,8 @@ def test_region_white_is_the_background_median():
     background = np.zeros((10, 12), bool)
     background[:4] = True
     image[background] = rng.integers(160, 181, (int(background.sum()), 3))
-    expected = tuple(np.median(image[background].astype(float), axis=0))
-    assert od.region_white(image, background) == expected
+    expected = tuple(float(v) for v in np.median(image[background].astype(float), axis=0))
+    assert od.region_white(image, background) == RegionEstimate(expected, None)
 
 
 @pytest.mark.parametrize("value", [0, 255])
@@ -180,17 +181,27 @@ def test_region_white_refuses_dark_or_saturated_backgrounds(value):
 
 
 @pytest.mark.parametrize(
-    ("region", "error", "message"),
+    ("region", "reason"),
     [
-        (np.zeros((4, 4), bool), ValueError, "empty"),
-        (np.ones((4, 5), bool), ValueError, "shape"),
-        (np.ones((4, 4), np.uint8), TypeError, "boolean"),
-        ([[True]], TypeError, "boolean"),
+        (np.ones((4, 5), bool), "shape"),
+        (np.ones((4, 4), np.float32), "dtype"),
+        ([[True]], "not_an_array"),
+        (np.ones((1, 4, 4), bool), "not_2d"),
+        (np.ma.array(np.ones((4, 4), bool)), "masked_array"),
     ],
 )
-def test_region_white_refuses_bad_regions(region, error, message):
-    with pytest.raises(error, match=message):
+def test_region_white_refuses_bad_regions(region, reason):
+    with pytest.raises(RegionMaskError) as caught:
         od.region_white(np.full((4, 4, 3), 200, np.uint8), region)
+    assert (caught.value.code, caught.value.reason) == ("MASK_REGION_INVALID", reason)
+
+
+def test_region_white_of_an_empty_or_integer_region():
+    image = np.full((4, 4, 3), 200, np.uint8)
+    assert od.region_white(image, np.zeros((4, 4), bool)) == RegionEstimate(None, "empty_region")
+    labels = np.zeros((4, 4), np.int32)
+    labels[1, 1], labels[2, 2] = 7, -3  # any non-zero value is inside the region
+    assert od.region_white(image, labels) == RegionEstimate((200.0, 200.0, 200.0), None)
 
 
 def test_region_vectors_recover_the_generating_vectors():
@@ -202,24 +213,33 @@ def test_region_vectors_recover_the_generating_vectors():
     left = np.zeros((20, 20), bool)
     left[:, :10] = True
     vectors = od.region_vectors(image, WHITE_ARRAY, {"psr": left, "counterstain": ~left})
+    assert list(vectors) == ["psr", "counterstain"]
     for name, row in (("psr", m[0]), ("counterstain", m[1])):
-        angle = math.degrees(math.acos(min(1.0, float(np.dot(vectors[name], row)))))
+        assert vectors[name].reason is None
+        angle = math.degrees(math.acos(min(1.0, float(np.dot(vectors[name].value, row)))))
         assert angle < 0.2, (name, angle)
-        assert np.linalg.norm(vectors[name]) == pytest.approx(1.0)
+        assert np.linalg.norm(vectors[name].value) == pytest.approx(1.0)
     with pytest.raises(TypeError):
-        vectors["psr"] = (1.0, 0.0, 0.0)
+        vectors["psr"] = RegionEstimate((1.0, 0.0, 0.0), None)
 
 
-def test_region_vectors_refuse_background_like_and_empty_regions():
+def test_region_vectors_refuse_background_like_regions_and_no_regions():
     image = np.empty((4, 4, 3), np.uint8)
     image[...] = (239, 234, 244)  # one grey level below white: OD about 0.002 per channel
     region = np.ones((4, 4), bool)
     with pytest.raises(ValueError, match="background"):
         od.region_vectors(image, WHITE_ARRAY, {"psr": region})
-    with pytest.raises(ValueError, match="empty"):
-        od.region_vectors(image, WHITE_ARRAY, {"psr": np.zeros((4, 4), bool)})
     with pytest.raises(TypeError, match="non-empty mapping"):
         od.region_vectors(image, WHITE_ARRAY, {})
+    with pytest.raises(TypeError, match="non-empty mapping"):
+        od.region_vectors(image, WHITE_ARRAY, [("psr", region)])
+
+
+def test_an_empty_region_vector_is_undefined_not_refused():
+    image = np.empty((4, 4, 3), np.uint8)
+    image[...] = (239, 234, 244)
+    vectors = od.region_vectors(image, WHITE_ARRAY, {"psr": np.zeros((4, 4), bool)})
+    assert dict(vectors) == {"psr": RegionEstimate(None, "empty_region")}
 
 
 def test_eosin_dab_hematoxylin_are_well_conditioned():

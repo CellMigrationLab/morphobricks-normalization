@@ -1,0 +1,4231 @@
+{
+ "numpy": "2.5.4",
+ "outputs": {
+  "vectors_16x16_w0_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ],
+    "second": [
+     "0x1.b8976a458ddaap-2",
+     "0x1.cc34d9d365d6dp-1",
+     "0x1.55a62e8f74248p-4"
+    ],
+    "third": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ],
+    "second": [
+     "0x1.b8976a458ddaap-2",
+     "0x1.cc34d9d365d6dp-1",
+     "0x1.55a62e8f74248p-4"
+    ],
+    "third": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ],
+    "second": [
+     "0x1.b8976a458ddaap-2",
+     "0x1.cc34d9d365d6dp-1",
+     "0x1.55a62e8f74248p-4"
+    ],
+    "third": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w0_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.b8976a458ddaap-2",
+     "0x1.cc34d9d365d6dp-1",
+     "0x1.55a62e8f74248p-4"
+    ],
+    "second": [
+     "0x1.278fe3bc2c860p-1",
+     "0x1.288954292d4b1p-1",
+     "0x1.26b56bb6f2196p-1"
+    ],
+    "third": [
+     "0x1.32258ae558879p-1",
+     "0x1.1a919cd997ddbp-1",
+     "0x1.299cc1f89cafdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.b8976a458ddaap-2",
+     "0x1.cc34d9d365d6dp-1",
+     "0x1.55a62e8f74248p-4"
+    ],
+    "second": [
+     "0x1.278fe3bc2c860p-1",
+     "0x1.288954292d4b1p-1",
+     "0x1.26b56bb6f2196p-1"
+    ],
+    "third": [
+     "0x1.32258ae558879p-1",
+     "0x1.1a919cd997ddbp-1",
+     "0x1.299cc1f89cafdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.b8976a458ddaap-2",
+     "0x1.cc34d9d365d6dp-1",
+     "0x1.55a62e8f74248p-4"
+    ],
+    "second": [
+     "0x1.278fe3bc2c860p-1",
+     "0x1.288954292d4b1p-1",
+     "0x1.26b56bb6f2196p-1"
+    ],
+    "third": [
+     "0x1.32258ae558879p-1",
+     "0x1.1a919cd997ddbp-1",
+     "0x1.299cc1f89cafdp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w0_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.278fe3bc2c860p-1",
+     "0x1.288954292d4b1p-1",
+     "0x1.26b56bb6f2196p-1"
+    ],
+    "second": [
+     "0x1.ec34ac1b410d8p-2",
+     "0x1.4c91badbf3852p-1",
+     "0x1.2d9ee8090b897p-1"
+    ],
+    "third": [
+     "0x1.33fc88e0bfe0ep-1",
+     "0x1.1945555ce0282p-1",
+     "0x1.28f15ea219a6dp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.278fe3bc2c860p-1",
+     "0x1.288954292d4b1p-1",
+     "0x1.26b56bb6f2196p-1"
+    ],
+    "second": [
+     "0x1.ec34ac1b410d8p-2",
+     "0x1.4c91badbf3852p-1",
+     "0x1.2d9ee8090b897p-1"
+    ],
+    "third": [
+     "0x1.33fc88e0bfe0ep-1",
+     "0x1.1945555ce0282p-1",
+     "0x1.28f15ea219a6dp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.278fe3bc2c860p-1",
+     "0x1.288954292d4b1p-1",
+     "0x1.26b56bb6f2196p-1"
+    ],
+    "second": [
+     "0x1.ec34ac1b410d8p-2",
+     "0x1.4c91badbf3852p-1",
+     "0x1.2d9ee8090b897p-1"
+    ],
+    "third": [
+     "0x1.33fc88e0bfe0ep-1",
+     "0x1.1945555ce0282p-1",
+     "0x1.28f15ea219a6dp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w0_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.ec34ac1b410d8p-2",
+     "0x1.4c91badbf3852p-1",
+     "0x1.2d9ee8090b897p-1"
+    ],
+    "second": [
+     "0x1.3b72bc2548472p-1",
+     "0x1.1f105f12bbedap-1",
+     "0x1.1b4013964e3c9p-1"
+    ],
+    "third": [
+     "0x1.3819955bfe9a0p-1",
+     "0x1.161177a4cc8eep-1",
+     "0x1.27a9545258656p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.ec34ac1b410d8p-2",
+     "0x1.4c91badbf3852p-1",
+     "0x1.2d9ee8090b897p-1"
+    ],
+    "second": [
+     "0x1.3b72bc2548472p-1",
+     "0x1.1f105f12bbedap-1",
+     "0x1.1b4013964e3c9p-1"
+    ],
+    "third": [
+     "0x1.3819955bfe9a0p-1",
+     "0x1.161177a4cc8eep-1",
+     "0x1.27a9545258656p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.ec34ac1b410d8p-2",
+     "0x1.4c91badbf3852p-1",
+     "0x1.2d9ee8090b897p-1"
+    ],
+    "second": [
+     "0x1.3b72bc2548472p-1",
+     "0x1.1f105f12bbedap-1",
+     "0x1.1b4013964e3c9p-1"
+    ],
+    "third": [
+     "0x1.3819955bfe9a0p-1",
+     "0x1.161177a4cc8eep-1",
+     "0x1.27a9545258656p-1"
+    ]
+   }
+  },
+  "vectors_16x16_w0_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.3b72bc2548472p-1",
+     "0x1.1f105f12bbedap-1",
+     "0x1.1b4013964e3c9p-1"
+    ],
+    "second": [
+     "0x1.32d38b6b1afc3p-1",
+     "0x1.1a046d5faa680p-1",
+     "0x1.296f78cf13832p-1"
+    ],
+    "third": [
+     "0x1.28a6edc5e30ddp-1",
+     "0x1.184c2cb119e53p-1",
+     "0x1.3526dbf3389dbp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.3b72bc2548472p-1",
+     "0x1.1f105f12bbedap-1",
+     "0x1.1b4013964e3c9p-1"
+    ],
+    "second": [
+     "0x1.32d38b6b1afc3p-1",
+     "0x1.1a046d5faa680p-1",
+     "0x1.296f78cf13832p-1"
+    ],
+    "third": [
+     "0x1.28a6edc5e30ddp-1",
+     "0x1.184c2cb119e53p-1",
+     "0x1.3526dbf3389dbp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.3b72bc2548472p-1",
+     "0x1.1f105f12bbedap-1",
+     "0x1.1b4013964e3c9p-1"
+    ],
+    "second": [
+     "0x1.32d38b6b1afc3p-1",
+     "0x1.1a046d5faa680p-1",
+     "0x1.296f78cf13832p-1"
+    ],
+    "third": [
+     "0x1.28a6edc5e30ddp-1",
+     "0x1.184c2cb119e53p-1",
+     "0x1.3526dbf3389dbp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w0_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.32d38b6b1afc3p-1",
+     "0x1.1a046d5faa680p-1",
+     "0x1.296f78cf13832p-1"
+    ],
+    "second": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ],
+    "third": [
+     "0x1.2a9acedd4d936p-1",
+     "0x1.2b0197a366276p-1",
+     "0x1.2117b1523c869p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.32d38b6b1afc3p-1",
+     "0x1.1a046d5faa680p-1",
+     "0x1.296f78cf13832p-1"
+    ],
+    "second": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ],
+    "third": [
+     "0x1.2a9acedd4d936p-1",
+     "0x1.2b0197a366276p-1",
+     "0x1.2117b1523c869p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.32d38b6b1afc3p-1",
+     "0x1.1a046d5faa680p-1",
+     "0x1.296f78cf13832p-1"
+    ],
+    "second": [
+     "0x1.320459f11da75p-1",
+     "0x1.1bc1e3da15fe5p-1",
+     "0x1.289cf5a58b59bp-1"
+    ],
+    "third": [
+     "0x1.2a9acedd4d936p-1",
+     "0x1.2b0197a366276p-1",
+     "0x1.2117b1523c869p-1"
+    ]
+   }
+  },
+  "vectors_16x16_w1_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ],
+    "second": [
+     "0x1.be55ff83b3b2bp-2",
+     "0x1.ca45521a530fep-1",
+     "0x1.81fd913833d83p-4"
+    ],
+    "third": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ],
+    "second": [
+     "0x1.be55ff83b3b2bp-2",
+     "0x1.ca45521a530fep-1",
+     "0x1.81fd913833d83p-4"
+    ],
+    "third": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ],
+    "second": [
+     "0x1.be55ff83b3b2bp-2",
+     "0x1.ca45521a530fep-1",
+     "0x1.81fd913833d83p-4"
+    ],
+    "third": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w1_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.be55ff83b3b2bp-2",
+     "0x1.ca45521a530fep-1",
+     "0x1.81fd913833d83p-4"
+    ],
+    "second": [
+     "0x1.277fc210d9d29p-1",
+     "0x1.2d14ad03650f5p-1",
+     "0x1.2220f49eacdb8p-1"
+    ],
+    "third": [
+     "0x1.31ae8b69ee67fp-1",
+     "0x1.1ffdcbdbc4428p-1",
+     "0x1.24daad4844c21p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.be55ff83b3b2bp-2",
+     "0x1.ca45521a530fep-1",
+     "0x1.81fd913833d83p-4"
+    ],
+    "second": [
+     "0x1.277fc210d9d29p-1",
+     "0x1.2d14ad03650f5p-1",
+     "0x1.2220f49eacdb8p-1"
+    ],
+    "third": [
+     "0x1.31ae8b69ee67fp-1",
+     "0x1.1ffdcbdbc4428p-1",
+     "0x1.24daad4844c21p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.be55ff83b3b2bp-2",
+     "0x1.ca45521a530fep-1",
+     "0x1.81fd913833d83p-4"
+    ],
+    "second": [
+     "0x1.277fc210d9d29p-1",
+     "0x1.2d14ad03650f5p-1",
+     "0x1.2220f49eacdb8p-1"
+    ],
+    "third": [
+     "0x1.31ae8b69ee67fp-1",
+     "0x1.1ffdcbdbc4428p-1",
+     "0x1.24daad4844c21p-1"
+    ]
+   }
+  },
+  "vectors_16x16_w1_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.277fc210d9d29p-1",
+     "0x1.2d14ad03650f5p-1",
+     "0x1.2220f49eacdb8p-1"
+    ],
+    "second": [
+     "0x1.f09a49d1750e9p-2",
+     "0x1.4f7bfab618387p-1",
+     "0x1.288c4b4f8c339p-1"
+    ],
+    "third": [
+     "0x1.33703b3ea148cp-1",
+     "0x1.1ec97420e85c1p-1",
+     "0x1.243258056446ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.277fc210d9d29p-1",
+     "0x1.2d14ad03650f5p-1",
+     "0x1.2220f49eacdb8p-1"
+    ],
+    "second": [
+     "0x1.f09a49d1750e9p-2",
+     "0x1.4f7bfab618387p-1",
+     "0x1.288c4b4f8c339p-1"
+    ],
+    "third": [
+     "0x1.33703b3ea148cp-1",
+     "0x1.1ec97420e85c1p-1",
+     "0x1.243258056446ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.277fc210d9d29p-1",
+     "0x1.2d14ad03650f5p-1",
+     "0x1.2220f49eacdb8p-1"
+    ],
+    "second": [
+     "0x1.f09a49d1750e9p-2",
+     "0x1.4f7bfab618387p-1",
+     "0x1.288c4b4f8c339p-1"
+    ],
+    "third": [
+     "0x1.33703b3ea148cp-1",
+     "0x1.1ec97420e85c1p-1",
+     "0x1.243258056446ap-1"
+    ]
+   }
+  },
+  "vectors_16x16_w1_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.f09a49d1750e9p-2",
+     "0x1.4f7bfab618387p-1",
+     "0x1.288c4b4f8c339p-1"
+    ],
+    "second": [
+     "0x1.3a761e28fd3a3p-1",
+     "0x1.242bd9c155000p-1",
+     "0x1.17184bac3eb96p-1"
+    ],
+    "third": [
+     "0x1.37616908f360ap-1",
+     "0x1.1bb6d951e33d0p-1",
+     "0x1.230503c31c0e9p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.f09a49d1750e9p-2",
+     "0x1.4f7bfab618387p-1",
+     "0x1.288c4b4f8c339p-1"
+    ],
+    "second": [
+     "0x1.3a761e28fd3a3p-1",
+     "0x1.242bd9c155000p-1",
+     "0x1.17184bac3eb96p-1"
+    ],
+    "third": [
+     "0x1.37616908f360ap-1",
+     "0x1.1bb6d951e33d0p-1",
+     "0x1.230503c31c0e9p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.f09a49d1750e9p-2",
+     "0x1.4f7bfab618387p-1",
+     "0x1.288c4b4f8c339p-1"
+    ],
+    "second": [
+     "0x1.3a761e28fd3a3p-1",
+     "0x1.242bd9c155000p-1",
+     "0x1.17184bac3eb96p-1"
+    ],
+    "third": [
+     "0x1.37616908f360ap-1",
+     "0x1.1bb6d951e33d0p-1",
+     "0x1.230503c31c0e9p-1"
+    ]
+   }
+  },
+  "vectors_16x16_w1_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.3a761e28fd3a3p-1",
+     "0x1.242bd9c155000p-1",
+     "0x1.17184bac3eb96p-1"
+    ],
+    "second": [
+     "0x1.3254ae85e4201p-1",
+     "0x1.1f7cb68ea83f3p-1",
+     "0x1.24abe4804761ep-1"
+    ],
+    "third": [
+     "0x1.28b3f3b8c8a3ap-1",
+     "0x1.1de906c3bb724p-1",
+     "0x1.2feb3c39f582cp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.3a761e28fd3a3p-1",
+     "0x1.242bd9c155000p-1",
+     "0x1.17184bac3eb96p-1"
+    ],
+    "second": [
+     "0x1.3254ae85e4201p-1",
+     "0x1.1f7cb68ea83f3p-1",
+     "0x1.24abe4804761ep-1"
+    ],
+    "third": [
+     "0x1.28b3f3b8c8a3ap-1",
+     "0x1.1de906c3bb724p-1",
+     "0x1.2feb3c39f582cp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.3a761e28fd3a3p-1",
+     "0x1.242bd9c155000p-1",
+     "0x1.17184bac3eb96p-1"
+    ],
+    "second": [
+     "0x1.3254ae85e4201p-1",
+     "0x1.1f7cb68ea83f3p-1",
+     "0x1.24abe4804761ep-1"
+    ],
+    "third": [
+     "0x1.28b3f3b8c8a3ap-1",
+     "0x1.1de906c3bb724p-1",
+     "0x1.2feb3c39f582cp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w1_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.3254ae85e4201p-1",
+     "0x1.1f7cb68ea83f3p-1",
+     "0x1.24abe4804761ep-1"
+    ],
+    "second": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ],
+    "third": [
+     "0x1.2a5da3e2740dfp-1",
+     "0x1.2f6027eabe3c3p-1",
+     "0x1.1cc124009cbe5p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.3254ae85e4201p-1",
+     "0x1.1f7cb68ea83f3p-1",
+     "0x1.24abe4804761ep-1"
+    ],
+    "second": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ],
+    "third": [
+     "0x1.2a5da3e2740dfp-1",
+     "0x1.2f6027eabe3c3p-1",
+     "0x1.1cc124009cbe5p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.3254ae85e4201p-1",
+     "0x1.1f7cb68ea83f3p-1",
+     "0x1.24abe4804761ep-1"
+    ],
+    "second": [
+     "0x1.318bbbf26804fp-1",
+     "0x1.211ca6a7ceba6p-1",
+     "0x1.23e3f52f9e36cp-1"
+    ],
+    "third": [
+     "0x1.2a5da3e2740dfp-1",
+     "0x1.2f6027eabe3c3p-1",
+     "0x1.1cc124009cbe5p-1"
+    ]
+   }
+  },
+  "vectors_16x16_w2_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ],
+    "second": [
+     "0x1.b22a1be5d4431p-2",
+     "0x1.ce13ea4072b1dp-1",
+     "0x1.3630de974b299p-4"
+    ],
+    "third": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ],
+    "second": [
+     "0x1.b22a1be5d4431p-2",
+     "0x1.ce13ea4072b1dp-1",
+     "0x1.3630de974b299p-4"
+    ],
+    "third": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ],
+    "second": [
+     "0x1.b22a1be5d4431p-2",
+     "0x1.ce13ea4072b1dp-1",
+     "0x1.3630de974b299p-4"
+    ],
+    "third": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ]
+   }
+  },
+  "vectors_16x16_w2_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.b22a1be5d4431p-2",
+     "0x1.ce13ea4072b1dp-1",
+     "0x1.3630de974b299p-4"
+    ],
+    "second": [
+     "0x1.261f9c385403fp-1",
+     "0x1.28c2b311ef06dp-1",
+     "0x1.27eb7b70e521bp-1"
+    ],
+    "third": [
+     "0x1.30f05ab4bb6a4p-1",
+     "0x1.1a7746a447382p-1",
+     "0x1.2af26b71a46cdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.b22a1be5d4431p-2",
+     "0x1.ce13ea4072b1dp-1",
+     "0x1.3630de974b299p-4"
+    ],
+    "second": [
+     "0x1.261f9c385403fp-1",
+     "0x1.28c2b311ef06dp-1",
+     "0x1.27eb7b70e521bp-1"
+    ],
+    "third": [
+     "0x1.30f05ab4bb6a4p-1",
+     "0x1.1a7746a447382p-1",
+     "0x1.2af26b71a46cdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.b22a1be5d4431p-2",
+     "0x1.ce13ea4072b1dp-1",
+     "0x1.3630de974b299p-4"
+    ],
+    "second": [
+     "0x1.261f9c385403fp-1",
+     "0x1.28c2b311ef06dp-1",
+     "0x1.27eb7b70e521bp-1"
+    ],
+    "third": [
+     "0x1.30f05ab4bb6a4p-1",
+     "0x1.1a7746a447382p-1",
+     "0x1.2af26b71a46cdp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w2_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.261f9c385403fp-1",
+     "0x1.28c2b311ef06dp-1",
+     "0x1.27eb7b70e521bp-1"
+    ],
+    "second": [
+     "0x1.e68be79564fcap-2",
+     "0x1.4d82e2b5de724p-1",
+     "0x1.2edf9dacc2b8dp-1"
+    ],
+    "third": [
+     "0x1.32d24f2f66c0bp-1",
+     "0x1.19235e467790dp-1",
+     "0x1.2a4581603e020p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.261f9c385403fp-1",
+     "0x1.28c2b311ef06dp-1",
+     "0x1.27eb7b70e521bp-1"
+    ],
+    "second": [
+     "0x1.e68be79564fcap-2",
+     "0x1.4d82e2b5de724p-1",
+     "0x1.2edf9dacc2b8dp-1"
+    ],
+    "third": [
+     "0x1.32d24f2f66c0bp-1",
+     "0x1.19235e467790dp-1",
+     "0x1.2a4581603e020p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.261f9c385403fp-1",
+     "0x1.28c2b311ef06dp-1",
+     "0x1.27eb7b70e521bp-1"
+    ],
+    "second": [
+     "0x1.e68be79564fcap-2",
+     "0x1.4d82e2b5de724p-1",
+     "0x1.2edf9dacc2b8dp-1"
+    ],
+    "third": [
+     "0x1.32d24f2f66c0bp-1",
+     "0x1.19235e467790dp-1",
+     "0x1.2a4581603e020p-1"
+    ]
+   }
+  },
+  "vectors_16x16_w2_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.e68be79564fcap-2",
+     "0x1.4d82e2b5de724p-1",
+     "0x1.2edf9dacc2b8dp-1"
+    ],
+    "second": [
+     "0x1.3a823bb640387p-1",
+     "0x1.1f1a59877d042p-1",
+     "0x1.1c40f314962b0p-1"
+    ],
+    "third": [
+     "0x1.370d4375e5a35p-1",
+     "0x1.15dcf13215ee8p-1",
+     "0x1.28f4bf7775dfdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.e68be79564fcap-2",
+     "0x1.4d82e2b5de724p-1",
+     "0x1.2edf9dacc2b8dp-1"
+    ],
+    "second": [
+     "0x1.3a823bb640387p-1",
+     "0x1.1f1a59877d042p-1",
+     "0x1.1c40f314962b0p-1"
+    ],
+    "third": [
+     "0x1.370d4375e5a35p-1",
+     "0x1.15dcf13215ee8p-1",
+     "0x1.28f4bf7775dfdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.e68be79564fcap-2",
+     "0x1.4d82e2b5de724p-1",
+     "0x1.2edf9dacc2b8dp-1"
+    ],
+    "second": [
+     "0x1.3a823bb640387p-1",
+     "0x1.1f1a59877d042p-1",
+     "0x1.1c40f314962b0p-1"
+    ],
+    "third": [
+     "0x1.370d4375e5a35p-1",
+     "0x1.15dcf13215ee8p-1",
+     "0x1.28f4bf7775dfdp-1"
+    ]
+   }
+  },
+  "vectors_16x16_w2_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.3a823bb640387p-1",
+     "0x1.1f1a59877d042p-1",
+     "0x1.1c40f314962b0p-1"
+    ],
+    "second": [
+     "0x1.31a1d5ddd4eeap-1",
+     "0x1.19e6bf571d2d4p-1",
+     "0x1.2ac596245f0e2p-1"
+    ],
+    "third": [
+     "0x1.272b7d9039d11p-1",
+     "0x1.181adcad370ccp-1",
+     "0x1.36bdb20238e82p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.3a823bb640387p-1",
+     "0x1.1f1a59877d042p-1",
+     "0x1.1c40f314962b0p-1"
+    ],
+    "second": [
+     "0x1.31a1d5ddd4eeap-1",
+     "0x1.19e6bf571d2d4p-1",
+     "0x1.2ac596245f0e2p-1"
+    ],
+    "third": [
+     "0x1.272b7d9039d11p-1",
+     "0x1.181adcad370ccp-1",
+     "0x1.36bdb20238e82p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.3a823bb640387p-1",
+     "0x1.1f1a59877d042p-1",
+     "0x1.1c40f314962b0p-1"
+    ],
+    "second": [
+     "0x1.31a1d5ddd4eeap-1",
+     "0x1.19e6bf571d2d4p-1",
+     "0x1.2ac596245f0e2p-1"
+    ],
+    "third": [
+     "0x1.272b7d9039d11p-1",
+     "0x1.181adcad370ccp-1",
+     "0x1.36bdb20238e82p-1"
+    ]
+   }
+  },
+  "vectors_16x16_w2_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.31a1d5ddd4eeap-1",
+     "0x1.19e6bf571d2d4p-1",
+     "0x1.2ac596245f0e2p-1"
+    ],
+    "second": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ],
+    "third": [
+     "0x1.294238485e77fp-1",
+     "0x1.2b4cc20811ca6p-1",
+     "0x1.222c848912860p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.31a1d5ddd4eeap-1",
+     "0x1.19e6bf571d2d4p-1",
+     "0x1.2ac596245f0e2p-1"
+    ],
+    "second": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ],
+    "third": [
+     "0x1.294238485e77fp-1",
+     "0x1.2b4cc20811ca6p-1",
+     "0x1.222c848912860p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.31a1d5ddd4eeap-1",
+     "0x1.19e6bf571d2d4p-1",
+     "0x1.2ac596245f0e2p-1"
+    ],
+    "second": [
+     "0x1.30cec8849c0f0p-1",
+     "0x1.1baf7b060810fp-1",
+     "0x1.29ec942e4c16ap-1"
+    ],
+    "third": [
+     "0x1.294238485e77fp-1",
+     "0x1.2b4cc20811ca6p-1",
+     "0x1.222c848912860p-1"
+    ]
+   }
+  },
+  "vectors_1x1_w0_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w0_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w0_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w0_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w0_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w0_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "second": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ],
+    "third": [
+     "0x1.304c8e30b3e92p-1",
+     "0x1.989e380db5849p-1",
+     "0x1.9624cc194a885p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w1_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w1_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w1_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w1_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w1_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w1_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "second": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ],
+    "third": [
+     "0x1.2fdd3706bbdb0p-1",
+     "0x1.9817be92b5b92p-1",
+     "0x1.c988ceda83718p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w2_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w2_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w2_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w2_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w2_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   }
+  },
+  "vectors_1x1_w2_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "second": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ],
+    "third": [
+     "0x1.2e6a21c26369bp-1",
+     "0x1.9a911ce2b6358p-1",
+     "0x1.70b84dcd44512p-4"
+    ]
+   }
+  },
+  "vectors_33x20_w0_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ],
+    "second": [
+     "0x1.0487126d0e491p-2",
+     "0x1.e99d603b59d90p-1",
+     "0x1.275ede21b0d8bp-3"
+    ],
+    "third": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ],
+    "second": [
+     "0x1.0487126d0e491p-2",
+     "0x1.e99d603b59d90p-1",
+     "0x1.275ede21b0d8bp-3"
+    ],
+    "third": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ],
+    "second": [
+     "0x1.0487126d0e491p-2",
+     "0x1.e99d603b59d90p-1",
+     "0x1.275ede21b0d8bp-3"
+    ],
+    "third": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w0_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.0487126d0e491p-2",
+     "0x1.e99d603b59d90p-1",
+     "0x1.275ede21b0d8bp-3"
+    ],
+    "second": [
+     "0x1.0822e0194ecf8p-1",
+     "0x1.2f255eeea0b17p-1",
+     "0x1.3cfbc9684c8f2p-1"
+    ],
+    "third": [
+     "0x1.22dddc37fddc1p-1",
+     "0x1.20af61dda18d1p-1",
+     "0x1.32ec333f2e0bap-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.0487126d0e491p-2",
+     "0x1.e99d603b59d90p-1",
+     "0x1.275ede21b0d8bp-3"
+    ],
+    "second": [
+     "0x1.0822e0194ecf8p-1",
+     "0x1.2f255eeea0b17p-1",
+     "0x1.3cfbc9684c8f2p-1"
+    ],
+    "third": [
+     "0x1.22dddc37fddc1p-1",
+     "0x1.20af61dda18d1p-1",
+     "0x1.32ec333f2e0bap-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.0487126d0e491p-2",
+     "0x1.e99d603b59d90p-1",
+     "0x1.275ede21b0d8bp-3"
+    ],
+    "second": [
+     "0x1.0822e0194ecf8p-1",
+     "0x1.2f255eeea0b17p-1",
+     "0x1.3cfbc9684c8f2p-1"
+    ],
+    "third": [
+     "0x1.22dddc37fddc1p-1",
+     "0x1.20af61dda18d1p-1",
+     "0x1.32ec333f2e0bap-1"
+    ]
+   }
+  },
+  "vectors_33x20_w0_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.0822e0194ecf8p-1",
+     "0x1.2f255eeea0b17p-1",
+     "0x1.3cfbc9684c8f2p-1"
+    ],
+    "second": [
+     "0x1.2614a30bf703bp-1",
+     "0x1.380d5846f005bp-1",
+     "0x1.17cafaf71c8bdp-1"
+    ],
+    "third": [
+     "0x1.26d7507e60554p-1",
+     "0x1.1eac1991a4be4p-1",
+     "0x1.3102d5ae6a799p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.0822e0194ecf8p-1",
+     "0x1.2f255eeea0b17p-1",
+     "0x1.3cfbc9684c8f2p-1"
+    ],
+    "second": [
+     "0x1.2614a30bf703bp-1",
+     "0x1.380d5846f005bp-1",
+     "0x1.17cafaf71c8bdp-1"
+    ],
+    "third": [
+     "0x1.26d7507e60554p-1",
+     "0x1.1eac1991a4be4p-1",
+     "0x1.3102d5ae6a799p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.0822e0194ecf8p-1",
+     "0x1.2f255eeea0b17p-1",
+     "0x1.3cfbc9684c8f2p-1"
+    ],
+    "second": [
+     "0x1.2614a30bf703bp-1",
+     "0x1.380d5846f005bp-1",
+     "0x1.17cafaf71c8bdp-1"
+    ],
+    "third": [
+     "0x1.26d7507e60554p-1",
+     "0x1.1eac1991a4be4p-1",
+     "0x1.3102d5ae6a799p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w0_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.2614a30bf703bp-1",
+     "0x1.380d5846f005bp-1",
+     "0x1.17cafaf71c8bdp-1"
+    ],
+    "second": [
+     "0x1.318dcc8b9ba6fp-1",
+     "0x1.14011abbdcbacp-1",
+     "0x1.304e75353e231p-1"
+    ],
+    "third": [
+     "0x1.225bd91722a46p-1",
+     "0x1.1eafd19fc96b6p-1",
+     "0x1.354482ca5a827p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2614a30bf703bp-1",
+     "0x1.380d5846f005bp-1",
+     "0x1.17cafaf71c8bdp-1"
+    ],
+    "second": [
+     "0x1.318dcc8b9ba6fp-1",
+     "0x1.14011abbdcbacp-1",
+     "0x1.304e75353e231p-1"
+    ],
+    "third": [
+     "0x1.225bd91722a46p-1",
+     "0x1.1eafd19fc96b6p-1",
+     "0x1.354482ca5a827p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2614a30bf703bp-1",
+     "0x1.380d5846f005bp-1",
+     "0x1.17cafaf71c8bdp-1"
+    ],
+    "second": [
+     "0x1.318dcc8b9ba6fp-1",
+     "0x1.14011abbdcbacp-1",
+     "0x1.304e75353e231p-1"
+    ],
+    "third": [
+     "0x1.225bd91722a46p-1",
+     "0x1.1eafd19fc96b6p-1",
+     "0x1.354482ca5a827p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w0_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.318dcc8b9ba6fp-1",
+     "0x1.14011abbdcbacp-1",
+     "0x1.304e75353e231p-1"
+    ],
+    "second": [
+     "0x1.24a47b1b0a821p-1",
+     "0x1.2134d12fd94f8p-1",
+     "0x1.30bc6efb917f9p-1"
+    ],
+    "third": [
+     "0x1.1266452268291p-1",
+     "0x1.2e745fe11a61dp-1",
+     "0x1.34d2107bd8548p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.318dcc8b9ba6fp-1",
+     "0x1.14011abbdcbacp-1",
+     "0x1.304e75353e231p-1"
+    ],
+    "second": [
+     "0x1.24a47b1b0a821p-1",
+     "0x1.2134d12fd94f8p-1",
+     "0x1.30bc6efb917f9p-1"
+    ],
+    "third": [
+     "0x1.1266452268291p-1",
+     "0x1.2e745fe11a61dp-1",
+     "0x1.34d2107bd8548p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.318dcc8b9ba6fp-1",
+     "0x1.14011abbdcbacp-1",
+     "0x1.304e75353e231p-1"
+    ],
+    "second": [
+     "0x1.24a47b1b0a821p-1",
+     "0x1.2134d12fd94f8p-1",
+     "0x1.30bc6efb917f9p-1"
+    ],
+    "third": [
+     "0x1.1266452268291p-1",
+     "0x1.2e745fe11a61dp-1",
+     "0x1.34d2107bd8548p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w0_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.24a47b1b0a821p-1",
+     "0x1.2134d12fd94f8p-1",
+     "0x1.30bc6efb917f9p-1"
+    ],
+    "second": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ],
+    "third": [
+     "0x1.1391949559b54p-1",
+     "0x1.1f11c66e2c0aap-1",
+     "0x1.422cece6a3d5ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.24a47b1b0a821p-1",
+     "0x1.2134d12fd94f8p-1",
+     "0x1.30bc6efb917f9p-1"
+    ],
+    "second": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ],
+    "third": [
+     "0x1.1391949559b54p-1",
+     "0x1.1f11c66e2c0aap-1",
+     "0x1.422cece6a3d5ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.24a47b1b0a821p-1",
+     "0x1.2134d12fd94f8p-1",
+     "0x1.30bc6efb917f9p-1"
+    ],
+    "second": [
+     "0x1.22c1a1dc2fce0p-1",
+     "0x1.20ffc5f405854p-1",
+     "0x1.32bb46a4f9d09p-1"
+    ],
+    "third": [
+     "0x1.1391949559b54p-1",
+     "0x1.1f11c66e2c0aap-1",
+     "0x1.422cece6a3d5ap-1"
+    ]
+   }
+  },
+  "vectors_33x20_w1_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ],
+    "second": [
+     "0x1.19824fa4c4aeap-2",
+     "0x1.e57bef523ee4cp-1",
+     "0x1.45e11eea0016cp-3"
+    ],
+    "third": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ],
+    "second": [
+     "0x1.19824fa4c4aeap-2",
+     "0x1.e57bef523ee4cp-1",
+     "0x1.45e11eea0016cp-3"
+    ],
+    "third": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ],
+    "second": [
+     "0x1.19824fa4c4aeap-2",
+     "0x1.e57bef523ee4cp-1",
+     "0x1.45e11eea0016cp-3"
+    ],
+    "third": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ]
+   }
+  },
+  "vectors_33x20_w1_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.19824fa4c4aeap-2",
+     "0x1.e57bef523ee4cp-1",
+     "0x1.45e11eea0016cp-3"
+    ],
+    "second": [
+     "0x1.09c9f3317c1a3p-1",
+     "0x1.340ec5636d41dp-1",
+     "0x1.36ce7c37679bcp-1"
+    ],
+    "third": [
+     "0x1.2321ece1d7937p-1",
+     "0x1.25f8cbd89d2b0p-1",
+     "0x1.2d9b3addec9fdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.19824fa4c4aeap-2",
+     "0x1.e57bef523ee4cp-1",
+     "0x1.45e11eea0016cp-3"
+    ],
+    "second": [
+     "0x1.09c9f3317c1a3p-1",
+     "0x1.340ec5636d41dp-1",
+     "0x1.36ce7c37679bcp-1"
+    ],
+    "third": [
+     "0x1.2321ece1d7937p-1",
+     "0x1.25f8cbd89d2b0p-1",
+     "0x1.2d9b3addec9fdp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.19824fa4c4aeap-2",
+     "0x1.e57bef523ee4cp-1",
+     "0x1.45e11eea0016cp-3"
+    ],
+    "second": [
+     "0x1.09c9f3317c1a3p-1",
+     "0x1.340ec5636d41dp-1",
+     "0x1.36ce7c37679bcp-1"
+    ],
+    "third": [
+     "0x1.2321ece1d7937p-1",
+     "0x1.25f8cbd89d2b0p-1",
+     "0x1.2d9b3addec9fdp-1"
+    ]
+   }
+  },
+  "vectors_33x20_w1_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.09c9f3317c1a3p-1",
+     "0x1.340ec5636d41dp-1",
+     "0x1.36ce7c37679bcp-1"
+    ],
+    "second": [
+     "0x1.25f15d29de091p-1",
+     "0x1.3bdce587c2fd3p-1",
+     "0x1.13a17273ec017p-1"
+    ],
+    "third": [
+     "0x1.26eaa9c95dc1fp-1",
+     "0x1.2400192d73a6fp-1",
+     "0x1.2bd7013e722e2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.09c9f3317c1a3p-1",
+     "0x1.340ec5636d41dp-1",
+     "0x1.36ce7c37679bcp-1"
+    ],
+    "second": [
+     "0x1.25f15d29de091p-1",
+     "0x1.3bdce587c2fd3p-1",
+     "0x1.13a17273ec017p-1"
+    ],
+    "third": [
+     "0x1.26eaa9c95dc1fp-1",
+     "0x1.2400192d73a6fp-1",
+     "0x1.2bd7013e722e2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.09c9f3317c1a3p-1",
+     "0x1.340ec5636d41dp-1",
+     "0x1.36ce7c37679bcp-1"
+    ],
+    "second": [
+     "0x1.25f15d29de091p-1",
+     "0x1.3bdce587c2fd3p-1",
+     "0x1.13a17273ec017p-1"
+    ],
+    "third": [
+     "0x1.26eaa9c95dc1fp-1",
+     "0x1.2400192d73a6fp-1",
+     "0x1.2bd7013e722e2p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w1_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.25f15d29de091p-1",
+     "0x1.3bdce587c2fd3p-1",
+     "0x1.13a17273ec017p-1"
+    ],
+    "second": [
+     "0x1.3130c726b9b44p-1",
+     "0x1.19d8dde0a691fp-1",
+     "0x1.2b4624e0477f6p-1"
+    ],
+    "third": [
+     "0x1.22aca2415123dp-1",
+     "0x1.241b90975dad6p-1",
+     "0x1.2fd9e5adbdf3dp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.25f15d29de091p-1",
+     "0x1.3bdce587c2fd3p-1",
+     "0x1.13a17273ec017p-1"
+    ],
+    "second": [
+     "0x1.3130c726b9b44p-1",
+     "0x1.19d8dde0a691fp-1",
+     "0x1.2b4624e0477f6p-1"
+    ],
+    "third": [
+     "0x1.22aca2415123dp-1",
+     "0x1.241b90975dad6p-1",
+     "0x1.2fd9e5adbdf3dp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.25f15d29de091p-1",
+     "0x1.3bdce587c2fd3p-1",
+     "0x1.13a17273ec017p-1"
+    ],
+    "second": [
+     "0x1.3130c726b9b44p-1",
+     "0x1.19d8dde0a691fp-1",
+     "0x1.2b4624e0477f6p-1"
+    ],
+    "third": [
+     "0x1.22aca2415123dp-1",
+     "0x1.241b90975dad6p-1",
+     "0x1.2fd9e5adbdf3dp-1"
+    ]
+   }
+  },
+  "vectors_33x20_w1_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.3130c726b9b44p-1",
+     "0x1.19d8dde0a691fp-1",
+     "0x1.2b4624e0477f6p-1"
+    ],
+    "second": [
+     "0x1.24cf348088ca9p-1",
+     "0x1.2681ea498f028p-1",
+     "0x1.2b73ed2619d85p-1"
+    ],
+    "third": [
+     "0x1.136c6e5167bb7p-1",
+     "0x1.331e82d11ccf8p-1",
+     "0x1.2f414fd82d513p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.3130c726b9b44p-1",
+     "0x1.19d8dde0a691fp-1",
+     "0x1.2b4624e0477f6p-1"
+    ],
+    "second": [
+     "0x1.24cf348088ca9p-1",
+     "0x1.2681ea498f028p-1",
+     "0x1.2b73ed2619d85p-1"
+    ],
+    "third": [
+     "0x1.136c6e5167bb7p-1",
+     "0x1.331e82d11ccf8p-1",
+     "0x1.2f414fd82d513p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.3130c726b9b44p-1",
+     "0x1.19d8dde0a691fp-1",
+     "0x1.2b4624e0477f6p-1"
+    ],
+    "second": [
+     "0x1.24cf348088ca9p-1",
+     "0x1.2681ea498f028p-1",
+     "0x1.2b73ed2619d85p-1"
+    ],
+    "third": [
+     "0x1.136c6e5167bb7p-1",
+     "0x1.331e82d11ccf8p-1",
+     "0x1.2f414fd82d513p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w1_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.24cf348088ca9p-1",
+     "0x1.2681ea498f028p-1",
+     "0x1.2b73ed2619d85p-1"
+    ],
+    "second": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ],
+    "third": [
+     "0x1.1495f1040c10cp-1",
+     "0x1.241ce259b78e3p-1",
+     "0x1.3cb97c24229c2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.24cf348088ca9p-1",
+     "0x1.2681ea498f028p-1",
+     "0x1.2b73ed2619d85p-1"
+    ],
+    "second": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ],
+    "third": [
+     "0x1.1495f1040c10cp-1",
+     "0x1.241ce259b78e3p-1",
+     "0x1.3cb97c24229c2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.24cf348088ca9p-1",
+     "0x1.2681ea498f028p-1",
+     "0x1.2b73ed2619d85p-1"
+    ],
+    "second": [
+     "0x1.23065d9156e08p-1",
+     "0x1.2645676be231dp-1",
+     "0x1.2d6b1b319664ep-1"
+    ],
+    "third": [
+     "0x1.1495f1040c10cp-1",
+     "0x1.241ce259b78e3p-1",
+     "0x1.3cb97c24229c2p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w2_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ],
+    "second": [
+     "0x1.e78da81cf8f36p-3",
+     "0x1.eca70138abc3ap-1",
+     "0x1.0eba9883fccd4p-3"
+    ],
+    "third": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ],
+    "second": [
+     "0x1.e78da81cf8f36p-3",
+     "0x1.eca70138abc3ap-1",
+     "0x1.0eba9883fccd4p-3"
+    ],
+    "third": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ],
+    "second": [
+     "0x1.e78da81cf8f36p-3",
+     "0x1.eca70138abc3ap-1",
+     "0x1.0eba9883fccd4p-3"
+    ],
+    "third": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w2_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.e78da81cf8f36p-3",
+     "0x1.eca70138abc3ap-1",
+     "0x1.0eba9883fccd4p-3"
+    ],
+    "second": [
+     "0x1.05881715ad843p-1",
+     "0x1.2f74ffed12debp-1",
+     "0x1.3ed7152a17d9bp-1"
+    ],
+    "third": [
+     "0x1.21317b5d654a8p-1",
+     "0x1.20b1fe8add8abp-1",
+     "0x1.347d84efdbf24p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.e78da81cf8f36p-3",
+     "0x1.eca70138abc3ap-1",
+     "0x1.0eba9883fccd4p-3"
+    ],
+    "second": [
+     "0x1.05881715ad843p-1",
+     "0x1.2f74ffed12debp-1",
+     "0x1.3ed7152a17d9bp-1"
+    ],
+    "third": [
+     "0x1.21317b5d654a8p-1",
+     "0x1.20b1fe8add8abp-1",
+     "0x1.347d84efdbf24p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.e78da81cf8f36p-3",
+     "0x1.eca70138abc3ap-1",
+     "0x1.0eba9883fccd4p-3"
+    ],
+    "second": [
+     "0x1.05881715ad843p-1",
+     "0x1.2f74ffed12debp-1",
+     "0x1.3ed7152a17d9bp-1"
+    ],
+    "third": [
+     "0x1.21317b5d654a8p-1",
+     "0x1.20b1fe8add8abp-1",
+     "0x1.347d84efdbf24p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w2_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.05881715ad843p-1",
+     "0x1.2f74ffed12debp-1",
+     "0x1.3ed7152a17d9bp-1"
+    ],
+    "second": [
+     "0x1.248ffb444059dp-1",
+     "0x1.38addb024ddd9p-1",
+     "0x1.18aede6262588p-1"
+    ],
+    "third": [
+     "0x1.254bf6ff17e9dp-1",
+     "0x1.1ea464e27ad77p-1",
+     "0x1.328648382b75ep-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.05881715ad843p-1",
+     "0x1.2f74ffed12debp-1",
+     "0x1.3ed7152a17d9bp-1"
+    ],
+    "second": [
+     "0x1.248ffb444059dp-1",
+     "0x1.38addb024ddd9p-1",
+     "0x1.18aede6262588p-1"
+    ],
+    "third": [
+     "0x1.254bf6ff17e9dp-1",
+     "0x1.1ea464e27ad77p-1",
+     "0x1.328648382b75ep-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.05881715ad843p-1",
+     "0x1.2f74ffed12debp-1",
+     "0x1.3ed7152a17d9bp-1"
+    ],
+    "second": [
+     "0x1.248ffb444059dp-1",
+     "0x1.38addb024ddd9p-1",
+     "0x1.18aede6262588p-1"
+    ],
+    "third": [
+     "0x1.254bf6ff17e9dp-1",
+     "0x1.1ea464e27ad77p-1",
+     "0x1.328648382b75ep-1"
+    ]
+   }
+  },
+  "vectors_33x20_w2_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.248ffb444059dp-1",
+     "0x1.38addb024ddd9p-1",
+     "0x1.18aede6262588p-1"
+    ],
+    "second": [
+     "0x1.304ec8e58a368p-1",
+     "0x1.13b9429f3ce2fp-1",
+     "0x1.31ce4f6267a13p-1"
+    ],
+    "third": [
+     "0x1.20a99f777bf61p-1",
+     "0x1.1ea40fc3d58fap-1",
+     "0x1.36e4ccc7ddc6fp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.248ffb444059dp-1",
+     "0x1.38addb024ddd9p-1",
+     "0x1.18aede6262588p-1"
+    ],
+    "second": [
+     "0x1.304ec8e58a368p-1",
+     "0x1.13b9429f3ce2fp-1",
+     "0x1.31ce4f6267a13p-1"
+    ],
+    "third": [
+     "0x1.20a99f777bf61p-1",
+     "0x1.1ea40fc3d58fap-1",
+     "0x1.36e4ccc7ddc6fp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.248ffb444059dp-1",
+     "0x1.38addb024ddd9p-1",
+     "0x1.18aede6262588p-1"
+    ],
+    "second": [
+     "0x1.304ec8e58a368p-1",
+     "0x1.13b9429f3ce2fp-1",
+     "0x1.31ce4f6267a13p-1"
+    ],
+    "third": [
+     "0x1.20a99f777bf61p-1",
+     "0x1.1ea40fc3d58fap-1",
+     "0x1.36e4ccc7ddc6fp-1"
+    ]
+   }
+  },
+  "vectors_33x20_w2_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.304ec8e58a368p-1",
+     "0x1.13b9429f3ce2fp-1",
+     "0x1.31ce4f6267a13p-1"
+    ],
+    "second": [
+     "0x1.2300c592d1bf1p-1",
+     "0x1.213cb967b9162p-1",
+     "0x1.3245dc56ca3acp-1"
+    ],
+    "third": [
+     "0x1.103950cb29522p-1",
+     "0x1.2ec730e7e6ee4p-1",
+     "0x1.366cc26fa1b45p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.304ec8e58a368p-1",
+     "0x1.13b9429f3ce2fp-1",
+     "0x1.31ce4f6267a13p-1"
+    ],
+    "second": [
+     "0x1.2300c592d1bf1p-1",
+     "0x1.213cb967b9162p-1",
+     "0x1.3245dc56ca3acp-1"
+    ],
+    "third": [
+     "0x1.103950cb29522p-1",
+     "0x1.2ec730e7e6ee4p-1",
+     "0x1.366cc26fa1b45p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.304ec8e58a368p-1",
+     "0x1.13b9429f3ce2fp-1",
+     "0x1.31ce4f6267a13p-1"
+    ],
+    "second": [
+     "0x1.2300c592d1bf1p-1",
+     "0x1.213cb967b9162p-1",
+     "0x1.3245dc56ca3acp-1"
+    ],
+    "third": [
+     "0x1.103950cb29522p-1",
+     "0x1.2ec730e7e6ee4p-1",
+     "0x1.366cc26fa1b45p-1"
+    ]
+   }
+  },
+  "vectors_33x20_w2_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.2300c592d1bf1p-1",
+     "0x1.213cb967b9162p-1",
+     "0x1.3245dc56ca3acp-1"
+    ],
+    "second": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ],
+    "third": [
+     "0x1.11a0aa97c40c2p-1",
+     "0x1.1efc0c6cdfc0ap-1",
+     "0x1.43e6a189358abp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2300c592d1bf1p-1",
+     "0x1.213cb967b9162p-1",
+     "0x1.3245dc56ca3acp-1"
+    ],
+    "second": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ],
+    "third": [
+     "0x1.11a0aa97c40c2p-1",
+     "0x1.1efc0c6cdfc0ap-1",
+     "0x1.43e6a189358abp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2300c592d1bf1p-1",
+     "0x1.213cb967b9162p-1",
+     "0x1.3245dc56ca3acp-1"
+    ],
+    "second": [
+     "0x1.21144c8989eb3p-1",
+     "0x1.210476a22c32dp-1",
+     "0x1.344ba29f05c88p-1"
+    ],
+    "third": [
+     "0x1.11a0aa97c40c2p-1",
+     "0x1.1efc0c6cdfc0ap-1",
+     "0x1.43e6a189358abp-1"
+    ]
+   }
+  },
+  "vectors_5x7_w0_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ],
+    "second": [
+     "0x1.4aee8e64d2a57p-1",
+     "0x1.2554308ed4fe6p-2",
+     "0x1.6a1a09a0ff7e4p-1"
+    ],
+    "third": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ],
+    "second": [
+     "0x1.4aee8e64d2a57p-1",
+     "0x1.2554308ed4fe6p-2",
+     "0x1.6a1a09a0ff7e4p-1"
+    ],
+    "third": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ],
+    "second": [
+     "0x1.4aee8e64d2a57p-1",
+     "0x1.2554308ed4fe6p-2",
+     "0x1.6a1a09a0ff7e4p-1"
+    ],
+    "third": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ]
+   }
+  },
+  "vectors_5x7_w0_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.4aee8e64d2a57p-1",
+     "0x1.2554308ed4fe6p-2",
+     "0x1.6a1a09a0ff7e4p-1"
+    ],
+    "second": [
+     "0x1.5c1b840bdca70p-2",
+     "0x1.98f26776f9004p-2",
+     "0x1.b3ef87d0a29e4p-1"
+    ],
+    "third": [
+     "0x1.212672d0f0da3p-1",
+     "0x1.3bcabf0a23e67p-1",
+     "0x1.18bbe94dd9547p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.4aee8e64d2a57p-1",
+     "0x1.2554308ed4fe6p-2",
+     "0x1.6a1a09a0ff7e4p-1"
+    ],
+    "second": [
+     "0x1.5c1b840bdca70p-2",
+     "0x1.98f26776f9004p-2",
+     "0x1.b3ef87d0a29e4p-1"
+    ],
+    "third": [
+     "0x1.212672d0f0da3p-1",
+     "0x1.3bcabf0a23e67p-1",
+     "0x1.18bbe94dd9547p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.4aee8e64d2a57p-1",
+     "0x1.2554308ed4fe6p-2",
+     "0x1.6a1a09a0ff7e4p-1"
+    ],
+    "second": [
+     "0x1.5c1b840bdca70p-2",
+     "0x1.98f26776f9004p-2",
+     "0x1.b3ef87d0a29e4p-1"
+    ],
+    "third": [
+     "0x1.212672d0f0da3p-1",
+     "0x1.3bcabf0a23e67p-1",
+     "0x1.18bbe94dd9547p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w0_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.5c1b840bdca70p-2",
+     "0x1.98f26776f9004p-2",
+     "0x1.b3ef87d0a29e4p-1"
+    ],
+    "second": [
+     "0x1.2856e311b06a9p-1",
+     "0x1.587a3608974e0p-1",
+     "0x1.d7db6d121cf9bp-2"
+    ],
+    "third": [
+     "0x1.2b616bffe79afp-1",
+     "0x1.4269da6e24cf2p-1",
+     "0x1.05d94eeb8f71dp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.5c1b840bdca70p-2",
+     "0x1.98f26776f9004p-2",
+     "0x1.b3ef87d0a29e4p-1"
+    ],
+    "second": [
+     "0x1.2856e311b06a9p-1",
+     "0x1.587a3608974e0p-1",
+     "0x1.d7db6d121cf9bp-2"
+    ],
+    "third": [
+     "0x1.2b616bffe79afp-1",
+     "0x1.4269da6e24cf2p-1",
+     "0x1.05d94eeb8f71dp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.5c1b840bdca70p-2",
+     "0x1.98f26776f9004p-2",
+     "0x1.b3ef87d0a29e4p-1"
+    ],
+    "second": [
+     "0x1.2856e311b06a9p-1",
+     "0x1.587a3608974e0p-1",
+     "0x1.d7db6d121cf9bp-2"
+    ],
+    "third": [
+     "0x1.2b616bffe79afp-1",
+     "0x1.4269da6e24cf2p-1",
+     "0x1.05d94eeb8f71dp-1"
+    ]
+   }
+  },
+  "vectors_5x7_w0_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.2856e311b06a9p-1",
+     "0x1.587a3608974e0p-1",
+     "0x1.d7db6d121cf9bp-2"
+    ],
+    "second": [
+     "0x1.e9273fbcfea93p-2",
+     "0x1.2ee157794ab52p-1",
+     "0x1.4c8cebe0c39e0p-1"
+    ],
+    "third": [
+     "0x1.203b9c236607ap-1",
+     "0x1.33601c383859dp-1",
+     "0x1.22d6467c0fba7p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2856e311b06a9p-1",
+     "0x1.587a3608974e0p-1",
+     "0x1.d7db6d121cf9bp-2"
+    ],
+    "second": [
+     "0x1.e9273fbcfea93p-2",
+     "0x1.2ee157794ab52p-1",
+     "0x1.4c8cebe0c39e0p-1"
+    ],
+    "third": [
+     "0x1.203b9c236607ap-1",
+     "0x1.33601c383859dp-1",
+     "0x1.22d6467c0fba7p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2856e311b06a9p-1",
+     "0x1.587a3608974e0p-1",
+     "0x1.d7db6d121cf9bp-2"
+    ],
+    "second": [
+     "0x1.e9273fbcfea93p-2",
+     "0x1.2ee157794ab52p-1",
+     "0x1.4c8cebe0c39e0p-1"
+    ],
+    "third": [
+     "0x1.203b9c236607ap-1",
+     "0x1.33601c383859dp-1",
+     "0x1.22d6467c0fba7p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w0_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.e9273fbcfea93p-2",
+     "0x1.2ee157794ab52p-1",
+     "0x1.4c8cebe0c39e0p-1"
+    ],
+    "second": [
+     "0x1.2217f345478f3p-1",
+     "0x1.3acdd3a2f05b9p-1",
+     "0x1.18ded07656b95p-1"
+    ],
+    "third": [
+     "0x1.4c70f62d730fbp-1",
+     "0x1.3f7b8f2892740p-1",
+     "0x1.bd3b1e43f1642p-2"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.e9273fbcfea93p-2",
+     "0x1.2ee157794ab52p-1",
+     "0x1.4c8cebe0c39e0p-1"
+    ],
+    "second": [
+     "0x1.2217f345478f3p-1",
+     "0x1.3acdd3a2f05b9p-1",
+     "0x1.18ded07656b95p-1"
+    ],
+    "third": [
+     "0x1.4c70f62d730fbp-1",
+     "0x1.3f7b8f2892740p-1",
+     "0x1.bd3b1e43f1642p-2"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.e9273fbcfea93p-2",
+     "0x1.2ee157794ab52p-1",
+     "0x1.4c8cebe0c39e0p-1"
+    ],
+    "second": [
+     "0x1.2217f345478f3p-1",
+     "0x1.3acdd3a2f05b9p-1",
+     "0x1.18ded07656b95p-1"
+    ],
+    "third": [
+     "0x1.4c70f62d730fbp-1",
+     "0x1.3f7b8f2892740p-1",
+     "0x1.bd3b1e43f1642p-2"
+    ]
+   }
+  },
+  "vectors_5x7_w0_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.2217f345478f3p-1",
+     "0x1.3acdd3a2f05b9p-1",
+     "0x1.18ded07656b95p-1"
+    ],
+    "second": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ],
+    "third": [
+     "0x1.f362dd0156b30p-2",
+     "0x1.6df9131cf9ec7p-2",
+     "0x1.97d0b6c82b225p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2217f345478f3p-1",
+     "0x1.3acdd3a2f05b9p-1",
+     "0x1.18ded07656b95p-1"
+    ],
+    "second": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ],
+    "third": [
+     "0x1.f362dd0156b30p-2",
+     "0x1.6df9131cf9ec7p-2",
+     "0x1.97d0b6c82b225p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2217f345478f3p-1",
+     "0x1.3acdd3a2f05b9p-1",
+     "0x1.18ded07656b95p-1"
+    ],
+    "second": [
+     "0x1.21ede26a3471ap-1",
+     "0x1.39f0e4280d567p-1",
+     "0x1.1a00f3d0b0c3ap-1"
+    ],
+    "third": [
+     "0x1.f362dd0156b30p-2",
+     "0x1.6df9131cf9ec7p-2",
+     "0x1.97d0b6c82b225p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w1_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ],
+    "second": [
+     "0x1.4b4e4b2991d5ap-1",
+     "0x1.5899ba048eb2dp-2",
+     "0x1.5e46948af9e0ap-1"
+    ],
+    "third": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ],
+    "second": [
+     "0x1.4b4e4b2991d5ap-1",
+     "0x1.5899ba048eb2dp-2",
+     "0x1.5e46948af9e0ap-1"
+    ],
+    "third": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ],
+    "second": [
+     "0x1.4b4e4b2991d5ap-1",
+     "0x1.5899ba048eb2dp-2",
+     "0x1.5e46948af9e0ap-1"
+    ],
+    "third": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ]
+   }
+  },
+  "vectors_5x7_w1_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.4b4e4b2991d5ap-1",
+     "0x1.5899ba048eb2dp-2",
+     "0x1.5e46948af9e0ap-1"
+    ],
+    "second": [
+     "0x1.6b0be326e369bp-2",
+     "0x1.af9a3650cbcb2p-2",
+     "0x1.ab58252d29a02p-1"
+    ],
+    "third": [
+     "0x1.213afa3669048p-1",
+     "0x1.3f208ff92f224p-1",
+     "0x1.14da626d511fbp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.4b4e4b2991d5ap-1",
+     "0x1.5899ba048eb2dp-2",
+     "0x1.5e46948af9e0ap-1"
+    ],
+    "second": [
+     "0x1.6b0be326e369bp-2",
+     "0x1.af9a3650cbcb2p-2",
+     "0x1.ab58252d29a02p-1"
+    ],
+    "third": [
+     "0x1.213afa3669048p-1",
+     "0x1.3f208ff92f224p-1",
+     "0x1.14da626d511fbp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.4b4e4b2991d5ap-1",
+     "0x1.5899ba048eb2dp-2",
+     "0x1.5e46948af9e0ap-1"
+    ],
+    "second": [
+     "0x1.6b0be326e369bp-2",
+     "0x1.af9a3650cbcb2p-2",
+     "0x1.ab58252d29a02p-1"
+    ],
+    "third": [
+     "0x1.213afa3669048p-1",
+     "0x1.3f208ff92f224p-1",
+     "0x1.14da626d511fbp-1"
+    ]
+   }
+  },
+  "vectors_5x7_w1_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.6b0be326e369bp-2",
+     "0x1.af9a3650cbcb2p-2",
+     "0x1.ab58252d29a02p-1"
+    ],
+    "second": [
+     "0x1.28047e21843cdp-1",
+     "0x1.59c2d5216d527p-1",
+     "0x1.d4e680aea182dp-2"
+    ],
+    "third": [
+     "0x1.2aecc551e9f3cp-1",
+     "0x1.4554799ca0c6cp-1",
+     "0x1.02be64e5d39acp-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.6b0be326e369bp-2",
+     "0x1.af9a3650cbcb2p-2",
+     "0x1.ab58252d29a02p-1"
+    ],
+    "second": [
+     "0x1.28047e21843cdp-1",
+     "0x1.59c2d5216d527p-1",
+     "0x1.d4e680aea182dp-2"
+    ],
+    "third": [
+     "0x1.2aecc551e9f3cp-1",
+     "0x1.4554799ca0c6cp-1",
+     "0x1.02be64e5d39acp-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.6b0be326e369bp-2",
+     "0x1.af9a3650cbcb2p-2",
+     "0x1.ab58252d29a02p-1"
+    ],
+    "second": [
+     "0x1.28047e21843cdp-1",
+     "0x1.59c2d5216d527p-1",
+     "0x1.d4e680aea182dp-2"
+    ],
+    "third": [
+     "0x1.2aecc551e9f3cp-1",
+     "0x1.4554799ca0c6cp-1",
+     "0x1.02be64e5d39acp-1"
+    ]
+   }
+  },
+  "vectors_5x7_w1_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.28047e21843cdp-1",
+     "0x1.59c2d5216d527p-1",
+     "0x1.d4e680aea182dp-2"
+    ],
+    "second": [
+     "0x1.ee1ef1f13dafcp-2",
+     "0x1.336cbb11b1401p-1",
+     "0x1.467d39ebbf419p-1"
+    ],
+    "third": [
+     "0x1.2071083caedf6p-1",
+     "0x1.3772b0e3f8f2ep-1",
+     "0x1.1e42ee7ed90d1p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.28047e21843cdp-1",
+     "0x1.59c2d5216d527p-1",
+     "0x1.d4e680aea182dp-2"
+    ],
+    "second": [
+     "0x1.ee1ef1f13dafcp-2",
+     "0x1.336cbb11b1401p-1",
+     "0x1.467d39ebbf419p-1"
+    ],
+    "third": [
+     "0x1.2071083caedf6p-1",
+     "0x1.3772b0e3f8f2ep-1",
+     "0x1.1e42ee7ed90d1p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.28047e21843cdp-1",
+     "0x1.59c2d5216d527p-1",
+     "0x1.d4e680aea182dp-2"
+    ],
+    "second": [
+     "0x1.ee1ef1f13dafcp-2",
+     "0x1.336cbb11b1401p-1",
+     "0x1.467d39ebbf419p-1"
+    ],
+    "third": [
+     "0x1.2071083caedf6p-1",
+     "0x1.3772b0e3f8f2ep-1",
+     "0x1.1e42ee7ed90d1p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w1_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.ee1ef1f13dafcp-2",
+     "0x1.336cbb11b1401p-1",
+     "0x1.467d39ebbf419p-1"
+    ],
+    "second": [
+     "0x1.2222e9183a718p-1",
+     "0x1.3e2c259608565p-1",
+     "0x1.150101e9aaa35p-1"
+    ],
+    "third": [
+     "0x1.4a9195e9d80d7p-1",
+     "0x1.425da8c7c001ap-1",
+     "0x1.ba7c90743801fp-2"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.ee1ef1f13dafcp-2",
+     "0x1.336cbb11b1401p-1",
+     "0x1.467d39ebbf419p-1"
+    ],
+    "second": [
+     "0x1.2222e9183a718p-1",
+     "0x1.3e2c259608565p-1",
+     "0x1.150101e9aaa35p-1"
+    ],
+    "third": [
+     "0x1.4a9195e9d80d7p-1",
+     "0x1.425da8c7c001ap-1",
+     "0x1.ba7c90743801fp-2"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.ee1ef1f13dafcp-2",
+     "0x1.336cbb11b1401p-1",
+     "0x1.467d39ebbf419p-1"
+    ],
+    "second": [
+     "0x1.2222e9183a718p-1",
+     "0x1.3e2c259608565p-1",
+     "0x1.150101e9aaa35p-1"
+    ],
+    "third": [
+     "0x1.4a9195e9d80d7p-1",
+     "0x1.425da8c7c001ap-1",
+     "0x1.ba7c90743801fp-2"
+    ]
+   }
+  },
+  "vectors_5x7_w1_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.2222e9183a718p-1",
+     "0x1.3e2c259608565p-1",
+     "0x1.150101e9aaa35p-1"
+    ],
+    "second": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ],
+    "third": [
+     "0x1.0482408b32c43p-1",
+     "0x1.b2fb0570365f2p-2",
+     "0x1.7f604099188f2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2222e9183a718p-1",
+     "0x1.3e2c259608565p-1",
+     "0x1.150101e9aaa35p-1"
+    ],
+    "second": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ],
+    "third": [
+     "0x1.0482408b32c43p-1",
+     "0x1.b2fb0570365f2p-2",
+     "0x1.7f604099188f2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2222e9183a718p-1",
+     "0x1.3e2c259608565p-1",
+     "0x1.150101e9aaa35p-1"
+    ],
+    "second": [
+     "0x1.21fce497ed830p-1",
+     "0x1.3d6d3d05b4d98p-1",
+     "0x1.16035ef960c1cp-1"
+    ],
+    "third": [
+     "0x1.0482408b32c43p-1",
+     "0x1.b2fb0570365f2p-2",
+     "0x1.7f604099188f2p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w2_0": {
+   "region_vectors": {
+    "first": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ],
+    "second": [
+     "0x1.48989ba256ad6p-1",
+     "0x1.1538a4044c73dp-2",
+     "0x1.6f5cf722d71d2p-1"
+    ],
+    "third": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ],
+    "second": [
+     "0x1.48989ba256ad6p-1",
+     "0x1.1538a4044c73dp-2",
+     "0x1.6f5cf722d71d2p-1"
+    ],
+    "third": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ],
+    "second": [
+     "0x1.48989ba256ad6p-1",
+     "0x1.1538a4044c73dp-2",
+     "0x1.6f5cf722d71d2p-1"
+    ],
+    "third": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w2_1": {
+   "region_vectors": {
+    "first": [
+     "0x1.48989ba256ad6p-1",
+     "0x1.1538a4044c73dp-2",
+     "0x1.6f5cf722d71d2p-1"
+    ],
+    "second": [
+     "0x1.5140b5dc4896ep-2",
+     "0x1.9315cdc4925dbp-2",
+     "0x1.b76b758e05ff4p-1"
+    ],
+    "third": [
+     "0x1.1fa31e41d707dp-1",
+     "0x1.3c7047661f0a7p-1",
+     "0x1.198f1abefc875p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.48989ba256ad6p-1",
+     "0x1.1538a4044c73dp-2",
+     "0x1.6f5cf722d71d2p-1"
+    ],
+    "second": [
+     "0x1.5140b5dc4896ep-2",
+     "0x1.9315cdc4925dbp-2",
+     "0x1.b76b758e05ff4p-1"
+    ],
+    "third": [
+     "0x1.1fa31e41d707dp-1",
+     "0x1.3c7047661f0a7p-1",
+     "0x1.198f1abefc875p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.48989ba256ad6p-1",
+     "0x1.1538a4044c73dp-2",
+     "0x1.6f5cf722d71d2p-1"
+    ],
+    "second": [
+     "0x1.5140b5dc4896ep-2",
+     "0x1.9315cdc4925dbp-2",
+     "0x1.b76b758e05ff4p-1"
+    ],
+    "third": [
+     "0x1.1fa31e41d707dp-1",
+     "0x1.3c7047661f0a7p-1",
+     "0x1.198f1abefc875p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w2_2": {
+   "region_vectors": {
+    "first": [
+     "0x1.5140b5dc4896ep-2",
+     "0x1.9315cdc4925dbp-2",
+     "0x1.b76b758e05ff4p-1"
+    ],
+    "second": [
+     "0x1.2767a74cf6062p-1",
+     "0x1.595f61b08f9cbp-1",
+     "0x1.d795597f6afe6p-2"
+    ],
+    "third": [
+     "0x1.2a23481f63c4ap-1",
+     "0x1.433aa0056c8b9p-1",
+     "0x1.0642d352ff9b1p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.5140b5dc4896ep-2",
+     "0x1.9315cdc4925dbp-2",
+     "0x1.b76b758e05ff4p-1"
+    ],
+    "second": [
+     "0x1.2767a74cf6062p-1",
+     "0x1.595f61b08f9cbp-1",
+     "0x1.d795597f6afe6p-2"
+    ],
+    "third": [
+     "0x1.2a23481f63c4ap-1",
+     "0x1.433aa0056c8b9p-1",
+     "0x1.0642d352ff9b1p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.5140b5dc4896ep-2",
+     "0x1.9315cdc4925dbp-2",
+     "0x1.b76b758e05ff4p-1"
+    ],
+    "second": [
+     "0x1.2767a74cf6062p-1",
+     "0x1.595f61b08f9cbp-1",
+     "0x1.d795597f6afe6p-2"
+    ],
+    "third": [
+     "0x1.2a23481f63c4ap-1",
+     "0x1.433aa0056c8b9p-1",
+     "0x1.0642d352ff9b1p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w2_3": {
+   "region_vectors": {
+    "first": [
+     "0x1.2767a74cf6062p-1",
+     "0x1.595f61b08f9cbp-1",
+     "0x1.d795597f6afe6p-2"
+    ],
+    "second": [
+     "0x1.e3776f3d698f4p-2",
+     "0x1.2f0eae45c49e0p-1",
+     "0x1.4e7670d857108p-1"
+    ],
+    "third": [
+     "0x1.1e90990f6a184p-1",
+     "0x1.33dc09b8ed3a6p-1",
+     "0x1.23f898676c1d2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.2767a74cf6062p-1",
+     "0x1.595f61b08f9cbp-1",
+     "0x1.d795597f6afe6p-2"
+    ],
+    "second": [
+     "0x1.e3776f3d698f4p-2",
+     "0x1.2f0eae45c49e0p-1",
+     "0x1.4e7670d857108p-1"
+    ],
+    "third": [
+     "0x1.1e90990f6a184p-1",
+     "0x1.33dc09b8ed3a6p-1",
+     "0x1.23f898676c1d2p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.2767a74cf6062p-1",
+     "0x1.595f61b08f9cbp-1",
+     "0x1.d795597f6afe6p-2"
+    ],
+    "second": [
+     "0x1.e3776f3d698f4p-2",
+     "0x1.2f0eae45c49e0p-1",
+     "0x1.4e7670d857108p-1"
+    ],
+    "third": [
+     "0x1.1e90990f6a184p-1",
+     "0x1.33dc09b8ed3a6p-1",
+     "0x1.23f898676c1d2p-1"
+    ]
+   }
+  },
+  "vectors_5x7_w2_4": {
+   "region_vectors": {
+    "first": [
+     "0x1.e3776f3d698f4p-2",
+     "0x1.2f0eae45c49e0p-1",
+     "0x1.4e7670d857108p-1"
+    ],
+    "second": [
+     "0x1.209c6c1584ab3p-1",
+     "0x1.3b6d7a33a7bb0p-1",
+     "0x1.19b2604b425a1p-1"
+    ],
+    "third": [
+     "0x1.4c00e63454e2bp-1",
+     "0x1.403cbd41310ecp-1",
+     "0x1.bc5e3f0e8f29ep-2"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.e3776f3d698f4p-2",
+     "0x1.2f0eae45c49e0p-1",
+     "0x1.4e7670d857108p-1"
+    ],
+    "second": [
+     "0x1.209c6c1584ab3p-1",
+     "0x1.3b6d7a33a7bb0p-1",
+     "0x1.19b2604b425a1p-1"
+    ],
+    "third": [
+     "0x1.4c00e63454e2bp-1",
+     "0x1.403cbd41310ecp-1",
+     "0x1.bc5e3f0e8f29ep-2"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.e3776f3d698f4p-2",
+     "0x1.2f0eae45c49e0p-1",
+     "0x1.4e7670d857108p-1"
+    ],
+    "second": [
+     "0x1.209c6c1584ab3p-1",
+     "0x1.3b6d7a33a7bb0p-1",
+     "0x1.19b2604b425a1p-1"
+    ],
+    "third": [
+     "0x1.4c00e63454e2bp-1",
+     "0x1.403cbd41310ecp-1",
+     "0x1.bc5e3f0e8f29ep-2"
+    ]
+   }
+  },
+  "vectors_5x7_w2_5": {
+   "region_vectors": {
+    "first": [
+     "0x1.209c6c1584ab3p-1",
+     "0x1.3b6d7a33a7bb0p-1",
+     "0x1.19b2604b425a1p-1"
+    ],
+    "second": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ],
+    "third": [
+     "0x1.dc5b90f9e430ap-2",
+     "0x1.5845d1fd70ec8p-2",
+     "0x1.a344134525020p-1"
+    ]
+   },
+   "stain_vectors_from_regions_cyx": {
+    "first": [
+     "0x1.209c6c1584ab3p-1",
+     "0x1.3b6d7a33a7bb0p-1",
+     "0x1.19b2604b425a1p-1"
+    ],
+    "second": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ],
+    "third": [
+     "0x1.dc5b90f9e430ap-2",
+     "0x1.5845d1fd70ec8p-2",
+     "0x1.a344134525020p-1"
+    ]
+   },
+   "stain_vectors_from_regions_yxc": {
+    "first": [
+     "0x1.209c6c1584ab3p-1",
+     "0x1.3b6d7a33a7bb0p-1",
+     "0x1.19b2604b425a1p-1"
+    ],
+    "second": [
+     "0x1.2068a84d3f27bp-1",
+     "0x1.3a8ec6deb0a23p-1",
+     "0x1.1adfc9458db92p-1"
+    ],
+    "third": [
+     "0x1.dc5b90f9e430ap-2",
+     "0x1.5845d1fd70ec8p-2",
+     "0x1.a344134525020p-1"
+    ]
+   }
+  },
+  "white_16x16_0": {
+   "region_white": [
+    "0x1.d000000000000p+6",
+    "0x1.d800000000000p+6",
+    "0x1.1000000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.d000000000000p+6",
+    "0x1.d800000000000p+6",
+    "0x1.1000000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.d000000000000p+6",
+    "0x1.d800000000000p+6",
+    "0x1.1000000000000p+7"
+   ]
+  },
+  "white_16x16_1": {
+   "region_white": [
+    "0x1.6200000000000p+7",
+    "0x1.8000000000000p+7",
+    "0x1.a200000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.6200000000000p+7",
+    "0x1.8000000000000p+7",
+    "0x1.a200000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.6200000000000p+7",
+    "0x1.8000000000000p+7",
+    "0x1.a200000000000p+7"
+   ]
+  },
+  "white_16x16_2": {
+   "region_white": [
+    "0x1.0300000000000p+7",
+    "0x1.9e00000000000p+6",
+    "0x1.1800000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.0300000000000p+7",
+    "0x1.9e00000000000p+6",
+    "0x1.1800000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.0300000000000p+7",
+    "0x1.9e00000000000p+6",
+    "0x1.1800000000000p+7"
+   ]
+  },
+  "white_16x16_3": {
+   "region_white": [
+    "0x1.0400000000000p+7",
+    "0x1.d000000000000p+5",
+    "0x1.0200000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.0400000000000p+7",
+    "0x1.d000000000000p+5",
+    "0x1.0200000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.0400000000000p+7",
+    "0x1.d000000000000p+5",
+    "0x1.0200000000000p+7"
+   ]
+  },
+  "white_16x16_4": {
+   "region_white": [
+    "0x1.f800000000000p+6",
+    "0x1.c600000000000p+6",
+    "0x1.1b00000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.f800000000000p+6",
+    "0x1.c600000000000p+6",
+    "0x1.1b00000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.f800000000000p+6",
+    "0x1.c600000000000p+6",
+    "0x1.1b00000000000p+7"
+   ]
+  },
+  "white_16x16_5": {
+   "region_white": [
+    "0x1.d000000000000p+6",
+    "0x1.0200000000000p+7",
+    "0x1.1000000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.d000000000000p+6",
+    "0x1.0200000000000p+7",
+    "0x1.1000000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.d000000000000p+6",
+    "0x1.0200000000000p+7",
+    "0x1.1000000000000p+7"
+   ]
+  },
+  "white_1x1_0": {
+   "region_white": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_cyx": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_yxc": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ]
+  },
+  "white_1x1_1": {
+   "region_white": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_cyx": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_yxc": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ]
+  },
+  "white_1x1_2": {
+   "region_white": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_cyx": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_yxc": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ]
+  },
+  "white_1x1_3": {
+   "region_white": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_cyx": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_yxc": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ]
+  },
+  "white_1x1_4": {
+   "region_white": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_cyx": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_yxc": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ]
+  },
+  "white_1x1_5": {
+   "region_white": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_cyx": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ],
+   "white_from_region_yxc": [
+    "0x1.cc00000000000p+6",
+    "0x1.0000000000000p+7",
+    "0x1.2000000000000p+5"
+   ]
+  },
+  "white_33x20_0": {
+   "region_white": [
+    "0x1.0200000000000p+7",
+    "0x1.f400000000000p+6",
+    "0x1.f200000000000p+6"
+   ],
+   "white_from_region_cyx": [
+    "0x1.0200000000000p+7",
+    "0x1.f400000000000p+6",
+    "0x1.f200000000000p+6"
+   ],
+   "white_from_region_yxc": [
+    "0x1.0200000000000p+7",
+    "0x1.f400000000000p+6",
+    "0x1.f200000000000p+6"
+   ]
+  },
+  "white_33x20_1": {
+   "region_white": [
+    "0x1.d000000000000p+7",
+    "0x1.1c00000000000p+7",
+    "0x1.3400000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.d000000000000p+7",
+    "0x1.1c00000000000p+7",
+    "0x1.3400000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.d000000000000p+7",
+    "0x1.1c00000000000p+7",
+    "0x1.3400000000000p+7"
+   ]
+  },
+  "white_33x20_2": {
+   "region_white": [
+    "0x1.1800000000000p+7",
+    "0x1.aa00000000000p+6",
+    "0x1.c800000000000p+6"
+   ],
+   "white_from_region_cyx": [
+    "0x1.1800000000000p+7",
+    "0x1.aa00000000000p+6",
+    "0x1.c800000000000p+6"
+   ],
+   "white_from_region_yxc": [
+    "0x1.1800000000000p+7",
+    "0x1.aa00000000000p+6",
+    "0x1.c800000000000p+6"
+   ]
+  },
+  "white_33x20_3": {
+   "region_white": [
+    "0x1.d400000000000p+6",
+    "0x1.d000000000000p+6",
+    "0x1.b400000000000p+6"
+   ],
+   "white_from_region_cyx": [
+    "0x1.d400000000000p+6",
+    "0x1.d000000000000p+6",
+    "0x1.b400000000000p+6"
+   ],
+   "white_from_region_yxc": [
+    "0x1.d400000000000p+6",
+    "0x1.d000000000000p+6",
+    "0x1.b400000000000p+6"
+   ]
+  },
+  "white_33x20_4": {
+   "region_white": [
+    "0x1.e200000000000p+6",
+    "0x1.f000000000000p+6",
+    "0x1.0000000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.e200000000000p+6",
+    "0x1.f000000000000p+6",
+    "0x1.0000000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.e200000000000p+6",
+    "0x1.f000000000000p+6",
+    "0x1.0000000000000p+7"
+   ]
+  },
+  "white_33x20_5": {
+   "region_white": [
+    "0x1.0300000000000p+7",
+    "0x1.f600000000000p+6",
+    "0x1.ea00000000000p+6"
+   ],
+   "white_from_region_cyx": [
+    "0x1.0300000000000p+7",
+    "0x1.f600000000000p+6",
+    "0x1.ea00000000000p+6"
+   ],
+   "white_from_region_yxc": [
+    "0x1.0300000000000p+7",
+    "0x1.f600000000000p+6",
+    "0x1.ea00000000000p+6"
+   ]
+  },
+  "white_5x7_0": {
+   "region_white": [
+    "0x1.fc00000000000p+6",
+    "0x1.e800000000000p+6",
+    "0x1.8c00000000000p+6"
+   ],
+   "white_from_region_cyx": [
+    "0x1.fc00000000000p+6",
+    "0x1.e800000000000p+6",
+    "0x1.8c00000000000p+6"
+   ],
+   "white_from_region_yxc": [
+    "0x1.fc00000000000p+6",
+    "0x1.e800000000000p+6",
+    "0x1.8c00000000000p+6"
+   ]
+  },
+  "white_5x7_1": {
+   "region_white": [
+    "0x1.8c00000000000p+7",
+    "0x1.8000000000000p+6",
+    "0x1.8000000000000p+4"
+   ],
+   "white_from_region_cyx": [
+    "0x1.8c00000000000p+7",
+    "0x1.8000000000000p+6",
+    "0x1.8000000000000p+4"
+   ],
+   "white_from_region_yxc": [
+    "0x1.8c00000000000p+7",
+    "0x1.8000000000000p+6",
+    "0x1.8000000000000p+4"
+   ]
+  },
+  "white_5x7_2": {
+   "region_white": [
+    "0x1.d000000000000p+6",
+    "0x1.da00000000000p+6",
+    "0x1.1000000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.d000000000000p+6",
+    "0x1.da00000000000p+6",
+    "0x1.1000000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.d000000000000p+6",
+    "0x1.da00000000000p+6",
+    "0x1.1000000000000p+7"
+   ]
+  },
+  "white_5x7_3": {
+   "region_white": [
+    "0x1.5e00000000000p+6",
+    "0x1.f600000000000p+6",
+    "0x1.0000000000000p+7"
+   ],
+   "white_from_region_cyx": [
+    "0x1.5e00000000000p+6",
+    "0x1.f600000000000p+6",
+    "0x1.0000000000000p+7"
+   ],
+   "white_from_region_yxc": [
+    "0x1.5e00000000000p+6",
+    "0x1.f600000000000p+6",
+    "0x1.0000000000000p+7"
+   ]
+  },
+  "white_5x7_4": {
+   "region_white": [
+    "0x1.b600000000000p+6",
+    "0x1.6e00000000000p+6",
+    "0x1.3400000000000p+6"
+   ],
+   "white_from_region_cyx": [
+    "0x1.b600000000000p+6",
+    "0x1.6e00000000000p+6",
+    "0x1.3400000000000p+6"
+   ],
+   "white_from_region_yxc": [
+    "0x1.b600000000000p+6",
+    "0x1.6e00000000000p+6",
+    "0x1.3400000000000p+6"
+   ]
+  },
+  "white_5x7_5": {
+   "region_white": [
+    "0x1.fc00000000000p+6",
+    "0x1.e800000000000p+6",
+    "0x1.6000000000000p+6"
+   ],
+   "white_from_region_cyx": [
+    "0x1.fc00000000000p+6",
+    "0x1.e800000000000p+6",
+    "0x1.6000000000000p+6"
+   ],
+   "white_from_region_yxc": [
+    "0x1.fc00000000000p+6",
+    "0x1.e800000000000p+6",
+    "0x1.6000000000000p+6"
+   ]
+  }
+ },
+ "produced_by": "tests/region_parity_cases.py on commit b8aa65b (v0.6.1); see the module docstring",
+ "sha256": "c1947c75eb5b72da0d001a1b2bb6a5b536d16133dab36a311cabf9c4ba50756a"
+}

@@ -325,9 +325,10 @@ def test_masked_regions_are_refused_by_both_region_helpers():
     region[:2, :2] = True
     masked = np.ma.array(region, mask=np.zeros((8, 8), bool))
     masked.mask[0, 0] = True  # one selected pixel marked invalid, three valid ones
-    with pytest.raises(TypeError, match="masked array"):
+    # ADR 0005: refused by the one region checker, MASK_REGION_INVALID (was a TypeError).
+    with pytest.raises(ValueError, match=r"^MASK_REGION_INVALID \(masked_array\)"):
         white_from_region(_plain_rgb(), axes="YXC", region=masked)
-    with pytest.raises(TypeError, match="masked array"):
+    with pytest.raises(ValueError, match=r"^MASK_REGION_INVALID \(masked_array\)"):
         stain_vectors_from_regions(_plain_rgb(), axes="YXC", white=WHITE, regions={"eosin": masked})
 
 

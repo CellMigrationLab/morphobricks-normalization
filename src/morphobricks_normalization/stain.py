@@ -63,6 +63,7 @@ import numpy as np
 
 from morphobricks_normalization import optical_density as od
 from morphobricks_normalization import scalar_inputs as inputs
+from morphobricks_normalization.regions import EMPTY_REGION
 from morphobricks_normalization.stain_presets import BPX_CITATION as BPX_CITATION
 from morphobricks_normalization.stain_presets import BPX_DEFAULT_VECTORS as BPX_DEFAULT_VECTORS
 from morphobricks_normalization.stain_presets import HE_CITATION as HE_CITATION
@@ -450,7 +451,7 @@ def rgb_to_scalar(pixels: np.ndarray, *, axes: str, preset: str) -> ScalarResult
 def white_from_region(
     pixels: np.ndarray, *, axes: str, region: np.ndarray
 ) -> tuple[float, float, float]:
-    """Return the median R, G, B of a boolean background region: the declared ``white``.
+    """Return the median R, G, B of a background region: the declared ``white``.
 
     Parameters
     ----------
@@ -459,7 +460,8 @@ def white_from_region(
     axes
         ``"YXC"`` or ``"CYX"``.
     region
-        Boolean ``(Y, X)`` array selecting background (no tissue).
+        Integer or boolean ``(Y, X)`` array whose non-zero pixels are background (no tissue),
+        checked by :func:`~morphobricks_normalization.regions.check_region`.
 
     Returns
     -------
@@ -468,12 +470,24 @@ def white_from_region(
 
     Raises
     ------
+    RegionMaskError
+        ``MASK_REGION_INVALID`` (a ``ValueError``): the region is not a 2-D integer or boolean
+        NumPy array of the image's ``(Y, X)``.
     ValueError
-        Empty region, shape mismatch, or a median channel at 0 or 255 (dark or saturated).
+        Wrong axes; an empty region (``empty_region``: no white is returned, so nothing is
+        converted with an undefined white); a median channel at 0 or 255 (dark or saturated).
     TypeError
-        Wrong pixel dtype, or the region is not boolean.
+        Wrong pixel dtype.
     """
-    return od.region_white(inputs.rgb_yxc(pixels, axes), region)
+    estimate = od.region_white(inputs.rgb_yxc(pixels, axes), region)
+    if estimate.value is None:
+        raise ValueError(
+            f"The background region is empty ({EMPTY_REGION}): no white can be estimated "
+            "from it, so nothing is converted. Choose a region with at least one pixel, or "
+            "declare the white explicitly."
+        )
+    red, green, blue = estimate.value
+    return red, green, blue
 
 
 def stain_vectors_from_regions(
@@ -494,7 +508,8 @@ def stain_vectors_from_regions(
     white
         Declared background R, G, B, three finite values in ``(0, 255]``.
     regions
-        Mapping stain name -> boolean ``(Y, X)`` array of pixels of that stain only.
+        Mapping stain name -> integer or boolean ``(Y, X)`` array whose non-zero pixels are of
+        that stain only, checked by :func:`~morphobricks_normalization.regions.check_region`.
 
     Returns
     -------
@@ -503,10 +518,27 @@ def stain_vectors_from_regions(
 
     Raises
     ------
+    RegionMaskError
+        ``MASK_REGION_INVALID`` (a ``ValueError``): a region is not a 2-D integer or boolean
+        NumPy array of the image's ``(Y, X)``.
     ValueError
-        Invalid white; an empty or wrongly shaped region; a region whose mean optical density
-        is about 0 (background, not stain).
+        Invalid white or axes; one or more empty regions (``empty_region``, all named: no vector
+        is returned, so nothing is converted with an undefined vector); a region holding a pixel
+        with a channel at 0; a region whose mean optical density is about 0 (background, not
+        stain).
     TypeError
-        Wrong pixel dtype, ``regions`` not a non-empty mapping, or a region not boolean.
+        Wrong pixel dtype, or ``regions`` not a non-empty mapping.
     """
-    return od.region_vectors(inputs.rgb_yxc(pixels, axes), od.check_white(white), regions)
+    estimates = od.region_vectors(inputs.rgb_yxc(pixels, axes), od.check_white(white), regions)
+    empty = [name for name, estimate in estimates.items() if estimate.value is None]
+    if empty:
+        raise ValueError(
+            f"The regions {empty} are empty ({EMPTY_REGION}): no stain vector can be "
+            "estimated from them, so nothing is converted. Label at least one pixel of each "
+            "stain."
+        )
+    vectors = {}
+    for name, estimate in estimates.items():
+        red, green, blue = estimate.value
+        vectors[name] = (red, green, blue)
+    return MappingProxyType(vectors)

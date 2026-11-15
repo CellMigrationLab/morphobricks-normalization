@@ -4,7 +4,7 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
-## Unreleased
+## v0.7.0 (2026-11-15)
 
 Step 1 of MorphoBricks-Spec [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md)
 ("one policy for binary masks", accepted 15 November 2026, Spec commit `bf68d30`; plan N70,

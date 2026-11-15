@@ -29,7 +29,7 @@ out of scope for now.
 
 ## Status
 
-Pre-alpha; the latest release is v0.6.1. The library offers:
+Pre-alpha; the latest release is v0.7.0. The library offers:
 
 - supported pixel types, bin counts and per-plane histograms (`dtypes`, `histogram`), with a robust range and a range check;
 - plane records, `plane_histograms.csv` reading and writing and pooling of group statistics (`records`, `csv_io`, `pooling`): schema version 5 since v0.5.0, with channels named by canonical channel ID (ADR 0003; version 4 tables are refused, see the CHANGELOG migration notes);
@@ -38,7 +38,7 @@ Pre-alpha; the latest release is v0.6.1. The library offers:
 - since v0.6.0, image-to-scalar stain presets (`stain`: H&E, picrosirius red, trichrome, colour
   projections and passthrough; optional extra `histology` for scikit-image; contract §3.4);
   since v0.6.1, `stain.check_options` checks a request before any pixel is read;
-- unreleased: the one region checker of every MorphoBricks brick (`regions.check_region`,
+- since v0.7.0, the one region checker of every MorphoBricks brick (`regions.check_region`,
   `RegionEstimate` for a white or stain vector over an empty region) and the shared
   resolver-version refusal (`contracts.refuse_resolver_version`), MorphoBricks-Spec ADR 0005
   (contract §3.5).
@@ -63,7 +63,7 @@ for key, rows in groups.items():
 ## Installation
 
 ```bash
-pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.6.1"
+pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.7.0"
 ```
 
 For development, from a clone:

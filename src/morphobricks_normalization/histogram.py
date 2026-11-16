@@ -42,7 +42,6 @@ in blocks, so the results never depend on how a plane was read.
 
 from __future__ import annotations
 
-import bisect
 import math
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -53,6 +52,12 @@ import numpy as np
 
 from .bin_centres import float_bin_centres, float_bin_position
 from .dtypes import check_supported, default_bin_count, is_integer, validate_bin_count
+from .integer_bins import (
+    counts_from_per_value,
+    integer_bin_index,
+    integer_bin_offsets,
+    search_starts,
+)
 from .integer_representatives import beyond_float_exact, integer_representatives, wide_integer_error
 from .integrity import check_histogram, check_tail, checked_blocks
 from .ranges import CENTRAL_PERCENTILES, HistogramSettings, RangeCheck
@@ -191,7 +196,10 @@ class PlaneHistogram:
             return wide_integer_error(self)
         if is_integer(self.dtype):
             first, last = self._integer_bin_limits
-            widest = max(b - a + 1 for a, b in zip(first, last, strict=True))
+            if isinstance(first, np.ndarray):
+                widest = int((last - first).max()) + 1
+            else:
+                widest = max(b - a + 1 for a, b in zip(first, last, strict=True))
             bins = (widest - 1) / 2
         else:
             lo, hi = float(self.binning_min), float(self.binning_max)
@@ -223,15 +231,16 @@ class PlaneHistogram:
         if self.is_empty:
             return []
         first, last = self._integer_bin_limits
+        if isinstance(first, np.ndarray):
+            first, last = first.tolist(), last.tolist()
         return [
             (self.binning_min + a, self.binning_min + b) for a, b in zip(first, last, strict=True)
         ]
 
     @cached_property
-    def _integer_bin_limits(self) -> tuple[list[int], list[int]]:
-        """Bin limits as offsets from ``binning_min`` (exact Python integers)."""
-        starts = _integer_bin_starts(self.binning_max + 1 - self.binning_min, self.bin_count)
-        return starts[:-1], [s - 1 for s in starts[1:]]
+    def _integer_bin_limits(self) -> tuple[np.ndarray, np.ndarray] | tuple[list[int], list[int]]:
+        """Bin limits as offsets from ``binning_min``: int64 arrays or exact Python integers."""
+        return integer_bin_offsets(self.binning_min, self.binning_max, self.bin_count)
 
 
 def compute_plane_histogram(
@@ -417,26 +426,11 @@ def _measure(
     return _wide_histogram(blocks, dtype, n, settings, check)
 
 
-def _integer_bin_starts(width: int, bin_count: int) -> list[int]:
-    """Offsets at which bins ``0 .. bin_count`` start (the last entry is ``width``)."""
-    if width <= bin_count:
-        # One value per bin from the start; the remaining bins stay empty.
-        return [min(i, width) for i in range(bin_count + 1)]
-    return [-((-i * width) // bin_count) for i in range(bin_count + 1)]
-
-
 def _as_ordered_uint64(values: np.ndarray) -> np.ndarray:
     """Map integers to uint64 while keeping their order, without overflow."""
     if values.dtype.kind == "u":
         return values.astype(np.uint64)
     return values.astype(np.int64).view(np.uint64) ^ np.uint64(1 << 63)
-
-
-def _counts_from_per_value(per_value: np.ndarray, starts: list[int], n: int) -> np.ndarray:
-    """Sum per-value counts (offsets ``0 .. width - 1``) into bins starting at ``starts``."""
-    bin_of_value = np.searchsorted(np.array(starts[:-1]), np.arange(per_value.size), side="right")
-    counts = np.bincount(bin_of_value - 1, weights=per_value, minlength=n)
-    return np.rint(counts).astype(np.int64)
 
 
 def _small_integer_histogram(
@@ -466,9 +460,7 @@ def _small_integer_histogram(
     smallest = int(np.iinfo(dtype).min)
 
     def min_max() -> PlaneHistogram:
-        counts = _counts_from_per_value(
-            table[first : last + 1], _integer_bin_starts(last + 1 - first, n), n
-        )
+        counts = counts_from_per_value(table[first : last + 1], n)
         lo, hi = smallest + first, smallest + last
         return PlaneHistogram(dtype, n, lo, hi, counts, total, total, pixel_min=lo, pixel_max=hi)
 
@@ -486,8 +478,7 @@ def _small_integer_histogram(
     orders = [order(q) for q in quantiles]
     if settings.robust:
         low, high = orders[0].value - smallest, orders[1].value - smallest
-        starts = _integer_bin_starts(high + 1 - low, n)
-        counts = _counts_from_per_value(table[low : high + 1], starts, n)
+        counts = counts_from_per_value(table[low : high + 1], n)
         histogram = PlaneHistogram(
             dtype,
             n,
@@ -614,11 +605,11 @@ def _integer_bins(
     under: TailMoments,
     over: TailMoments,
 ) -> np.ndarray:
+    """Count integer pixels into bins: per value up to 2**24 values, else by searching starts."""
     width = hi + 1 - lo
-    starts = _integer_bin_starts(width, n)
     origin = _as_ordered_uint64(np.array([lo], dtype=dtype))[0]
     per_value = np.zeros(width, dtype=np.int64) if width <= _PER_VALUE_COUNT_LIMIT else None
-    bin_starts = np.array(starts[:-1], dtype=np.uint64)
+    bin_starts = search_starts(width, n) if per_value is None else None
     counts = np.zeros(n, dtype=np.int64)
     for values in checked_blocks(blocks(), dtype):
         if values.size == 0:
@@ -638,7 +629,7 @@ def _integer_bins(
             index = np.searchsorted(bin_starts, offsets, side="right") - 1
             counts += np.bincount(index, minlength=n)
     if per_value is not None:
-        counts = _counts_from_per_value(per_value, starts, n)
+        counts = counts_from_per_value(per_value, n)
     return counts
 
 
@@ -824,8 +815,7 @@ def _bin_index(
 ) -> int:
     """Return the bin of ``value`` with bins over ``[lo, hi]``, values outside clipped."""
     if is_integer(dtype):
-        starts = _integer_bin_starts(hi + 1 - lo, n)
-        index = bisect.bisect_right(starts, value - lo, hi=n) - 1
+        index = integer_bin_index(value - lo, hi + 1 - lo, n)
     elif lo == hi:
         index = 0
     else:

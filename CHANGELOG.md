@@ -4,6 +4,32 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## Unreleased
+
+Speed only (MorphoBricks preprocessing speed plan, step D6; measured in preprocessing draft PR
+#318, `experiments/histogram_numba_study/`): every output is bitwise that of v0.7.0. No new
+dependency (NumPy only, no Numba), no API, file format or message change.
+
+- **Per-bin work of integer planes in NumPy int64** (new module `integer_bins`). The bin starts
+  (a 65,537-item Python list per call before), the sums of per-value counts into bins, the
+  integer bin limits, the representatives, `max_representative_error` and the bin of each order
+  statistic of the range check were Python loops over every bin; they are now NumPy int64
+  arithmetic on the same formulas (the bin of a value is one exact integer division).
+- **The exact Python integers are kept where int64 could not be exact**, chosen by explicit
+  conditions: bin starts when `bin_count * width >= 2**62` (64-bit planes with a wide range);
+  representatives and the bound from `2**51` on (unchanged `Fraction` bound, #28); bin sums
+  when a plane's per-value counts total `2**52` or more (v0.7.0's float64 sums are kept there);
+  and histograms a caller built with NumPy integer limits, so their results keep v0.7.0's NumPy
+  types. Float bin positions, tail moments and 32/64-bit pixel binning are unchanged.
+- **Identity**: `tests/test_histogram_parity.py` compares every `PlaneHistogram` field, the
+  representatives and bound as raw bits, the integer bin limits and their types, `is_exact` and
+  the `RangeCheck` of 4,236 cases (the ten pixel types, NaN and +/-inf, subnormal, constant,
+  empty and dtype-extreme planes, bin-edge float grids, several bin counts, min-max and robust,
+  whole and in 3 blocks, 64-bit ranges on both sides of each int64 condition) with
+  `tests/data/histogram_v070_parity.json`, recorded on v0.7.0 (`c6a9f9d`) by
+  `tests/histogram_parity_cases.py`; and the kept Python paths with the int64 ones switched off.
+  `tools/dump_outputs.py` (default and `--corpus`) gives the digests of v0.7.0.
+
 ## v0.7.0 (2026-11-15)
 
 Step 1 of MorphoBricks-Spec [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md)

@@ -24,6 +24,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 1.4 Robust histogram range and range check; `plane_histograms.csv` schema version 4 (6.2) | Milestone 5 (done) |
 | 1.5 and 6. Channels by canonical channel ID (`plane_histograms.csv` schema version 5); per-channel columns of 7.1 and 8.1 by ID | Stage 3 S3.2 ([ADR 0003](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0003-plane-histograms-v5.md); draft, unreleased) |
 | 3.5 Regions (`check_region`, `RegionEstimate`) and the resolver-version refusal | [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md) step 1 (plan N70; unreleased) |
+| 3.6 Stable optical-density helpers (`check_white`, `optical_density`, `rgb_yxc`) | Documented as stable API for preprocessing's H&E tissue mask (P2; no code change; unreleased) |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered
@@ -498,7 +499,8 @@ that need one channel (FiberFeatures first). normalization owns the conversion; 
 it and never reimplement it. `rgb_to_scalar(pixels, *, axes, preset)` (N67) is `to_scalar`
 without the optional arguments. No file reading, tiling, segmentation or WSI handling is done
 here. Modules: `stain.py` (API), `stain_presets.py` (registry, hints, default vectors; re-exported
-by `stain.py`), `optical_density.py` (OD maths, NumPy), `scalar_inputs.py` (input checks).
+by `stain.py`), `optical_density.py` (OD maths, NumPy), `scalar_inputs.py` (input checks). Three of their
+functions are stable API for other bricks (§3.6).
 
 **Image names.** Every preset names the image it makes, CellProfiler style (`StainPreset.image_name`,
 recorded in the provenance as `image_name`), as CellProfiler's `UnmixColors` names its outputs:
@@ -776,6 +778,100 @@ morphobricks-preprocessing resolver has contract version {found}; this consumer 
 {supported}. Install the morphobricks-preprocessing release it pins; nothing was read or
 written.` with `{supported}` the sorted list without repeats (`[3]`). An empty `supported`, or
 one holding anything but integers, is a programming error (`ValueError` without a code).
+
+### 3.6 Stable optical-density helpers for other bricks
+
+Three functions of the `custom_od` path (§3.4) are **stable public API** that other bricks may
+call directly: preprocessing's H&E tissue-mask helper computes its per-channel optical density
+with them (morphobricks-preprocessing `docs/design/he-tissue-mask.md`, owner decision Q5,
+prerequisite P2). They are the functions `stain.py` itself calls, so a consumer and the presets
+share one implementation; a consumer never reimplements the floor, the white check or the axis
+handling.
+
+**Import paths.** The stable names are module attributes, imported as below; they are not
+re-exported from the package root, like every module of §3.4 and §3.5. A root re-export of
+`optical_density` would shadow the module `morphobricks_normalization.optical_density` of the
+same name, so none is made.
+
+```python
+from morphobricks_normalization.optical_density import check_white, optical_density
+from morphobricks_normalization.scalar_inputs import rgb_yxc
+
+rgb = rgb_yxc(pixels, "CYX")  # new uint8 (Y, X, 3)
+white = check_white((255, 255, 255))  # new float64 (3,)
+od, floored_fraction = optical_density(rgb, white)  # a pair, always unpacked
+```
+
+**What "stable" means.** The import paths, the signatures (parameter names, order and kinds), the
+return types, dtypes and shapes, the formula and floor, and the refusals below (exception types,
+and the checks and their order) are part of this contract. Changing any of them follows the rules
+at the top of this document (the owner's approval and an entry in plan §12) and ships in a release
+whose CHANGELOG entry marks it **Breaking** with migration notes; before 1.0 such a release raises
+the minor version (as v0.5.0 and v0.7.0 did). Consumers pin the release they were tested with.
+None of the three refusals has a `code` attribute or a message constant: unlike §3.5, these are
+programming-error refusals, so consumers match on the exception type and never parse the text. The
+texts are quoted below so callers know what their users see; they change only with a CHANGELOG
+entry, but they are not a machine-readable contract. The other names of the two modules
+(`stain_matrix`, `concentrations`, `rescale_to_white`, `above_white_fraction`, `plane_float32`,
+`float32_exact`, the constants) are used through `stain.py` and are not promised by this section;
+`region_white` and `region_vectors` are fixed by §3.5.
+
+**`scalar_inputs.rgb_yxc(pixels: np.ndarray, axes: str) -> np.ndarray`** checks the RGB input
+contract of §3.4 and returns the image as `(Y, X, 3)`.
+
+- `pixels`: a `numpy.ndarray` of 8-bit sRGB values, dtype `uint8` (0 to 255), 3-D.
+- `axes`: exactly `"YXC"` or `"CYX"` (`scalar_inputs.AXES`); never guessed, no default. `C` holds
+  R, G, B in that order.
+- Returns a **new** C-contiguous `uint8` array of shape `(Y, X, 3)`: the colour axis moved last,
+  values unchanged, never a view of `pixels` (a memory map gives a plain array). `"YXC"` and
+  `"CYX"` of the same image give equal arrays. The input is not modified.
+- Refusals, tested in this order (nothing is reordered, rescaled, cast or dropped):
+
+  | Input | Exception | Message |
+  |---|---|---|
+  | `pixels` not a `numpy.ndarray` | `TypeError` | `pixels must be a NumPy array; got {type}.` |
+  | `axes` not exactly `"YXC"` or `"CYX"` (another order, `"YX"`, lower case, not a `str`) | `ValueError` | `axes must be exactly 'YXC' or 'CYX', never guessed; got {axes!r}.` |
+  | not 3-D | `ValueError` | `Expected a 3-D array with axes {axes}; got {ndim}-D.` |
+  | a colour axis of length other than 3 | `ValueError` | `Expected exactly 3 samples (R, G, B) on the colour axis of {axes}; got {n}.`, plus ` An alpha channel is refused, not dropped.` when `n` is 4 |
+  | a `numpy.ma.MaskedArray` (its mask would be dropped) | `TypeError` | `A masked array is refused: its mask would be dropped silently. Pass the data and an explicit mask to the consumer instead.` |
+  | Y or X of 0 | `ValueError` | `The image has no pixels (Y, X = {spatial}); it is refused.` |
+  | a dtype other than `uint8` (16-bit, float, bool) | `TypeError` | `Only 8-bit sRGB (uint8) is supported; got {dtype}. Nothing is rescaled or converted silently.` |
+
+**`optical_density.check_white(white: object) -> np.ndarray`** checks a declared white.
+
+- `white`: the background R, G, B of the 8-bit image, in 8-bit grey levels: any array-like of three
+  integer or float numbers (a list, a tuple, a NumPy array), each finite and in `(0, 255]`
+  (`optical_density.WHITE_MAX = 255.0`). It is never assumed: `(255, 255, 255)` must be passed
+  explicitly. Booleans, text and other dtypes are refused, not converted.
+- Returns a **new** float64 array of shape `(3,)` holding the same values; the input is not
+  modified.
+- Refusals, tested in this order:
+
+  | Input | Exception | Message |
+  |---|---|---|
+  | a masked array, or a masked value (`np.ma.masked`, a masked array) anywhere inside nested lists, tuples or object arrays | `TypeError` | `white is a masked array (or holds a masked value): its mask would be dropped silently. Pass plain numbers.` |
+  | a ragged sequence NumPy cannot make an array of | `ValueError` | NumPy's own message from `np.asarray` |
+  | not three numbers: a shape other than `(3,)`, or a dtype that is not integer or float (`None`, bool, text, object) | `ValueError` | `white must be three numbers (the background R, G, B of the 8-bit image); got {white!r}.` |
+  | a value that is NaN, infinite, 0 or below, or above 255 | `ValueError` | `Each value of white must be finite and in (0, 255]; got {values}. Measure it on background, for example with white_from_region.` (`{values}` the float64 values as a tuple) |
+
+**`optical_density.optical_density(rgb: np.ndarray, white: np.ndarray) -> tuple[np.ndarray,
+float]`** returns a **pair** `(od, floored_fraction)`, never the array alone; callers unpack it.
+
+- `rgb`: a `(Y, X, 3)` image as returned by `rgb_yxc` (`uint8`, grey levels 0 to 255).
+- `white`: a float64 `(3,)` array as returned by `check_white`, in the same grey levels.
+- `od`: a **new float64 array of shape `(Y, X, 3)`** (the shape of `rgb`), the decadic optical
+  density per channel, dimensionless: `od = -log10(max(I, 1) / white)`, computed in float64 in that
+  order (`I` cast to float64, floored, divided by `white` broadcast over the last axis, `log10`,
+  negated). **Floor:** a channel value of 0 has no finite optical density and is raised to
+  `optical_density.FLOOR = 1.0` first, so with checked inputs `od` is finite, at most
+  `log10(255 / 1) ≈ 2.41` for a white of 255; it is negative where a channel is brighter than the
+  white (never clipped). Nothing is clipped, normalised or rescaled.
+- `floored_fraction`: a Python `float` in `[0, 1]`, the fraction of pixels (of `Y * X`) with at
+  least one channel below the floor (that is, at 0 for `uint8`), so floored pixels are reported,
+  never hidden.
+- Refusals: **none of its own.** It does not check its arguments; its preconditions are the
+  outputs of `rgb_yxc` and `check_white`, and a consumer always passes its inputs through them
+  first (as `stain.py` does). Other inputs are outside this contract.
 
 ## 4. Scopes, groups and weights
 

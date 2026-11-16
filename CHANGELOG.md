@@ -45,6 +45,22 @@ dependency (NumPy only, no Numba), no API, file format or message change.
   files (fixed clock). The normalization suite runs in 20 s instead of 51 s before the new
   parity tests (45 s with them).
 
+Stable API, documentation and tests only (prerequisite P2 of preprocessing's H&E tissue mask,
+morphobricks-preprocessing `docs/design/he-tissue-mask.md`, owner decision Q5): no code,
+behaviour, output or message change.
+
+- **Three optical-density helpers are stable public API** for other bricks (new contract §3.6):
+  `optical_density.optical_density(rgb, white) -> tuple[np.ndarray, float]`, which returns the
+  pair `(od, floored_fraction)` (`od` a new float64 `(Y, X, 3)` array,
+  `-log10(max(I, 1) / white)`), `optical_density.check_white(white) -> np.ndarray` (a new
+  float64 `(3,)` array) and `scalar_inputs.rgb_yxc(pixels, axes) -> np.ndarray` (a new uint8
+  `(Y, X, 3)` array). §3.6 gives their arguments, units, dtypes, the floor, every refusal in
+  order (type and message; none has a code) and what "stable" means: a change needs the owner's
+  approval, a plan §12 entry and a **Breaking** release. They stay module attributes, not
+  re-exported from the package root (a root `optical_density` would shadow the module).
+- `tests/test_stable_od_api.py` pins their import paths, signatures, the tuple return of
+  `optical_density`, one behaviour each and the exception type of every refusal.
+
 ## v0.7.0 (2026-11-15)
 
 Step 1 of MorphoBricks-Spec [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md)

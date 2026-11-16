@@ -36,6 +36,9 @@ src/morphobricks_normalization/
                     bins a value can fall in and whether centres map back (#86)
   integer_representatives.py  integer bin representatives (nearest float64 midpoint) and
                     their exact bound for 64-bit values float64 cannot hold (#28)
+  integer_bins.py   whole-number bin starts and limits of integer planes, per-value counts
+                    summed into bins, the bin of a value: NumPy int64 where no step can
+                    overflow, exact Python integers (as in v0.7.0) for wide 64-bit ranges
   ranges.py         HistogramSettings, RangeCheck, range_check_issues (Milestone 5)
   integrity.py      invariants every PlaneHistogram and HistogramTail checks when made
                     (counts, limits, tail moments) and the pixel type of every block
@@ -88,7 +91,10 @@ tests/              pytest with simulated planes (tests/simulation.py); tests/da
                     stain_v060_parity.json, the v0.6.0 refusals and output digests of
                     tests/test_stain_check_options.py (recorded by tests/stain_parity_cases.py),
                     and region_v061_parity.json, the v0.6.1 region whites and stain vectors of
-                    tests/test_regions.py (recorded by tests/region_parity_cases.py)
+                    tests/test_regions.py (recorded by tests/region_parity_cases.py), and
+                    histogram_v070_parity.json, the v0.7.0 histograms, representatives, bounds
+                    and range checks of tests/test_histogram_parity.py (recorded by
+                    tests/histogram_parity_cases.py)
 tools/check.py      the release gate: ruff format, pytest and the code standards (design v0.4 §9);
                     `--rules` runs only the standards (CI); tools/code_rules.py is the shared
                     copy (SHA-256 pinned in tests/test_code_rules.py), tools/code_rules_baseline.json

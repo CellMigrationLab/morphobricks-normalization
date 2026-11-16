@@ -4,6 +4,47 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## Unreleased
+
+Speed only (MorphoBricks preprocessing speed plan, step D6; measured in preprocessing draft PR
+#318, `experiments/histogram_numba_study/`): every output is bitwise that of v0.7.0. No new
+dependency (NumPy only, no Numba), no API, file format or message change.
+
+- **Per-bin work of integer planes in NumPy int64** (new module `integer_bins`). The bin starts
+  (a 65,537-item Python list per call before), the sums of per-value counts into bins, the
+  integer bin limits, the representatives, `max_representative_error` and the bin of each order
+  statistic of the range check were Python loops over every bin; they are now NumPy int64
+  arithmetic on the same formulas (the bin of a value is one exact integer division).
+- **The exact Python integers are kept where int64 could not be exact**, chosen by explicit
+  conditions: bin starts when `bin_count * width >= 2**62` (64-bit planes with a wide range);
+  representatives and the bound from `2**51` on (unchanged `Fraction` bound, #28); bin sums
+  when a plane's per-value counts total `2**52` or more (v0.7.0's float64 sums are kept there);
+  and histograms a caller built with NumPy integer limits or a NumPy bin count, so their
+  results keep v0.7.0's NumPy types (and int64 products never wrap). Float bin positions, tail moments and 32/64-bit pixel binning are unchanged.
+- **Identity**: `tests/test_histogram_parity.py` compares every `PlaneHistogram` field, the
+  representatives and bound as raw bits, the integer bin limits and their types, `is_exact` and
+  the `RangeCheck` of 4,236 cases (the ten pixel types, NaN and +/-inf, subnormal, constant,
+  empty and dtype-extreme planes, bin-edge float grids, several bin counts, min-max and robust,
+  whole and in 3 blocks, 64-bit ranges on both sides of each int64 condition) with
+  `tests/data/histogram_v070_parity.json`, recorded on v0.7.0 (`c6a9f9d`) by
+  `tests/histogram_parity_cases.py`; and the kept Python paths with the int64 ones switched off.
+  `tools/dump_outputs.py` (default and `--corpus`) gives the digests of v0.7.0.
+- **Measured** (the study's data and scripts: `tools/benchmark_run_workers.py` at scale 1, 14 images,
+  76 planes, 303 MiB, memory limit 64 MiB; preprocessing v0.6.1 `37c583e`; Linux, 4 shared CPUs,
+  load average 2.6–3.4, Python 3.13.18, NumPy 2.5.5; 5 repeats, variants interleaved in rotating
+  order, a fresh process per run). Wall time of `run_experiment`, median (min–max):
+
+  | workers | v0.7.0 | this change | speed-up |
+  |---|---|---|---|
+  | 1 (serial) | 7.23 s (6.25–7.70) | 4.95 s (4.66–5.31) | 1.46× |
+  | 2 | 6.24 s (5.78–6.63) | 4.16 s (4.10–5.04) | 1.50× |
+  | 4 | 6.18 s (5.66–6.52) | 4.78 s (4.16–5.17) | 1.29× |
+  | auto (4) | 6.40 s (5.54–6.56) | 4.51 s (4.11–4.75) | 1.42× |
+
+  Median CPU time fell from 6.6–7.3 s to 4.9–5.5 s. All 40 runs wrote the same bytes in all 6
+  files (fixed clock). The normalization suite runs in 20 s instead of 51 s before the new
+  parity tests (45 s with them).
+
 ## v0.7.0 (2026-11-15)
 
 Step 1 of MorphoBricks-Spec [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md)

@@ -26,7 +26,16 @@ FLOAT_EXACT_LIMIT = 2**51
 
 
 def integer_representatives(histogram: PlaneHistogram) -> np.ndarray:
-    """Return the float64 nearest the midpoint of every bin of a non-empty integer plane."""
+    """Return the float64 nearest the midpoint of every bin of a non-empty integer plane.
+
+    Below ``2**51`` with int64 bin limits, ``first + last`` is an int64 below ``2**53`` and
+    so an exact float64, and halving it is exact: the same floats as the Python division.
+    """
+    # The histogram's own limits (int64 arrays, or Python integers for wide 64-bit ranges).
+    first, last = histogram._integer_bin_limits
+    if isinstance(first, np.ndarray) and not beyond_float_exact(histogram):
+        lo = histogram.binning_min
+        return ((first + lo) + (last + lo)).astype(np.float64) / 2
     return np.array(
         [(first + last) / 2 for first, last in histogram.integer_bin_limits()], dtype=np.float64
     )

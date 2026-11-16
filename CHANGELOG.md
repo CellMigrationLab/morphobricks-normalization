@@ -29,6 +29,21 @@ dependency (NumPy only, no Numba), no API, file format or message change.
   `tests/data/histogram_v070_parity.json`, recorded on v0.7.0 (`c6a9f9d`) by
   `tests/histogram_parity_cases.py`; and the kept Python paths with the int64 ones switched off.
   `tools/dump_outputs.py` (default and `--corpus`) gives the digests of v0.7.0.
+- **Measured** (the study's data and scripts: `tools/benchmark_run_workers.py` at scale 1, 14 images,
+  76 planes, 303 MiB, memory limit 64 MiB; preprocessing v0.6.1 `37c583e`; Linux, 4 shared CPUs,
+  load average 2.6–3.4, Python 3.13.18, NumPy 2.5.5; 5 repeats, variants interleaved in rotating
+  order, a fresh process per run). Wall time of `run_experiment`, median (min–max):
+
+  | workers | v0.7.0 | this change | speed-up |
+  |---|---|---|---|
+  | 1 (serial) | 7.23 s (6.25–7.70) | 4.95 s (4.66–5.31) | 1.46× |
+  | 2 | 6.24 s (5.78–6.63) | 4.16 s (4.10–5.04) | 1.50× |
+  | 4 | 6.18 s (5.66–6.52) | 4.78 s (4.16–5.17) | 1.29× |
+  | auto (4) | 6.40 s (5.54–6.56) | 4.51 s (4.11–4.75) | 1.42× |
+
+  Median CPU time fell from 6.6–7.3 s to 4.9–5.5 s. All 40 runs wrote the same bytes in all 6
+  files (fixed clock). The normalization suite runs in 20 s instead of 51 s before the new
+  parity tests (45 s with them).
 
 ## v0.7.0 (2026-11-15)
 

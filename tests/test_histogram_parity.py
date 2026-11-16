@@ -207,3 +207,24 @@ def test_representatives_below_2_51_are_python_midpoints():
         assert hist.representatives.tobytes() == np.array(midpoints).tobytes()
         widest = max(b - a + 1 for a, b in limits)
         assert hist.max_representative_error == (widest - 1) / 2
+
+
+def test_bin_offsets_keep_python_integers_for_a_numpy_bin_count():
+    # A caller may build a histogram with a NumPy bin count. v0.7.0 then gave NumPy limits,
+    # or refused with an OverflowError where i * width does not fit int64; int64 starts would
+    # wrap there silently (negative limits for a uint64 plane), so the Python path is kept.
+    counts = np.array([3, 3, 3, 2], np.int64)
+    numpy_count = PlaneHistogram(np.dtype("uint16"), np.int64(4), 10, 20, counts, 11, 11, 10, 20)
+    python_count = PlaneHistogram(np.dtype("uint16"), 4, 10, 20, counts, 11, 11, 10, 20)
+    assert numpy_count.integer_bin_limits() == python_count.integer_bin_limits()
+    assert type(numpy_count.integer_bin_limits()[0][1]) is np.int64
+    assert type(numpy_count.max_representative_error) is np.float64
+    assert numpy_count.representatives.tobytes() == python_count.representatives.tobytes()
+    counts = np.zeros(65_536, np.int64)
+    counts[[0, -1]] = 1
+    wide = PlaneHistogram(np.dtype("uint64"), np.int64(65_536), 0, 2**50, counts, 2, 2, 0, 2**50)
+    try:
+        limits = wide.integer_bin_limits()
+    except OverflowError:  # v0.7.0's refusal: Python int too large to convert to C long
+        return
+    assert limits[-1] == (2**50 - 2**34 + 1, 2**50)

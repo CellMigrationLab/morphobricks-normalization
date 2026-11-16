@@ -19,8 +19,8 @@ dependency (NumPy only, no Numba), no API, file format or message change.
   conditions: bin starts when `bin_count * width >= 2**62` (64-bit planes with a wide range);
   representatives and the bound from `2**51` on (unchanged `Fraction` bound, #28); bin sums
   when a plane's per-value counts total `2**52` or more (v0.7.0's float64 sums are kept there);
-  and histograms a caller built with NumPy integer limits, so their results keep v0.7.0's NumPy
-  types. Float bin positions, tail moments and 32/64-bit pixel binning are unchanged.
+  and histograms a caller built with NumPy integer limits or a NumPy bin count, so their
+  results keep v0.7.0's NumPy types (and int64 products never wrap). Float bin positions, tail moments and 32/64-bit pixel binning are unchanged.
 - **Identity**: `tests/test_histogram_parity.py` compares every `PlaneHistogram` field, the
   representatives and bound as raw bits, the integer bin limits and their types, `is_exact` and
   the `RangeCheck` of 4,236 cases (the ten pixel types, NaN and +/-inf, subnormal, constant,

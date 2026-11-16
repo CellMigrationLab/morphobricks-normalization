@@ -51,12 +51,14 @@ def integer_bin_offsets(
 ) -> tuple[np.ndarray, np.ndarray] | tuple[list[int], list[int]]:
     """Return every bin's first and last value, as offsets from ``binning_min``.
 
-    int64 arrays when both limits are Python integers (as in every histogram computed or
-    read by this library) and the starts fit int64; otherwise the exact Python integers of
-    v0.7.0, so that results built from them keep their values and types.
+    int64 arrays when both limits and the bin count are Python integers (as in every
+    histogram computed or read by this library) and the starts fit int64; otherwise the
+    exact Python integers of v0.7.0, so that results built from them keep their values and
+    types. A NumPy bin count would make ``bin_count * width`` a NumPy product that can wrap.
     """
     width = binning_max + 1 - binning_min
-    starts = integer_bin_starts_int64(width, bin_count) if type(width) is int else None
+    python_ints = type(width) is int and type(bin_count) is int
+    starts = integer_bin_starts_int64(width, bin_count) if python_ints else None
     if starts is not None:
         return starts[:-1], starts[1:] - 1
     starts = integer_bin_starts(width, bin_count)

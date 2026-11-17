@@ -603,6 +603,14 @@ binary masks", accepted; decisions BM3, BM7, BM8 and BM10, step 1 of its impleme
     undefined estimate. normalization holds the only constructor of `RESOLVER_VERSION_UNSUPPORTED`,
     `contracts.refuse_resolver_version(found, supported)`, which every consumer of
     preprocessing's resolver calls (contract §3.5).
+65. **N71** (17 November 2026, issue #105, owner's choice of rule 2) Signed zero is written as
+    `0.0`. Every float the package writes as text (the cells of `plane_histograms.csv`, the
+    parameter columns of §8, the percentiles of a method name) and the floats of
+    `ImageSummary.to_row()` go through one helper, `float_text.canonical_zero`, so a plane whose
+    `pixel_min` or `pixel_max` is `-0.0` on one platform and `+0.0` on another writes the same
+    bytes. The computed values keep their sign; only what is written changes, and it reads back
+    as an equal float. Not a format change: `0.0 == -0.0`, so no `schema_version` changes
+    (contract §6.1, §8.2).
 
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that

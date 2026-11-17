@@ -27,7 +27,7 @@ An ID may contain ``_`` (``PAX_488``), so column names are never split on
 
 Labels are always read back as text, so folder names such as ``NA``, ``001``
 or ``TRUE`` keep their exact spelling. Float values are written at full
-precision and read back unchanged.
+precision and read back unchanged, but for ``-0.0``, written as ``0.0`` (#105).
 """
 
 from __future__ import annotations
@@ -44,6 +44,7 @@ import numpy as np
 
 from .channels import check_channel_ids
 from .dtypes import bit_depth, check_supported, is_integer
+from .float_text import float_text
 from .histogram import EMPTY_TAIL, HistogramTail, PlaneHistogram
 from .records import (
     ChannelMeasurementError,
@@ -552,7 +553,7 @@ def _duplicate_message(path: str | Path, plane_id: str, lines: dict[str, int], l
 
 
 def _tail_text(tail: HistogramTail) -> tuple[str, str, str]:
-    return str(tail.count), repr(float(tail.mean)), repr(float(tail.std))
+    return str(tail.count), float_text(tail.mean), float_text(tail.std)
 
 
 def _tail(texts: list[str]) -> HistogramTail:
@@ -585,7 +586,7 @@ def _text(value: object) -> str:
     if value is None:
         return ""
     if isinstance(value, float):
-        return repr(value)
+        return float_text(value)
     return str(value)
 
 

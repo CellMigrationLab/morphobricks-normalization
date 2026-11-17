@@ -6,6 +6,29 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
 
 ## Unreleased
 
+Signed zero is written as `0.0` (#105; owner decision 17 November 2026, plan N71). Behaviour
+change for written text only: no computed value, algorithm, API, schema version or message
+changes.
+
+- **Every float the package writes goes through one helper**, the new module `float_text`
+  (`canonical_zero`, `float_text`): the float cells of `plane_histograms.csv`
+  (`Intensity_Min/MaxIntensity`, `Histogram_BinningMin/Max`, the underflow and overflow means
+  and standard deviations), the `Normalization_Offset/Scale_<ID>` columns of
+  `Parameters.to_columns()`, the float values of `ImageSummary.to_row()` and the percentiles of
+  `percentile_name` (which already wrote `-0.0` as `0`; now through the same helper). A float
+  plane holding both `-0.0` and `+0.0` has a `pixel_min` or `pixel_max` of either zero
+  depending on NumPy's `min`/`max`, the element order and the platform; the same pixels now
+  write the same bytes everywhere. `x + 0.0` changes no float but `-0.0`; NaN and the
+  infinities are written as before. The in-memory `PlaneHistogram`, `Parameters` and
+  `ImageSummary` values keep their sign.
+- **Files that change**: only those that held `-0.0`, now `0.0` in the same cells (they read
+  back as an equal float). No recorded golden or parity table of this repository holds a
+  `-0.0`, and `tools/dump_outputs.py` (default and `--corpus`) gives the same digests as
+  before (`032b395b…` and `0111f8bd…`).
+- **Tests**: `tests/test_signed_zero.py`, which fails on v0.7.0 for every writer path, including
+  planes mixing signed zeros in every order of `[-0.0, 0.0, -0.0, 0.0]` and three mixed ones,
+  each written in three orders to the same bytes.
+
 Speed only (MorphoBricks preprocessing speed plan, step D6; measured in preprocessing draft PR
 #318, `experiments/histogram_numba_study/`): every output is bitwise that of v0.7.0. No new
 dependency (NumPy only, no Numba), no API, file format or message change.

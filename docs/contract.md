@@ -22,9 +22,9 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 1.3 and 6. Channels across columns (`plane_histograms.csv` schema version 3); per-channel columns of 7.1 and 8.1 | Milestone 2b (done; the columns of 7.1 in Milestone 4, done) |
 | 7. Intensity checks | Milestone 4 (done) |
 | 1.4 Robust histogram range and range check; `plane_histograms.csv` schema version 4 (6.2) | Milestone 5 (done) |
-| 1.5 and 6. Channels by canonical channel ID (`plane_histograms.csv` schema version 5); per-channel columns of 7.1 and 8.1 by ID | Stage 3 S3.2 ([ADR 0003](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0003-plane-histograms-v5.md); draft, unreleased) |
-| 3.5 Regions (`check_region`, `RegionEstimate`) and the resolver-version refusal | [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md) step 1 (plan N70; unreleased) |
-| 3.6 Stable optical-density helpers (`check_white`, `optical_density`, `rgb_yxc`) | Documented as stable API for preprocessing's H&E tissue mask (P2; no code change; unreleased) |
+| 1.5 and 6. Channels by canonical channel ID (`plane_histograms.csv` schema version 5); per-channel columns of 7.1 and 8.1 by ID | Stage 3 S3.2 ([ADR 0003](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0003-plane-histograms-v5.md); v0.5.0) |
+| 3.5 Regions (`check_region`, `RegionEstimate`) and the resolver-version refusal | [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md) step 1 (plan N70; v0.7.0) |
+| 3.6 Stable optical-density helpers (`check_white`, `optical_density`, `rgb_yxc`) | Documented as stable API for preprocessing's H&E tissue mask (P2; no code change; v0.7.1) |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered
@@ -1069,12 +1069,13 @@ histograms). Each summary holds the channels of its image by ID (`ImageSummary.c
 types (`IncompatibleSummariesError`, a `ValueError`). An `ImageSummary` whose per-channel tuples
 have different lengths is refused when made, and `intensity_checks` refuses summaries with
 different numbers of channels or different percentile definitions, with the same error.
-`ImageSummary.to_row()` gives the columns below as a dictionary, in this order (numbers as
-floats, `-0.0` as `0.0` (N71), a blank as `None`, `Histogram_Exact_<ID>` as a bool; a
-channel the image does not have is not in the row and is blank in a table), and
-`summary_columns(channel_ids)` the names
-for the experiment's channel IDs, so the calling brick can show the rows as a table or write them; the
-library writes no file (N50). The columns are the shared columns `source_relative_path`,
+`ImageSummary.to_row()` gives the columns below as a dictionary, in this order (each number
+as the summary holds it: floats from `image_summaries`, and a value a caller gave keeps its
+type; only a float zero of either sign is replaced by `0.0`, N71; a blank as `None`,
+`Histogram_Exact_<ID>` as a bool; a channel the image does not have is not in the row and is
+blank in a table), and `summary_columns(channel_ids)` the names for the experiment's channel
+IDs, so the calling brick can show the rows as a table or write them; the library writes no
+file (N50). The columns are the shared columns `source_relative_path`,
 `condition`, `biological_repeat`, `technical_repeat`, `image_file`, and for each channel ID
 (§6.1):
 

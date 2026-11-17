@@ -10,12 +10,15 @@ in-memory values keep their sign, and only zeros are touched.
 import csv
 import io
 import itertools
+import json
 import math
 
 import numpy as np
 import pytest
 
 from morphobricks_normalization import (
+    HistogramSettings,
+    IntensityCheckSettings,
     NormalizationSettings,
     PlaneRecord,
     compute_plane_histogram,
@@ -232,3 +235,32 @@ def test_numpy_non_zero_limits_write_readable_text(tmp_path):
         (back,) = read_plane_histograms(path)
         assert (back.histograms[0].pixel_min, back.histograms[0].pixel_max) == (0.25, 1.5)
     assert written[np.float64] == written[np.float32] == ["0.25", "1.5", "0.25", "1.5"]
+
+
+@pytest.mark.parametrize("zero", [-0.0, np.float64(-0.0), np.float32(-0.0)])
+def test_settings_dictionaries_write_0_0(zero):
+    # Review of #110: the run-configuration dictionaries are written as JSON by the caller.
+    cases = (
+        (NormalizationSettings(method="percentile", percentile=(zero, 99.8)), "percentile", 0),
+        (
+            HistogramSettings(histogram_range="robust", robust_quantiles=(zero, 99.9)),
+            "robust_quantiles",
+            0,
+        ),
+        (IntensityCheckSettings(saturation_limit=zero), "saturation_limit", None),
+    )
+    for settings, key, index in cases:
+        data = settings.to_dict()
+        value = data[key] if index is None else data[key][index]
+        assert type(value) is float and math.copysign(1.0, value) == 1.0
+        assert "-0.0" not in json.dumps(data)
+        assert type(settings).from_dict(data) == settings
+
+
+def test_settings_dictionaries_keep_non_zero_values():
+    assert NormalizationSettings(method="percentile", percentile=(1.0, 99.8)).to_dict()[
+        "percentile"
+    ] == [1.0, 99.8]
+    data = HistogramSettings(histogram_range="robust", robust_quantiles=(0.5, 99.5)).to_dict()
+    assert data["robust_quantiles"] == [0.5, 99.5]
+    assert IntensityCheckSettings(saturation_limit=0.25).to_dict()["saturation_limit"] == 0.25

@@ -5,7 +5,8 @@ either zero, depending on NumPy's ``min``/``max``, the element order and the pla
 the same pixels write the same bytes everywhere, every float the package writes (the cells of
 ``plane_histograms.csv``, the parameter columns of contract §8.1 and the percentiles of a
 method name) goes through :func:`canonical_zero`: ``-0.0`` becomes ``0.0``. Values handed to a
-caller who writes them (the image summary rows of contract §7.1) go through
+caller who writes them (the image summary rows of contract §7.1 and the ``to_dict()`` of the
+three settings classes) go through
 :func:`positive_zero`, which replaces a float zero and returns every other value as given.
 Every other value, NaN and the infinities included, is unchanged, and no computed value
 changes: only what is written does.

@@ -605,10 +605,12 @@ binary masks", accepted; decisions BM3, BM7, BM8 and BM10, step 1 of its impleme
     preprocessing's resolver calls (contract §3.5).
 65. **N71** (17 November 2026, issue #105, owner's choice of rule 2) Signed zero is written as
     `0.0`. Every float the package writes as text (the cells of `plane_histograms.csv`, the
-    parameter columns of §8, the percentiles of a method name) and the floats of
-    `ImageSummary.to_row()` go through one helper, `float_text.canonical_zero`, so a plane whose
-    `pixel_min` or `pixel_max` is `-0.0` on one platform and `+0.0` on another writes the same
-    bytes. The computed values keep their sign; only what is written changes, and it reads back
+    parameter columns of §8, the percentiles of a method name) goes through
+    `float_text.canonical_zero`, and the values it hands a caller to write
+    (`ImageSummary.to_row()` and the `to_dict()` of `NormalizationSettings`,
+    `HistogramSettings` and `IntensityCheckSettings`) through `float_text.positive_zero`, which
+    replaces only a float zero; so a plane whose `pixel_min` or `pixel_max` is `-0.0` on one
+    platform and `+0.0` on another writes the same bytes. The computed values keep their sign; only what is written changes, and it reads back
     as an equal float. Not a format change: `0.0 == -0.0`, so no `schema_version` changes
     (contract §6.1, §8.2).
 

@@ -17,8 +17,10 @@ changes.
   `Parameters.to_columns()` and the percentiles of `percentile_name` (which already wrote
   `-0.0` as `0`; now through the same helper).
 - **Values handed to a caller who writes them change only at zero** (`positive_zero`): in
-  `ImageSummary.to_row()` a float zero of either sign, Python or NumPy, becomes the Python
-  float `0.0`; every other value is returned as given, with its type and text (an `int` stays
+  `ImageSummary.to_row()` and in the run-configuration dictionaries
+  `NormalizationSettings.to_dict()` (`percentile`), `HistogramSettings.to_dict()`
+  (`robust_quantiles`) and `IntensityCheckSettings.to_dict()` (`saturation_limit`), a float
+  zero of either sign, Python or NumPy, becomes the Python float `0.0`; every other value is returned as given, with its type and text (an `int` stays
   an `int`, a `np.float32(0.1)` still writes `0.1`), as in v0.7.0.
 - **NumPy float limits of a caller-built `PlaneHistogram`** (`compute_*` always gives Python
   numbers): a NumPy float zero of either sign is now written `0.0` too. Side fix: `np.float64`

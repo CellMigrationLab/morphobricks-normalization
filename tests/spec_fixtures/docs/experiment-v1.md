@@ -9,6 +9,15 @@
   round: folder labels are never restricted) gives conditions and technical repeats a canonical ID
   separate from their source folder label (§4.6a). A statement about a consumer is as audited as that
   audit; it is not a conformance claim for any brick.
+- **Amended** on 11 November 2026 (owner decision PL1, ADR 0001): `representation` gains the value
+  `parent_labels` (§4.5b, §7, §8).
+- **Amended** on 13 November 2026 (owner decision RH1, ADR 0001): an RGB unit may declare
+  `rgb_header_override = true` for files whose header contradicts `rgb` but that hold exactly three
+  interleaved samples per pixel (§4.4b, §6, §7, §8).
+- **Amended** on 15 November 2026 (owner decision BM11,
+  [ADR 0005](adr/0005-binary-masks.md)): a `binary` mask file holds values in {0, v} for one
+  positive v over all its planes, stored as integers or booleans; all-zero and all-foreground files
+  are accepted, two or more distinct positive values and float files are refused (§4.5, §4.5b, §8). It replaces "more than two distinct values".
 - **Decisions:** [ADR 0001](adr/0001-experiment-description-v1.md).
 - **Fixtures:** [fixtures/README.md](../fixtures/README.md). **Conformance:**
   [conformance-plan.md](conformance-plan.md).
@@ -264,6 +273,7 @@ condition; at most one per condition per repeat, guaranteed by TOML key uniquene
 | `display_name` | non-empty text | no | Display only (§4.8); MAY be the folder label |
 | `channels` | array of channel IDs | yes | ≥ 1 entry; ordered: entry *i* is source channel C*i*; every entry declared (`E_UNKNOWN_CHANNEL`); no repeats (`E_DUPLICATE_CHANNEL_IN_UNIT`) |
 | `image_type` | text | no | Only the value `rgb` (`E_ENUM`: exact, lower case); absent = an ordinary channel image. User-declared, never inferred (§4.4b) |
+| `rgb_header_override` | boolean | no (default `false`) | Only on a unit with `image_type = "rgb"` (`E_RGB_OVERRIDE_WITHOUT_RGB`); `true` accepts a header whose colour interpretation contradicts `rgb` when every image of the unit has exactly three interleaved samples per pixel (§4.4b, amendment RH1) |
 
 **§4.4b RGB imaging units (AQ6; supersedes the D8 refusal).** RGB (interleaved colour) is an
 accepted, **declared** image type, per imaging unit:
@@ -283,6 +293,30 @@ accepted, **declared** image type, per imaging unit:
   `R_IMAGE_TYPE_CONTRADICTS_HEADER`. A format whose header states no colour interpretation cannot
   contradict the declaration, which then stands on user confirmation and is recorded in the
   manifest as not header-verified.
+- **Header override (owner decision RH1, 13 November 2026).** Some scanners write interleaved RGB
+  with a colour interpretation that is not RGB (for example TIFF photometric `MINISBLACK` with
+  three samples per pixel). A unit declared `rgb` MAY also declare `rgb_header_override = true`:
+  preprocessing then accepts a header that says the unit is not RGB **only** when every image of
+  the unit has exactly three samples per pixel on an interleaved samples axis (TIFF
+  `SamplesPerPixel = 3`, contiguous planar configuration; the samples become `R`, `G`, `B` in
+  stored order) and records the unit in the manifest as **declared RGB, header overridden**, with
+  the header's colour interpretation. Any other contradiction stays
+  `R_IMAGE_TYPE_CONTRADICTS_HEADER`; an image of an overridden unit without three interleaved samples
+  is `R_RGB_OVERRIDE_NOT_THREE_SAMPLES`. The key is never inferred, never written by a reader on its
+  own, and changes no channel ID; without it the contradiction is refused and the message names the
+  key. Owner answers of 14 November 2026:
+  - **Declared and effective are recorded separately.** The manifest records, per unit, the declared
+    key (`rgb_header_override`, `true` or `false`) and, per image, whether the override was **used**
+    (it lifted a contradicting header, with that header's colour interpretation) or **unused** (the
+    header already says RGB: accepted as header-verified; or the format states no colour
+    interpretation, for example OME-Zarr: accepted as not header-verified, as without the key).
+    The three-sample requirement applies to every image whose header the override lifts.
+  - **Homogeneity uses the effective type.** After a valid override every image of the unit is
+    effectively `rgb`; images whose headers differ only in colour interpretation (for example some
+    `MINISBLACK` with three interleaved samples, some photometric RGB) are homogeneous, and each
+    image's own header interpretation is kept as evidence.
+  - **The key is part of the confirmed layout.** Adding, removing or changing it reopens the N35
+    confirmation of the repeat, like a change of `image_type` or of the channel list (§10).
 - The spec gives RGB **no scientific meaning**: no grey conversion, luminance, stain separation
   or joint-channel rule. Each brick owns the meaning and MUST declare whether it supports RGB;
   undeclared means unsupported. An analysis request that includes an RGB unit's channels for a
@@ -332,7 +366,7 @@ Repeat rules:
 | Key | Type | Req | Rule |
 |---|---|---|---|
 | `source_type` | text | yes | Exact discovered mask type (Label rules); one mask per source type (`E_MASK_SOURCE_TYPE_REUSED`) |
-| `representation` | text | yes | `instances` or `binary` (`E_ENUM`); user-confirmed, never inferred from dtype, values or names. A mask declared `binary` with more than two distinct values is refused by preprocessing's mask step (`R_MASK_CONTRADICTS_REPRESENTATION`, §4.5a); the user must declare `instances` |
+| `representation` | text | yes | `instances`, `binary` or `parent_labels` (`E_ENUM`; exact, lower case); user-confirmed, never inferred from dtype, values or names. Every file of a mask declared `binary` MUST be stored as integers (signed or unsigned) or booleans, never floats (a float file is refused even when every value is whole), and MUST hold, over all its planes together, values in {0, v} for one positive integer v (a boolean file: {0, 1}); v may differ between files. An all-zero file is accepted (zero objects; an empty region where used as a region), and so is an all-foreground file {v}. A float file, or a file holding two or more distinct positive values (also when each plane alone holds one) or any negative value, is refused by preprocessing's mask step (`R_MASK_CONTRADICTS_REPRESENTATION`, §4.5a); the user must declare `instances` or `parent_labels`, or fix the file. `parent_labels`: §4.5b |
 | `source_channels` | array of channel IDs | no | Provenance only (what the mask was derived from); not a restriction on measured channels; each declared (`E_UNKNOWN_CHANNEL`); no duplicates (`E_DUPLICATE_VALUE`); order not semantic |
 | `display_name` | non-empty text | no | Display only (§4.8) |
 
@@ -347,14 +381,52 @@ set in the run manifest, the status `checked` (with the checked files and their 
 `not yet checked`. A run that uses a mask file whose status is `not yet checked` MUST refuse
 (`A_MASK_UNCHECKED`, §8); it never checks implicitly and never assumes. A new batch of files is
 `not yet checked` until the mask step has read it. Pixels cannot prove `instances` (an integer
-mask holding only 0 and 1 is accepted as declared).
+mask holding only 0 and 1 is accepted as declared) or `parent_labels`: a file of either is
+`checked` once the mask step has read it.
 
-**§4.5b Grouped (`parent_labels`) masks are out of scope in v1 (AQ8).** MorphoRelate's third
-representation `parent_labels` (preprocessing kind `grouped`) has no v1 value:
-`representation = "parent_labels"` is `E_ENUM`. A grouped mask cannot be declared `instances`
-(wrong objects) or `binary` (more than two values: `R_MASK_CONTRADICTS_REPRESENTATION`), so it
-is not described, and not analysed through a description, in v1. A design for it follows with a
-later `schema_version` (v1.1); nothing here predicts its form.
+**§4.5b Parent-label (grouped) masks (owner decision PL1, 11 November 2026; supersedes AQ8).**
+`representation = "parent_labels"` declares a mask whose non-zero values each name **one group**,
+for example the mitochondria of one cell, and whose pixels of one value can be in any number of
+separate pieces. 0 is background. It is MorphoRelate's `parent_labels` representation and what
+preprocessing's mask step suggests as the kind `grouped` (evidence only, never a pre-filled
+answer: the representation is user-confirmed, §4.5).
+
+- **Identity.** A group is identified by the FOV key (§3.4), the mask ID and the value. A value is
+  never an identity on its own: the same number in another mask or another FOV is not the same
+  group, and no consumer joins groups or objects by number alone.
+- **Not instances.** A group is not an object of this mask: its pieces are not one object, and its
+  value is not an object label of this mask. A `parent_labels` mask is never an object set
+  (`A_MASK_NOT_INSTANCES`, §8), with or without the capability below. No reader, resolver or
+  labeller splits it into connected components, relabels it or converts it to `instances`, and
+  the per-request conversion of §4.5c applies to `binary` masks only. What a brick measures
+  inside a group (for example its connected pieces) is that brick's own numerical rule.
+- **Declared wrongly.** A grouped mask declared `binary` is refused by the mask step when a file
+  holds two or more distinct positive values (`R_MASK_CONTRADICTS_REPRESENTATION`, §4.5a); with one
+  group (0 and one value) it cannot be told from a `binary` mask. Declared `instances` it cannot be refused,
+  because pixels cannot prove `instances`. In both cases the user's declaration is the guard, and
+  the mask step's `grouped` kind is the evidence for it.
+- **The parent.** The file names no mask that the values refer to. A consumer reads a value as
+  the label of an object only when its own request names that parent: an object set of the **same
+  FOV** (an `instances` mask, or a set the brick derives from one, such as MorphoRelate's
+  `cytoplasm`). It then reports the pixels whose value disagrees with that parent and never
+  reassigns them.
+- **Capability (`parent_labels_support`).** A brick declares whether it reads the groups. A brick
+  that publishes a provider manifest declares it there as the optional top-level key
+  `parent_labels_support`, a boolean, with the rules of `rgb_support` (§4.4b): `true` declares
+  support; `false` and an absent key mean unsupported; a value that is not a boolean is a
+  manifest error, never read as `true`; a brick without a provider manifest states it in its
+  documented capabilities. Which features of a brick accept the representation is the brick's
+  own list; the Spec gives none.
+- **Use as a region (owner decision of 11 November 2026).** A request can use a `parent_labels`
+  mask in the role `region` (an area, not objects) for every consumer:
+  - a consumer that declares `parent_labels_support` receives the values as groups (`conversion`
+    none);
+  - a consumer that does not declare it reads the mask as an **area**: every non-zero pixel is
+    inside, 0 is outside, and the groups are not kept. This is never silent: the resolver returns
+    the selection with the recorded marker `conversion = "parent_labels_as_area"`, and the
+    consumer records it in its run provenance or output and shows it to the user (for example
+    "`Mito`: parent_labels used as an area; grouping not kept"). The selection keeps
+    `representation = "parent_labels"`; the file is not changed.
 
 **§4.5c A binary mask is never an object set by default (AQ9).** A request that uses a `binary`
 mask as an object set is `A_MASK_NOT_INSTANCES`. The only way around it is an **explicit,
@@ -363,7 +435,7 @@ per-request, recorded conversion** to instances chosen in the request, for examp
 the method and its parameters, applies to that request only, and is never automatic, never a
 default and never stored in `morphobricks.toml`, where `representation` stays `binary`
 (`binary_mask_policy` and `mask_conversion` are `E_FORBIDDEN_FIELD`, §4.7). The numerical method
-stays in the brick that owns it.
+stays in the brick that owns it. There is no such conversion for a `parent_labels` mask (§4.5b).
 
 ### 4.6 Immutable IDs
 
@@ -660,6 +732,7 @@ for NFC only (phase 4) before it is resolved (phase 5).
 | 5 | `E_RGB_UNIT_CHANNELS` | A unit with `image_type = "rgb"` whose `channels` is not exactly `["R", "G", "B"]` (§4.4b) |
 | 5 | `E_RGB_TOKEN_MISUSE` | A unit without `image_type = "rgb"` lists a channel whose case-folded ID is `r`, `g` or `b` (§4.4b) |
 | 5 | `E_RGB_ALIAS` | A channel whose case-folded ID is `r`, `g` or `b` has non-empty `header_names` (§4.4b) |
+| 5 | `E_RGB_OVERRIDE_WITHOUT_RGB` | A unit declares `rgb_header_override` without `image_type = "rgb"` (§4.4b, RH1) |
 | 5 | `E_DISPLAY_NAME_COLLISION` | Two display names of one kind equal after NFC and case folding (§4.8) |
 | 5 | `E_USED_ID_MISSING` | A declared condition, channel, repeat or technical repeat ID is not in `used_ids` (§4.9) |
 | 5 | `E_SOURCE_FOLDER_REUSED` | One `source_folder` on two condition IDs, or on two technical repeat IDs (§4.6a) |
@@ -686,6 +759,15 @@ validation: a reader MUST NOT try to interpret fields of a version it does not s
   The supported set is a constant of the reader (in v1: `{1}`). It is checked without network
   access, against nothing fetched. A missing version is `E_SCHEMA_VERSION_MISSING` and is never
   mapped to a default version.
+- **Amendment of v1 (owner decision PL1, 11 November 2026).** Adding the value `parent_labels`
+  to `representation` (§4.5b) is an amendment of version 1, not a new version: every file valid
+  before it stays valid with the same meaning, and a reader pinned to an earlier Spec commit
+  refuses the new value as `E_ENUM`, never misreads it. A reader states which rules it implements
+  by the Spec commit it pins (conformance plan §1).
+- **Amendment of v1 (owner decision RH1, 13 November 2026).** Adding the optional unit key
+  `rgb_header_override` (§4.4b) is an amendment of version 1, not a new version: every file valid
+  before it stays valid with the same meaning (the key is absent there, which means `false`), and a
+  reader pinned to an earlier Spec commit refuses the key as unknown, never misreads it.
 - A migration between versions MUST be an explicit, recorded operation that writes a new file and
   never changes canonical identities silently.
 - **Repeat, condition, technical repeat and channel IDs are immutable** (§4.6) and never reused
@@ -729,17 +811,20 @@ Required preprocessing refusals (`R_*`):
 | `R_UNIT_NOT_FOUND` | A declared imaging unit has no included image |
 | `R_UNIT_NOT_DECLARED` | A discovered imaging unit is not in the file (reconciliation draft required) |
 | `R_CHANNEL_COUNT_MISMATCH` | An image's channel count differs from its unit's list length |
-| `R_UNIT_NOT_HOMOGENEOUS` | FOVs of one unit differ in channel count, image type, interpreted axes or header names at one C index; the message names FOV, path and C index |
+| `R_UNIT_NOT_HOMOGENEOUS` | FOVs of one unit differ in channel count, image type (the effective type after a valid header override, §4.4b), interpreted axes or header names at one C index; the message names FOV, path and C index |
 | `R_HEADER_CONTRADICTION` | A header name at C*i* is not, after NFC of both sides and with no trimming (§4.3), in the confirmed `header_names` of the unit's channel at *i* |
-| `R_IMAGE_TYPE_CONTRADICTS_HEADER` | A unit's declared image type (`rgb` or absent, §4.4b) contradicts the image header metadata, in either direction; pixels are never examined |
+| `R_IMAGE_TYPE_CONTRADICTS_HEADER` | A unit's declared image type (`rgb` or absent, §4.4b) contradicts the image header metadata, in either direction, and is not an accepted `rgb_header_override` (RH1); pixels are never examined; for a unit declared `rgb` the message names `rgb_header_override` when its images have three interleaved samples |
+| `R_RGB_OVERRIDE_NOT_THREE_SAMPLES` | A unit declares `rgb_header_override = true` and one of its images does not have exactly three interleaved samples per pixel (§4.4b, RH1); pixels are never examined |
 | `R_HETEROGENEOUS_LAYOUT_NOT_ENABLED` | Stage 1–2 only: the units do not all have the same ordered list; names the units; lifted at Stage 3 |
 | `R_MASK_TYPE_NOT_DECLARED` | A discovered mask type has no `masks` entry |
 | `R_MASK_TYPE_NAME_INVALID` | A discovered mask type name breaks the Label rules (for example `NA`, ` cells`), so it cannot be a `source_type`; refused at discovery (AQ11) |
-| `R_MASK_CONTRADICTS_REPRESENTATION` | A mask declared `binary` holds more than two distinct values; raised by the mask step on each new batch, not at publication (§4.5a) |
+| `R_MASK_CONTRADICTS_REPRESENTATION` | A file of a mask declared `binary` is stored as floats, or holds, over all its planes, two or more distinct positive values or a negative value (a `binary` file is integer or boolean and holds values in {0, v} for one v > 0; all-zero and all-foreground files are accepted, §4.5); raised by the mask step on each new batch, not at publication (§4.5a) |
 
 Within one unit, `R_UNIT_NOT_HOMOGENEOUS` is reported first and replaces
 `R_CHANNEL_COUNT_MISMATCH` and `R_HEADER_CONTRADICTION` for that unit: intra-unit discrepancies
-are detected before channel identity is checked.
+are detected before channel identity is checked. In a unit that declares `rgb_header_override = true`,
+`R_RGB_OVERRIDE_NOT_THREE_SAMPLES` is reported before `R_UNIT_NOT_HOMOGENEOUS`: it names the image
+that breaks the override's condition (owner answer of 14 November 2026).
 
 Undetectable by any layer: identical-shape, unnamed images with physically swapped fluorophores.
 Representative previews and explicit confirmation are the guard; image-based checks are advisory.
@@ -750,7 +835,7 @@ separate code for "no image has it" (owner decision SI1); the refusal names the 
 the images that lack it, as "present in k of n acquisitions" (`k` may be 0); refuse unless the user
 selects and records an eligible subset; never drop FOVs, impute, re-weight technical repeats or
 change biological N);
-`A_MASK_NOT_INSTANCES` (a `binary` mask requested as an object set without the explicit recorded per-request conversion of §4.5c); `A_MASK_UNCHECKED` (a run uses a mask file whose representation check is `not yet checked`, §4.5a); `A_RGB_NOT_SUPPORTED` (a request on a described run includes the channels of an RGB unit, §4.4b, for a brick whose manifest does not declare `rgb_support = true`, or that does not declare it at all); `A_DRAFT_REFUSED` (§10: `RunInputs` given a draft or an unconfirmed file). Each biological repeat is
+`A_MASK_NOT_INSTANCES` (a `binary` mask requested as an object set without the explicit recorded per-request conversion of §4.5c, or a `parent_labels` mask requested as an object set, with or without `parent_labels_support`, §4.5b); `A_MASK_UNCHECKED` (a run uses a mask file whose representation check is `not yet checked`, §4.5a); `A_RGB_NOT_SUPPORTED` (a request on a described run includes the channels of an RGB unit, §4.4b, for a brick whose manifest does not declare `rgb_support = true`, or that does not declare it at all); `A_DRAFT_REFUSED` (§10: `RunInputs` given a draft or an unconfirmed file). Each biological repeat is
 classified **fully represented**, **partially represented** or **unavailable** per request and
 recorded in the run manifest. Consumers resolve channels by canonical ID per unit, never by C
 index alone, and group by canonical repeat ID (`repeat_group`, §3.4) while keeping the source label
@@ -817,7 +902,8 @@ silently; edits go to a separate draft and are published atomically after valida
 
 - **N35 reopening.** The confirmation of a repeat is reopened (draft `confirmed = false`) only when
   channels, layout or grouping change: a new or removed unit or member, a unit's ordered channel
-  list, or the pairing of folders into repeats. New FOVs (or removed ones) inside an existing unit
+  list, its `image_type` or its `rgb_header_override` (added, removed or changed; §4.4b), or the
+  pairing of folders into repeats. New FOVs (or removed ones) inside an existing unit
   whose confirmed layout still holds do **not** reopen it; they are reported and recorded. A
   changed `image_count` of a confirmed member is recorded as an
   `image_count_changed` record (§4.6) whether or not anything else changes in the same

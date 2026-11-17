@@ -29,7 +29,7 @@ their section.
   fixtures that do not exercise the rule it equals the ID (the key), `single` for `single`;
   `v33`, `v34` and `t10`-`t12` separate the two. The eight undecodable
   or unparsable phase-1 fixtures (`i01`-`i08`) are unchanged and fail before it matters.
-- `transitions/` holds thirteen files that are valid alone and are checked against a named published
+- `transitions/` holds fifteen files that are valid alone and are checked against a named published
   predecessor: refused with an exact set of publication codes (`R_CONFIRMED_ID_CHANGED`,
   `R_USED_ID_REUSED`, `R_USED_ID_DROPPED`, `R_CONFIRMED_ON_CHANGED`; experiment-v1 §4.4a, §4.6,
   §4.9; a changed or reassigned `source_folder` counts, §4.6a) or, for `t06`, **accepted** (adding members is not a changed entity, §4.6). They need the
@@ -46,6 +46,14 @@ their section.
   consumer audit (roadmap S0.1) is done (PR #5); its questions are answered by the third round of
   owner decisions (ADR 0001) and the fixtures `v28`-`v32`, `t06`-`t09`, `i100`-`i119` follow from
   them; the fourth round (FR1, FR2) adds `v33`, `v34`, `t10`-`t12` and `i120`-`i127`.
+- **Parent-label masks (11 November 2026, owner decision PL1, supersedes AQ8).** `i111` was
+  invalid (`E_ENUM`) and is now valid: following the renumbering of `rv07`/`rv08` to `ri25`/`ri26`
+  when their verdict flipped, it moved to `valid/` as `v38` (with a `Cells` mask added), and the
+  number `i111` is not reused. PL1 adds `v39` and `i136`-`i139`.
+- **RGB header override (13 November 2026, owner decision RH1).** Adds `v40`, `i140` and `i141`; the
+  image checks (three interleaved samples, the manifest record) are scenario P36 of the conformance plan.
+  The owner's answers of 14 November 2026 (the key is part of the confirmed layout) add the transitions
+  `t14` and `t15`.
 
 ## Syntax check (6 November 2026)
 
@@ -66,10 +74,10 @@ The matrix audit ([`docs/audits/matrix-audit-2026-11-07.md`](../docs/audits/matr
 adds `v35`, `v36` and `i128`-`i130` for structures the catalogue lacked (a flat experiment, a
 biological-repeat folder named like a forbidden key, `single` rules for condition folders and
 members). The owner decisions of 7 November 2026 (ADR 0001, SQ6) add `i131`-`i133` (the
-`single` rules for conditions) and `i134` (a duplicate key inside an inline table); the owner decision of 7 November 2026 on reserved names in `used_ids` (UR1) adds `v37` and `i135`. Its audit-only validator, [`tools/audit/refval.py`](../tools/audit/refval.py)
-(`python -I tools/audit/refval.py fixtures .`), accepts 37 of 37 valid files with exactly the
-listed warnings, refuses 135 of 135 invalid files with exactly the listed code set from the listed
-phase, gives the listed `R_*` set for 12 of 12 transitions, and round-trips every valid and
+`single` rules for conditions) and `i134` (a duplicate key inside an inline table); the owner decision of 7 November 2026 on reserved names in `used_ids` (UR1) adds `v37` and `i135`; the owner decision PL1 of 11 November 2026 moves `i111` to `v38` and adds `v39` and `i136`-`i139`. Its audit-only validator, [`tools/audit/refval.py`](../tools/audit/refval.py)
+(`python -I tools/audit/refval.py fixtures .`), accepts 40 of 40 valid files with exactly the
+listed warnings, refuses 140 of 140 invalid files with exactly the listed code set from the listed
+phase, gives the listed `R_*` set for 15 of 15 transitions, and round-trips every valid and
 transition file through the canonical writer. It is an audit tool, not a reader: the conformance
 plan's single reference reader stays preprocessing.
 
@@ -152,12 +160,14 @@ This is a check of the fixtures against the text, not a conformance claim for an
 | Swapped channel order | `v04`, `v06` |
 | Extra / missing channel | `v05`, `v17` (both Stage 3 / G3, GS2: P04 refuses their layouts at Stages 1-2), `v22`, `i69` |
 | Within-unit divergence | `i20`; P01, P02 |
-| Instance vs binary masks | `v07`, `v08`, `i42`, `i43`, `i111`, `i112`; P05, P27, P28 |
+| Instance vs binary masks | `v07`, `v08`, `i42`, `i43`, `i112`; P05, P27, P28 |
+| Parent-label (grouped) masks | `v38`, `v39`, `i136`-`i139`; conformance §4 "Parent labels" |
 | Partial masks | `v09` |
 | Immutable IDs (no renames) | `v16`, `i75`, `i82`, `t01`, `t02`; P08, P16 |
 | Adding is not a change; removing or reassigning is | `t03`, `t06`, `t07`, `t08`; P07, P15 |
 | Case-only correction needs a new ID; set of publication codes | `t02`, `t09`, `i95`; P16 |
 | RGB images (declared type, fixed tokens, no aliases) | `v28`, `v29`, `i100`-`i106`, `i119`; P13, P23, P24 |
+| RGB header override (RH1) | `v40`, `i140`, `i141`, `t14`, `t15`; P36 |
 | Reserved names (one list for channel and mask IDs; also for `used_ids.channels`) | `i59`, `i61`, `i107`-`i109`, `i135`, `v32`, `v37` |
 | Forbidden names apply to ID keys | `i113`-`i115` |
 | Folder labels never restricted: condition and technical-repeat IDs separate from `source_folder` | `v33`, `v34`, `i113`, `i115`, `i120`-`i127`, `t10`-`t12`; P32, P33 |
@@ -207,8 +217,9 @@ This is a check of the fixtures against the text, not a conformance claim for an
 | UR1 | The reserved list also applies to `used_ids.channels` entries (they reserve those IDs) | `i135`, `v37` |
 | AQ5 | Canonical repeat ID added as `repeat_group`; the FOV key keeps the source label | `v03`, `v30`; P25 |
 | AQ6 | RGB accepted as a declared type (`image_type = "rgb"`, tokens `R`, `G`, `B`); supersedes D8 | `v28`, `v29`, `i100`-`i106`, `i119`; P13, P23, P24 |
+| RH1 | A unit declared `rgb` may set `rgb_header_override = true`: a contradicting header is accepted for exactly three interleaved samples, recorded | `v40`, `i140`, `i141`, `t14`, `t15`; P36 |
 | AQ7 | No trimming: header names exact after NFC of both sides | `v31`, `i110`; P26 |
-| AQ8 | `parent_labels` masks out of scope in v1 | `i111` |
+| AQ8 | `parent_labels` masks out of scope in v1. **Superseded 11 November 2026** by PL1 | none (`i111` retired: it is now `v38`) |
 | AQ9 | Binary-as-instances only by an explicit, per-request, recorded conversion | `v08`, `i112`; P27 |
 | AQ10 | Mask representation checked in the mask step; publication records "not yet checked"; unchecked masks refuse | `v09`; P05, P28 |
 | AQ11 | A discovered mask type breaking the Label rules: `R_MASK_TYPE_NAME_INVALID` | P29 |
@@ -225,8 +236,9 @@ This is a check of the fixtures against the text, not a conformance claim for an
 | RF4 | Empty records file accepted; BOM and CR before LF refused; lower-case SHA hex | `rv06`, `ri13`, `ri24`, `ri26`, `ri31` |
 | RF5 | `technical_repeats` not empty; `old_image_count` differs from `new_image_count` | `ri28`, `ri29` |
 | RF6 | Line order within one publication stated; checked by writer tests, not by the file | P34, P35 |
+| PL1 | `representation = "parent_labels"` is a v1 value (amendment, not a new version): one group per non-zero value, pieces may be disconnected, never instances, never split; a brick reads the groups only by declaring `parent_labels_support`, any other brick uses it as a recorded area in the role `region`; no parent-mask field | `v38` (was `i111`), `v39`, `i136`-`i139`; conformance §4 "Parent labels" |
 
-## Valid fixtures (37)
+## Valid fixtures (40)
 
 | Fixture | Source | Expected | Homogeneous | Case |
 |---|---|---|---|---|
@@ -267,6 +279,9 @@ This is a check of the fixtures against the text, not a conformance claim for an
 | [`v35_flat_experiment`](valid/v35_flat_experiment.toml) | Matrix audit 2026-11-07, case F01 | pass | yes | The experiment folder is itself the leaf: condition, repeat and technical repeat are all `single`. The condition `single` has `source_folder = "single"` ("no condition folder level", 4.2, 3.2) and is the only condition (owner decision SQ6, matrix audit MS-1). |
 | [`v36_repeat_folder_forbidden_name`](valid/v36_repeat_folder_forbidden_name.toml) | Matrix audit 2026-11-07, case F16 | pass | yes | Biological-repeat folders `z` paired into repeat `R1`; `source_repeat` is never restricted. The folder label `z` is not an allowed repeat ID (`i130`), so no ID is proposed and the user names `R1` (4.6a; owner decision SQ6, matrix audit MS-2). |
 | [`v37_used_ids_reserved_near_misses`](valid/v37_used_ids_reserved_near_misses.toml) | Owner decision UR1 (Spec issue 11) | pass | yes | `v32` with the retired channel IDs `Ringer` and `label2` listed in `used_ids.channels`: names next to the reserved list are valid there too (experiment-v1 4.9). |
+| [`v38_parent_labels_mask`](valid/v38_parent_labels_mask.toml) | Owner decision PL1 (supersedes AQ8; was `i111`) | pass | yes | A `parent_labels` mask `Mito` beside an `instances` mask `Cells`: each non-zero value of `Mito` is one group (the mitochondria of one cell) in any number of pieces; 0 is background. Not an object set (`A_MASK_NOT_INSTANCES`), never split or relabelled; as a region, a brick without `parent_labels_support` reads it as an area with the recorded marker `parent_labels_as_area` (conformance §4 "Parent labels"). No field names the grouping mask (experiment-v1 4.5b). |
+| [`v39_parent_labels_only`](valid/v39_parent_labels_only.toml) | Owner decision PL1 | pass | yes | A `parent_labels` mask with no other mask in the file: the description never names the mask whose objects the values refer to; a consumer that reads a value as a parent's label names that parent in its own request (experiment-v1 4.5b). |
+| [`v40_rgb_header_override`](valid/v40_rgb_header_override.toml) | Owner decision RH1 | pass | yes | The CTRL units declare `rgb_header_override = true` beside `image_type = "rgb"` (scanner files whose TIFF header says MINISBLACK with three interleaved samples); the DrugA units do not. The key changes no channel ID; whether a header is overridden is checked against the images (P36), never by this file. |
 
 ## Expected outputs (3)
 
@@ -279,7 +294,7 @@ named valid file by the stated rules; `tools/audit/refval.py` compares them.
 | [`v33_condition_folder_on_forbidden_list.experiment_design.csv`](expected/v33_condition_folder_on_forbidden_list.experiment_design.csv) | `valid/v33` | `condition` holds the folder label `control`, never the ID `ctrl`; `DrugA` sorts before `control` (code point order). |
 | [`v34_technical_repeat_folder_on_forbidden_list.experiment_design.csv`](expected/v34_technical_repeat_folder_on_forbidden_list.experiment_design.csv) | `valid/v34` | Two technical repeats (folders `files`, `overrides`) give `technical_repeat_count` 2; `rep2` has only `single`, so 0. |
 
-## Transition fixtures (13)
+## Transition fixtures (15)
 
 Valid alone; checked against the named published predecessor (refused with the listed set, or accepted).
 
@@ -298,8 +313,10 @@ Valid alone; checked against the named published predecessor (refused with the l
 | [`t11_technical_repeat_id_changed_same_folder`](transitions/t11_technical_repeat_id_changed_same_folder.toml) | `valid/v34` | R_CONFIRMED_ID_CHANGED (against predecessor valid/v34, without a recorded re-confirmation) | The folder `files` was confirmed as technical repeat `acq1` in v34 and now carries the ID `acqA` in both members. A confirmed technical repeat ID never changes in place (experiment-v1 4.6, 4.6a). `acq1` stays listed in used_ids. Valid alone. |
 | [`t12_condition_folder_reassigned`](transitions/t12_condition_folder_reassigned.toml) | `valid/v33` | R_CONFIRMED_ID_CHANGED (against predecessor valid/v33, without a recorded confirmation) | The ID `ctrl` held the folder `control` in v33 and now holds the folder `ctl` (a folder renamed on disk and attached to the same ID without a recorded confirmation). A folder change for an existing ID is a reassignment, so a changed entity (experiment-v1 4.6, 7). Valid alone. |
 | [`t13_confirmed_on_with_image_count_only`](transitions/t13_confirmed_on_with_image_count_only.toml) | `valid/v01` | `R_CONFIRMED_ON_CHANGED` (N35 not reopened) | Against v01 only CTRL/rep1 `image_count` (12 to 17, new FOVs) and rep1 `confirmed_on` (2026-11-07) change: new FOVs do not reopen the confirmation (experiment-v1 10), so the new date is refused. |
+| [`t14_rgb_header_override_added`](transitions/t14_rgb_header_override_added.toml) | `valid/v28` | no R_* code: accepted (against predecessor valid/v28, N35 reopened) | Against v28 the CTRL units of rep1 and rep2 gain `rgb_header_override = true`. The key is part of the confirmed layout (experiment-v1 10, RH1 answer of 14 November 2026), so both repeats are reopened and re-confirmed on 2026-11-07: the changed `confirmed_on` is not R_CONFIRMED_ON_CHANGED. |
+| [`t15_rgb_header_override_other_repeat_dated`](transitions/t15_rgb_header_override_other_repeat_dated.toml) | `valid/v28` | `R_CONFIRMED_ON_CHANGED` (rep2 not reopened) | Against v28 only rep1's CTRL unit gains `rgb_header_override = true` (rep1 reopened, re-confirmed on 2026-11-07); rep2's layout is unchanged, so its new `confirmed_on` (2026-11-07) is refused. |
 
-## Invalid fixtures (135)
+## Invalid fixtures (140)
 
 | Fixture | Source | Expected code(s) | Phase | Case |
 |---|---|---|---|---|
@@ -413,7 +430,6 @@ Valid alone; checked against the named published predecessor (refused with the l
 | [`i108_channel_id_reserved_casefold`](invalid/i108_channel_id_reserved_casefold.toml) | Owner decision AQ4 | `E_ID_RESERVED` | 4 | Channel ID `T`: reserved names are compared case-folded, so `T` is the reserved `t`. |
 | [`i109_mask_id_reserved_column`](invalid/i109_mask_id_reserved_column.toml) | Owner decision AQ4 | `E_ID_RESERVED` | 4 | Mask ID `patch_id`, a MorphoRelate reserved column name: one reserved list for channel and mask IDs. |
 | [`i110_header_names_duplicate_after_nfc`](invalid/i110_header_names_duplicate_after_nfc.toml) | Owner decision AQ7 | `E_DUPLICATE_VALUE` | 5 | `header_names` = ["Caf\u00e9", "Cafe\u0301"]: header names are compared after NFC, so these are the same alias twice. |
-| [`i111_mask_representation_parent_labels`](invalid/i111_mask_representation_parent_labels.toml) | Owner decision AQ8 | `E_ENUM` | 3 | `representation = "parent_labels"` (MorphoRelate's grouped masks): out of scope in v1. |
 | [`i112_mask_conversion_field_forbidden`](invalid/i112_mask_conversion_field_forbidden.toml) | Owner decision AQ9 | `E_FORBIDDEN_FIELD` | 3 | `binary_mask_policy = "connected_components"` in a mask table: a binary-to-instances conversion is a per-request, recorded choice of the analysis request, never part of the file. |
 | [`i113_forbidden_name_condition_key`](invalid/i113_forbidden_name_condition_key.toml) | Owner decision AQ13a | `E_FORBIDDEN_FIELD` | 3 | A condition ID `control`: forbidden names apply to ID keys as well as fields (reported at the condition and at its member keys). The folder `control` itself is describable under another ID (`v33`); only the key is refused. |
 | [`i114_forbidden_name_channel_key`](invalid/i114_forbidden_name_channel_key.toml) | Owner decision AQ13a | `E_FORBIDDEN_FIELD` | 3 | A channel ID `files`: a forbidden name used as a channel key. |
@@ -438,6 +454,12 @@ Valid alone; checked against the named published predecessor (refused with the l
 | [`i133_condition_single_not_alone`](invalid/i133_condition_single_not_alone.toml) | Owner decision SQ6, matrix audit MS-1 | `E_SINGLE_MISUSE` | 4 | The condition `single` (no condition folder level) next to the condition DrugA: it must be the only condition (experiment-v1 3.2). |
 | [`i134_duplicate_key_inline_table`](invalid/i134_duplicate_key_inline_table.toml) | Stage 1 design PR 0, experiment-v1 2.2 | `E_DUPLICATE_KEY` | 1 | `display_name` written twice inside the inline table of the channel DNA: a key declared twice in any spelling, inline tables included, is `E_DUPLICATE_KEY`, not `E_TOML_SYNTAX` (experiment-v1 2.2). |
 | [`i135_used_id_channel_reserved`](invalid/i135_used_id_channel_reserved.toml) | Owner decision UR1 (Spec issue 11) | `E_ID_RESERVED` | 4 | The retired channel ID `Nucleus` in `used_ids.channels`: a listed ID reserves the ID, so it follows the reserved list of 3.2 (case-folded) like a declared channel ID (experiment-v1 4.9). |
+| [`i136_representation_grouped`](invalid/i136_representation_grouped.toml) | Owner decision PL1 | `E_ENUM` | 3 | `representation = "grouped"`: `grouped` is the mask step's suggested kind (evidence), not a representation; the value is `parent_labels`. |
+| [`i137_representation_parent_labels_case`](invalid/i137_representation_parent_labels_case.toml) | Owner decision PL1 | `E_ENUM` | 3 | `representation = "Parent_Labels"`: the enumeration is exact and lower case, never case-folded. |
+| [`i138_mask_grouped_by_field`](invalid/i138_mask_grouped_by_field.toml) | Owner decision PL1 | `E_UNKNOWN_FIELD` | 3 | A `parent_labels` mask naming its grouping mask (`grouped_by = "Nuclei"`): v1 has no relationship field; the parent is named by the consumer's request (experiment-v1 4.5b). |
+| [`i139_parent_labels_support_in_file`](invalid/i139_parent_labels_support_in_file.toml) | Owner decision PL1 | `E_UNKNOWN_FIELD` | 3 | `parent_labels_support = true` at the top level: support is a capability the receiving brick declares (experiment-v1 4.5b), never a statement of the description. |
+| [`i140_rgb_override_without_rgb`](invalid/i140_rgb_override_without_rgb.toml) | Owner decision RH1 | `E_RGB_OVERRIDE_WITHOUT_RGB` | 5 | A unit without `image_type` declares `rgb_header_override = true`: the override exists only for units declared `rgb` (experiment-v1 4.4b). |
+| [`i141_rgb_override_not_boolean`](invalid/i141_rgb_override_not_boolean.toml) | Owner decision RH1 | `E_TYPE` | 3 | `rgb_header_override = "true"`: a string is never read as a boolean. |
 
 ## Records fixtures (37)
 

@@ -8,6 +8,7 @@ in-memory values keep their sign, and only zeros are touched.
 """
 
 import csv
+import io
 import itertools
 import math
 
@@ -22,7 +23,7 @@ from morphobricks_normalization import (
     read_plane_histograms,
     write_plane_histograms,
 )
-from morphobricks_normalization.float_text import canonical_zero, float_text
+from morphobricks_normalization.float_text import canonical_zero, float_text, positive_zero
 from morphobricks_normalization.histogram import HistogramTail, PlaneHistogram
 from morphobricks_normalization.normalization import percentile_name
 from morphobricks_normalization.summaries import ImageSummary
@@ -124,8 +125,16 @@ def test_parameter_columns_write_0_0():
     assert type(parameters).from_columns(columns, settings) == parameters
 
 
-def test_summary_rows_hold_0_0():
-    summary = ImageSummary(
+SUMMARY_VALUE_COLUMNS = (
+    "Intensity_MedianIntensity_DNA",
+    "Intensity_LowPercentile_DNA",
+    "Intensity_HighPercentile_DNA",
+    "Intensity_SaturatedFraction_DNA",
+)
+
+
+def _summary(median, p_low, p_high, saturated):
+    return ImageSummary(
         source_relative_path="c/b/t/i.tif",
         condition="c",
         biological_repeat="b",
@@ -133,22 +142,49 @@ def test_summary_rows_hold_0_0():
         dtype=np.dtype(np.float32),
         percentile=(1.0, 99.8),
         channels=("DNA",),
-        median=(-0.0,),
-        p_low=(-0.0,),
-        p_high=(-0.0,),
-        saturated_fraction=(None,),
+        median=(median,),
+        p_low=(p_low,),
+        p_high=(p_high,),
+        saturated_fraction=(saturated,),
         exact=(True,),
     )
-    row = summary.to_row()
-    for column in (
-        "Intensity_MedianIntensity_DNA",
-        "Intensity_LowPercentile_DNA",
-        "Intensity_HighPercentile_DNA",
-    ):
-        assert row[column] == 0.0 and math.copysign(1.0, row[column]) == 1.0
+
+
+def _written(row):
+    out = io.StringIO()
+    writer = csv.DictWriter(out, fieldnames=list(row))
+    writer.writerow(row)
+    return out.getvalue()
+
+
+@pytest.mark.parametrize("zero", [-0.0, np.float64(-0.0), np.float32(-0.0), 0.0, np.float32(0.0)])
+def test_summary_rows_hold_0_0(zero):
+    row = _summary(zero, zero, zero, None).to_row()
+    for column in SUMMARY_VALUE_COLUMNS[:3]:
+        assert type(row[column]) is float and math.copysign(1.0, row[column]) == 1.0
         assert str(row[column]) == "0.0"
     assert row["Intensity_SaturatedFraction_DNA"] is None
     assert row["Histogram_Exact_DNA"] is True
+
+
+def test_summary_rows_keep_every_other_value_as_given():
+    # Review of #110: only zeros change; other values keep their type and written text, so a
+    # row of caller-built values writes the bytes it wrote on v0.7.0 (values passed through).
+    values = (np.float32(0.1), 5, np.float64(0.25), 0.5)
+    row = _summary(*values).to_row()
+    for column, value in zip(SUMMARY_VALUE_COLUMNS, values, strict=True):
+        assert row[column] is value
+    old = dict(row, **dict(zip(SUMMARY_VALUE_COLUMNS, values, strict=True)))
+    assert _written(row) == _written(old)
+    assert "0.1,5,0.25,0.5" in _written(row)
+
+
+def test_positive_zero_changes_only_float_zeros():
+    for value in (0, 5, True, False, None, "0", np.int64(0), np.float32(0.1), math.nan, -math.inf):
+        assert positive_zero(value) is value
+    for zero in (-0.0, 0.0, np.float32(-0.0), np.float64(-0.0), np.float16(-0.0)):
+        result = positive_zero(zero)
+        assert type(result) is float and math.copysign(1.0, result) == 1.0
 
 
 def test_percentile_name_keeps_writing_zero_as_0():

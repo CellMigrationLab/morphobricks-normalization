@@ -10,12 +10,16 @@ Signed zero is written as `0.0` (#105; owner decision 17 November 2026, plan N71
 change for written text only: no computed value, algorithm, API, schema version or message
 changes.
 
-- **Every float the package writes goes through one helper**, the new module `float_text`
-  (`canonical_zero`, `float_text`): the float cells of `plane_histograms.csv`
+- **Every float the package writes goes through one module**, the new `float_text`
+  (`canonical_zero`, `float_text`, `positive_zero`): the float cells of `plane_histograms.csv`
   (`Intensity_Min/MaxIntensity`, `Histogram_BinningMin/Max`, the underflow and overflow means
   and standard deviations), the `Normalization_Offset/Scale_<ID>` columns of
-  `Parameters.to_columns()`, the float values of `ImageSummary.to_row()` and the percentiles of
-  `percentile_name` (which already wrote `-0.0` as `0`; now through the same helper). A float
+  `Parameters.to_columns()` and the percentiles of `percentile_name` (which already wrote
+  `-0.0` as `0`; now through the same helper).
+- **Values handed to a caller who writes them change only at zero** (`positive_zero`): in
+  `ImageSummary.to_row()` a float zero of either sign, Python or NumPy, becomes the Python
+  float `0.0`; every other value is returned as given, with its type and text (an `int` stays
+  an `int`, a `np.float32(0.1)` still writes `0.1`), as in v0.7.0. A float
   plane holding both `-0.0` and `+0.0` has a `pixel_min` or `pixel_max` of either zero
   depending on NumPy's `min`/`max`, the element order and the platform; the same pixels now
   write the same bytes everywhere. `x + 0.0` changes no float but `-0.0`; NaN and the

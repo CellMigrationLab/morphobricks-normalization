@@ -32,7 +32,7 @@ import numpy as np
 from .channels import check_channel_ids
 from .csv_io import channel_column
 from .dtypes import is_integer
-from .float_text import canonical_zero
+from .float_text import positive_zero
 from .pooling import NoValidPixelsError, PooledHistogram
 from .records import PlaneRecord, duplicate_planes, same_channels_per_image
 from .settings import DEFAULT_PERCENTILE
@@ -156,15 +156,10 @@ class ImageSummary:
         }
         for k, channel in enumerate(self.channels):
             values = (
-                *(
-                    None if value is None else canonical_zero(value)
-                    for value in (
-                        self.median[k],
-                        self.p_low[k],
-                        self.p_high[k],
-                        self.saturated_fraction[k],
-                    )
-                ),
+                positive_zero(self.median[k]),
+                positive_zero(self.p_low[k]),
+                positive_zero(self.p_high[k]),
+                positive_zero(self.saturated_fraction[k]),
                 self.exact[k],
             )
             for feature, value in zip(SUMMARY_FEATURES, values, strict=True):

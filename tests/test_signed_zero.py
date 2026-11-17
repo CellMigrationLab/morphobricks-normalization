@@ -189,3 +189,46 @@ def test_positive_zero_changes_only_float_zeros():
 
 def test_percentile_name_keeps_writing_zero_as_0():
     assert percentile_name(-0.0, 99.8) == percentile_name(0.0, 99.8) == "percentile 0-99.8"
+
+
+def _with_limits(convert, low, high):
+    base = compute_plane_histogram(np.array([[low, high]], dtype=np.float32), 2)
+    return PlaneHistogram(
+        dtype=base.dtype,
+        bin_count=base.bin_count,
+        binning_min=convert(base.binning_min),
+        binning_max=convert(base.binning_max),
+        counts=base.counts,
+        total_pixel_count=base.total_pixel_count,
+        valid_pixel_count=base.valid_pixel_count,
+        pixel_min=convert(base.pixel_min),
+        pixel_max=convert(base.pixel_max),
+    )
+
+
+@pytest.mark.parametrize("convert", [np.float32, np.float64])
+def test_numpy_negative_zero_limits_write_0_0(tmp_path, convert):
+    # Review of #110: a PlaneHistogram built with NumPy float limits, not by compute_*.
+    histogram = _with_limits(convert, -0.0, 1.0)
+    assert type(histogram.pixel_min) is convert
+    assert math.copysign(1.0, histogram.pixel_min) == -1.0
+    path = write_plane_histograms([_record(histogram)], tmp_path / "t.csv", channel_ids=["DNA"])
+    (row,) = _rows(path)
+    assert [row[column] for column in FLOAT_COLUMNS] == ["0.0", "1.0", "0.0", "1.0"]
+    assert "-0.0" not in path.read_text(encoding="utf-8")
+
+
+def test_numpy_non_zero_limits_write_readable_text(tmp_path):
+    # np.float64 limits were written as np.float64(0.25) before, which no reader can read;
+    # they are now written as the Python float's repr. np.float32 limits keep their str text.
+    written = {}
+    for convert in (np.float64, np.float32):
+        path = tmp_path / f"{convert.__name__}.csv"
+        write_plane_histograms(
+            [_record(_with_limits(convert, 0.25, 1.5))], path, channel_ids=["DNA"]
+        )
+        (row,) = _rows(path)
+        written[convert] = [row[column] for column in FLOAT_COLUMNS]
+        (back,) = read_plane_histograms(path)
+        assert (back.histograms[0].pixel_min, back.histograms[0].pixel_max) == (0.25, 1.5)
+    assert written[np.float64] == written[np.float32] == ["0.25", "1.5", "0.25", "1.5"]

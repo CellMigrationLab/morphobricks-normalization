@@ -19,7 +19,12 @@ changes.
 - **Values handed to a caller who writes them change only at zero** (`positive_zero`): in
   `ImageSummary.to_row()` a float zero of either sign, Python or NumPy, becomes the Python
   float `0.0`; every other value is returned as given, with its type and text (an `int` stays
-  an `int`, a `np.float32(0.1)` still writes `0.1`), as in v0.7.0. A float
+  an `int`, a `np.float32(0.1)` still writes `0.1`), as in v0.7.0.
+- **NumPy float limits of a caller-built `PlaneHistogram`** (`compute_*` always gives Python
+  numbers): a NumPy float zero of either sign is now written `0.0` too. Side fix: `np.float64`
+  limits were written as `np.float64(0.25)`, which the reader refuses; they are now written as
+  the Python float's `repr` (`0.25`) and read back. `np.float32` and integer limits are written
+  as before (`str`). A float
   plane holding both `-0.0` and `+0.0` has a `pixel_min` or `pixel_max` of either zero
   depending on NumPy's `min`/`max`, the element order and the platform; the same pixels now
   write the same bytes everywhere. `x + 0.0` changes no float but `-0.0`; NaN and the

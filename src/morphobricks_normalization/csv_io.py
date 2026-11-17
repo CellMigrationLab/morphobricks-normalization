@@ -44,7 +44,7 @@ import numpy as np
 
 from .channels import check_channel_ids
 from .dtypes import bit_depth, check_supported, is_integer
-from .float_text import float_text
+from .float_text import float_text, positive_zero
 from .histogram import EMPTY_TAIL, HistogramTail, PlaneHistogram
 from .records import (
     ChannelMeasurementError,
@@ -583,8 +583,12 @@ def _earlier_version_message(path: str | Path, version: str) -> str:
 
 
 def _text(value: object) -> str:
+    # A float zero of either sign, Python or NumPy, is written 0.0 (#105). Other Python and
+    # np.float64 values are written as repr of the Python float (np.float64's own repr would be
+    # np.float64(...)); other NumPy scalars and integers as str, as before.
     if value is None:
         return ""
+    value = positive_zero(value)
     if isinstance(value, float):
         return float_text(value)
     return str(value)

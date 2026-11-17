@@ -1,0 +1,69 @@
+# Fixture i140_rgb_override_without_rgb
+# Expected: E_RGB_OVERRIDE_WITHOUT_RGB
+# Source: Owner decision RH1
+# A unit of an ordinary channel image (no `image_type`) declares `rgb_header_override = true`: the override exists only for units declared `rgb`.
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+display_name = "Control"
+
+[conditions.DrugA]
+source_folder = "DrugA"
+display_name = "Drug A"
+reference = "CTRL"
+
+[channels.DAPI]
+display_name = "DAPI"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DAPI"]
+rgb_header_override = true
+
+[repeats.rep1.members.DrugA]
+source_repeat = "rep1"
+image_count = 8
+
+[repeats.rep1.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DAPI"]
+
+[repeats.rep2]
+confirmed = true
+confirmed_on = "2026-11-06"
+
+[repeats.rep2.members.CTRL]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DAPI"]
+
+[repeats.rep2.members.DrugA]
+source_repeat = "rep2"
+image_count = 8
+
+[repeats.rep2.members.DrugA.technical_repeats.single]
+source_folder = "single"
+channels = ["DAPI"]
+
+[masks.Nuclei]
+source_type = "nuclei"
+representation = "instances"
+
+[used_ids]
+conditions = ["CTRL", "DrugA"]
+channels = ["DAPI"]
+repeats = ["rep1", "rep2"]
+technical_repeats = ["single"]

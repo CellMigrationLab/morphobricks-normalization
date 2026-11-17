@@ -4,6 +4,17 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
+## Unreleased
+
+- Tests: the vendored Spec test material (`tests/spec_fixtures`) is re-pinned from `cc9820f` to
+  MorphoBricks-Spec main `1167108`, regenerated with the Spec's `tools/vendor.py`. New fixtures
+  i136–i141, t14–t15, v39–v40; i111 is now the valid fixture v38 (`parent_labels`, owner
+  decision PL1); `docs/experiment-v1.md` (amendments PL1, RH1 `rgb_header_override`, BM11) and
+  `tools/audit/refval.py` changed. The copy equals the Spec at `bf68d30`, the pin of
+  morphobricks-preprocessing v0.7.0. Test material only: no library code, output, API, message or
+  `schema_version` changes (the library reads no experiment description; `tools/dump_outputs.py`
+  digests are unchanged).
+
 ## v0.7.1 (2026-11-17)
 
 Patch release (#104, #105, #108): the per-bin work of integer planes is 1.3–1.5× faster, signed

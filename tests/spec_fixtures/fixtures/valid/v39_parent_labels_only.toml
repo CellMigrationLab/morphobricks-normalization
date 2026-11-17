@@ -1,0 +1,39 @@
+# Fixture v39_parent_labels_only
+# Expected: PASS
+# Source: Owner decision PL1
+# A `parent_labels` mask with no other mask in the file: the description never names the mask whose objects the values refer to; a consumer that reads a value as a parent's label names that parent in its own request (experiment-v1 4.5b).
+schema = "morphobricks-experiment"
+schema_version = 1
+
+[conditions.CTRL]
+source_folder = "CTRL"
+
+[channels.DNA]
+display_name = "DAPI"
+
+[channels.RNA]
+display_name = "SYTO 14"
+
+[repeats.rep1]
+confirmed = true
+confirmed_on = "2026-11-11"
+
+[repeats.rep1.members.CTRL]
+source_repeat = "rep1"
+image_count = 9
+
+[repeats.rep1.members.CTRL.technical_repeats.single]
+source_folder = "single"
+channels = ["DNA", "RNA"]
+
+[masks.Nucleoli]
+source_type = "nucleoli"
+representation = "parent_labels"
+source_channels = ["RNA"]
+display_name = "Nucleoli by nucleus"
+
+[used_ids]
+conditions = ["CTRL"]
+channels = ["DNA", "RNA"]
+repeats = ["rep1"]
+technical_repeats = ["single"]

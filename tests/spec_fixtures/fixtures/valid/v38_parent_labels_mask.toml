@@ -1,7 +1,7 @@
-# Fixture i111_mask_representation_parent_labels
-# Expected: E_ENUM
-# Source: Owner decision AQ8
-# `representation = "parent_labels"` (MorphoRelate's grouped masks): out of scope in v1.
+# Fixture v38_parent_labels_mask
+# Expected: PASS
+# Source: Owner decision PL1 (supersedes AQ8; was invalid/i111)
+# A `parent_labels` mask beside an `instances` mask: each non-zero value of `Mito` is one group (the mitochondria of one cell), in any number of pieces. No field names the grouping mask (experiment-v1 4.5b).
 schema = "morphobricks-experiment"
 schema_version = 1
 
@@ -21,6 +21,9 @@ header_names = ["DAPI"]
 [channels.ACTIN]
 display_name = "F-actin"
 
+[channels.MITO]
+display_name = "MitoTracker"
+
 [repeats.rep1]
 confirmed = true
 confirmed_on = "2026-11-06"
@@ -31,7 +34,7 @@ image_count = 12
 
 [repeats.rep1.members.CTRL.technical_repeats.single]
 source_folder = "single"
-channels = ["DNA", "ACTIN"]
+channels = ["DNA", "ACTIN", "MITO"]
 
 [repeats.rep1.members.DrugA]
 source_repeat = "rep1"
@@ -39,15 +42,20 @@ image_count = 10
 
 [repeats.rep1.members.DrugA.technical_repeats.single]
 source_folder = "single"
-channels = ["DNA", "ACTIN"]
+channels = ["DNA", "ACTIN", "MITO"]
 
-[masks.Nuclei]
-source_type = "nuclei"
+[masks.Cells]
+source_type = "cells"
+representation = "instances"
+source_channels = ["ACTIN"]
+
+[masks.Mito]
+source_type = "mito"
 representation = "parent_labels"
-source_channels = ["DNA"]
+source_channels = ["MITO"]
 
 [used_ids]
 conditions = ["CTRL", "DrugA"]
-channels = ["ACTIN", "DNA"]
+channels = ["ACTIN", "DNA", "MITO"]
 repeats = ["rep1"]
 technical_repeats = ["single"]

@@ -50,10 +50,10 @@ COND = ("source_folder", "display_name", "reference", "target", "treatment_key")
 CHAN = ("display_name", "header_names")
 REP = ("display_name", "confirmed", "confirmed_on", "members")
 MEM = ("source_repeat", "image_count", "technical_repeats")
-UNIT = ("source_folder", "display_name", "channels", "image_type")
+UNIT = ("source_folder", "display_name", "channels", "image_type", "rgb_header_override")
 MASK = ("source_type", "representation", "source_channels", "display_name")
 USED = ("conditions", "channels", "repeats", "technical_repeats")
-REPRESENTATIONS = ("instances", "binary")
+REPRESENTATIONS = ("instances", "binary", "parent_labels")  # parent_labels: owner decision PL1
 
 
 class Report:
@@ -270,6 +270,8 @@ def phase3(doc: dict, r: Report) -> None:
                         r.e("E_TYPE", up + ".image_type", v)
                     elif v != "rgb":
                         r.e("E_ENUM", up + ".image_type", v)
+                if "rgb_header_override" in u and not isinstance(u["rgb_header_override"], bool):
+                    r.e("E_TYPE", up + ".rgb_header_override", u["rgb_header_override"])  # RH1
     for mid, mk in _id_table(doc, "masks", "", r, required=False, min1=False):
         p = kpath("masks", mid)
         _fields(mk, MASK, p, r)
@@ -442,6 +444,8 @@ def phase5(doc: dict, r: Report) -> None:
             if ch in seen:
                 r.e("E_DUPLICATE_CHANNEL_IN_UNIT", f"{up}.channels[{i}]", ch)
             seen.add(ch)
+        if "rgb_header_override" in u and u.get("image_type") != "rgb":
+            r.e("E_RGB_OVERRIDE_WITHOUT_RGB", up + ".rgb_header_override", u["rgb_header_override"])  # RH1
         if u.get("image_type") == "rgb":
             if u["channels"] != ["R", "G", "B"]:
                 r.e("E_RGB_UNIT_CHANNELS", up + ".channels", u["channels"])

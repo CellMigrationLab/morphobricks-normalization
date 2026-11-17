@@ -12,6 +12,41 @@ API (contract §3.6). No API, file-format or message change; the package still i
 only. Consumers on v0.7.0 can re-pin without code changes; only the recorded `library_version`
 (settings, range-check and intensity-check provenance) reads `0.7.1`.
 
+Signed zero is written as `0.0` (#105; owner decision 17 November 2026, plan N71). Behaviour
+change for written text only: no computed value, algorithm, API, schema version or message
+changes.
+
+- **Every float the package writes goes through one module**, the new `float_text`
+  (`canonical_zero`, `float_text`, `positive_zero`): the float cells of `plane_histograms.csv`
+  (`Intensity_Min/MaxIntensity`, `Histogram_BinningMin/Max`, the underflow and overflow means
+  and standard deviations), the `Normalization_Offset/Scale_<ID>` columns of
+  `Parameters.to_columns()` and the percentiles of `percentile_name` (which already wrote
+  `-0.0` as `0`; now through the same helper).
+- **Values handed to a caller who writes them change only at zero** (`positive_zero`): in
+  `ImageSummary.to_row()` and in the run-configuration dictionaries
+  `NormalizationSettings.to_dict()` (`percentile`), `HistogramSettings.to_dict()`
+  (`robust_quantiles`) and `IntensityCheckSettings.to_dict()` (`saturation_limit`), a float zero
+  of either sign, Python or NumPy, becomes the Python float `0.0`; every other value is returned
+  as given, with its type and text (an `int` stays an `int`, a `np.float32(0.1)` still writes
+  `0.1`), as in v0.7.0.
+- **NumPy float limits of a caller-built `PlaneHistogram`** (`compute_*` always gives Python
+  numbers): a NumPy float zero of either sign is now written `0.0` too. Side fix: `np.float64`
+  limits were written as `np.float64(0.25)`, which the reader refuses; they are now written as
+  the Python float's `repr` (`0.25`) and read back. `np.float32` and integer limits are written
+  as before (`str`). A float
+  plane holding both `-0.0` and `+0.0` has a `pixel_min` or `pixel_max` of either zero
+  depending on NumPy's `min`/`max`, the element order and the platform; the same pixels now
+  write the same bytes everywhere. `x + 0.0` changes no float but `-0.0`; NaN and the
+  infinities are written as before. The in-memory `PlaneHistogram`, `Parameters` and
+  `ImageSummary` values keep their sign.
+- **Files that change**: only those that held `-0.0`, now `0.0` in the same cells (they read
+  back as an equal float). No recorded golden or parity table of this repository holds a
+  `-0.0`, and `tools/dump_outputs.py` (default and `--corpus`) gives the same digests as
+  before (`032b395b…` and `0111f8bd…`).
+- **Tests**: `tests/test_signed_zero.py`, which fails on v0.7.0 for every writer path, including
+  planes mixing signed zeros in every order of `[-0.0, 0.0, -0.0, 0.0]` and three mixed ones,
+  each written in three orders to the same bytes.
+
 Speed only (MorphoBricks preprocessing speed plan, step D6; measured in preprocessing draft PR
 #318, `experiments/histogram_numba_study/`): every output is bitwise that of v0.7.0. No new
 dependency (NumPy only, no Numba), no API, file format or message change.

@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ._version import __version__
+from .float_text import positive_zero
 from .issues import BIOLOGICAL_REPEAT_SCOPE, WARNING, Issue
 from .normalization import NORMAL_CONSISTENCY, percentile_name
 
@@ -170,14 +171,17 @@ class NormalizationSettings:
         return _METHOD_NAMES[self.method]
 
     def to_dict(self) -> dict[str, Any]:
-        """JSON-compatible settings for the run configuration, without options that do not apply."""
+        """JSON-compatible settings for the run configuration, without options that do not apply.
+
+        A percentile of ``-0.0`` is written ``0.0`` (#105).
+        """
         data: dict[str, Any] = {
             "library_version": __version__,
             "image_type": self.image_type,
             "method": self.method,
         }
         if self.method == "percentile":
-            data["percentile"] = list(self.percentile)
+            data["percentile"] = [positive_zero(value) for value in self.percentile]
         if self.method == "robust_zscore":
             data["consistency"] = self.consistency
         data["scope"] = self.scope

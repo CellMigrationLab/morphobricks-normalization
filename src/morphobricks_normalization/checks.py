@@ -38,6 +38,7 @@ from typing import Any
 import numpy as np
 
 from ._version import __version__
+from .float_text import positive_zero
 from .issues import (
     CHANNEL_WITHOUT_FINITE_PIXELS,
     IMAGE_INTENSITY_OUTLIER,
@@ -133,11 +134,11 @@ class IntensityCheckSettings:
         object.__setattr__(self, "min_images", int(min_images))
 
     def to_dict(self) -> dict[str, Any]:
-        """JSON-compatible limits, for the calling brick's run configuration."""
+        """JSON-compatible limits, for the calling brick's run configuration (``-0.0`` as 0.0)."""
         return {
             "library_version": __version__,
             "outlier_limit": self.outlier_limit,
-            "saturation_limit": self.saturation_limit,
+            "saturation_limit": positive_zero(self.saturation_limit),
             "min_images": self.min_images,
         }
 

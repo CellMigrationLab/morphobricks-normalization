@@ -988,8 +988,8 @@ Every MorphoBricks table with values per channel puts the channels in columns, n
   does not have is blank there, never zero.
 
 Common format: UTF-8, comma-separated, one header row, rows in a deterministic order, floats
-written at full precision (Python `repr`), blanks for missing values, written to a temporary
-file and replaced only once writing succeeded.
+written at full precision (Python `repr`), `-0.0` written as `0.0` (N71, #105), blanks for
+missing values, written to a temporary file and replaced only once writing succeeded.
 
 ### 6.2 `plane_histograms.csv` (schema version 5)
 
@@ -1070,8 +1070,9 @@ types (`IncompatibleSummariesError`, a `ValueError`). An `ImageSummary` whose pe
 have different lengths is refused when made, and `intensity_checks` refuses summaries with
 different numbers of channels or different percentile definitions, with the same error.
 `ImageSummary.to_row()` gives the columns below as a dictionary, in this order (numbers as
-floats, a blank as `None`, `Histogram_Exact_<ID>` as a bool; a channel the image does not
-have is not in the row and is blank in a table), and `summary_columns(channel_ids)` the names
+floats, `-0.0` as `0.0` (N71), a blank as `None`, `Histogram_Exact_<ID>` as a bool; a
+channel the image does not have is not in the row and is blank in a table), and
+`summary_columns(channel_ids)` the names
 for the experiment's channel IDs, so the calling brick can show the rows as a table or write them; the
 library writes no file (N50). The columns are the shared columns `source_relative_path`,
 `condition`, `biological_repeat`, `technical_repeat`, `image_file`, and for each channel ID
@@ -1154,7 +1155,8 @@ selects a channel; one rule for every table was chosen over an RGB exception.
 
 ### 8.2 Formatting
 
-- Numbers at full precision (Python `repr` of the float), read back unchanged.
+- Numbers at full precision (Python `repr` of the float), read back unchanged; `-0.0` is
+  written as `0.0` (N71, #105).
 - `from_columns` reads only the `Normalization_Offset_<ID>` and `Normalization_Scale_<ID>`
   columns (N47, token by HV2), taking every `<ID>` that follows the Token rule, once
   `normalization_parameters_version` is `2`. A column of the version-4 naming,

@@ -23,6 +23,7 @@ from typing import Any
 import numpy as np
 
 from .channels import CHANNEL_ID_PATTERN, check_channel_ids
+from .float_text import float_text
 from .issues import Issue
 from .parameter_checks import check_offset_scale, check_scope
 from .rgb import RGB_CHANNELS, apply_rgb, check_rgb_channels, check_rgb_selection
@@ -247,7 +248,7 @@ class Parameters:
         return [self.channels.index(channel) for channel in ids]
 
     def to_columns(self) -> dict[str, str]:
-        """Return the columns of contract §8.1 as text, numbers in full.
+        """Return the columns of contract §8.1 as text, numbers in full (``-0.0`` as ``0.0``).
 
         The five ``normalization_*`` columns (the last the columns' version, ``2``),
         then ``Normalization_Offset_<ID>``
@@ -263,8 +264,8 @@ class Parameters:
             VERSION_COLUMN: str(PARAMETERS_VERSION),
         }
         for channel, offset, scale in zip(self.channels, self.offset, self.scale, strict=True):
-            columns[offset_column(channel)] = repr(offset)
-            columns[scale_column(channel)] = repr(scale)
+            columns[offset_column(channel)] = float_text(offset)
+            columns[scale_column(channel)] = float_text(scale)
         return columns
 
     @classmethod

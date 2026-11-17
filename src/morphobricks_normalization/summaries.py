@@ -32,6 +32,7 @@ import numpy as np
 from .channels import check_channel_ids
 from .csv_io import channel_column
 from .dtypes import is_integer
+from .float_text import positive_zero
 from .pooling import NoValidPixelsError, PooledHistogram
 from .records import PlaneRecord, duplicate_planes, same_channels_per_image
 from .settings import DEFAULT_PERCENTILE
@@ -140,10 +141,10 @@ class ImageSummary:
 
         The shared columns as text, then for each channel of the image, in sorted ID
         order, the median, low and high percentiles and saturated fraction as floats
-        (None for a blank) and ``Histogram_Exact_<ID>`` as a bool (None for a channel
-        without finite pixels). Channels the image does not have are not in the row; a
-        table of the experiment (:func:`summary_columns`) leaves them blank, for
-        example ``csv.DictWriter(..., restval="")``. A list of rows can be passed to
+        (None for a blank; ``-0.0`` as ``0.0``, #105) and ``Histogram_Exact_<ID>`` as a
+        bool (None for a channel without finite pixels). Channels the image does not have
+        are not in the row; a table of the experiment (:func:`summary_columns`) leaves them
+        blank, for example ``csv.DictWriter(..., restval="")``. A list of rows can be passed to
         ``pandas.DataFrame`` or ``csv.DictWriter``.
         """
         row: dict[str, Any] = {
@@ -155,10 +156,10 @@ class ImageSummary:
         }
         for k, channel in enumerate(self.channels):
             values = (
-                self.median[k],
-                self.p_low[k],
-                self.p_high[k],
-                self.saturated_fraction[k],
+                positive_zero(self.median[k]),
+                positive_zero(self.p_low[k]),
+                positive_zero(self.p_high[k]),
+                positive_zero(self.saturated_fraction[k]),
                 self.exact[k],
             )
             for feature, value in zip(SUMMARY_FEATURES, values, strict=True):

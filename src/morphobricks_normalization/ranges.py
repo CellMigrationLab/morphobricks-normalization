@@ -30,6 +30,7 @@ import numpy as np
 
 from ._version import __version__
 from .channels import check_channel_id
+from .float_text import positive_zero
 from .issues import NARROW_HISTOGRAM_RANGE, WARNING, Issue
 
 HISTOGRAM_RANGES = ("minmax", "robust")
@@ -109,11 +110,11 @@ class HistogramSettings:
         return self.histogram_range == "robust"
 
     def to_dict(self) -> dict[str, Any]:
-        """JSON-compatible settings, for the run configuration."""
+        """JSON-compatible settings, for the run configuration (``-0.0`` as ``0.0``, #105)."""
         return {
             "library_version": __version__,
             "histogram_range": self.histogram_range,
-            "robust_quantiles": list(self.robust_quantiles),
+            "robust_quantiles": [positive_zero(value) for value in self.robust_quantiles],
             "min_central_bins": self.min_central_bins,
         }
 

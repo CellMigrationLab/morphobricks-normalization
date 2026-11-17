@@ -24,6 +24,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .float_text import canonical_zero
 from .parameter_checks import check_offset_scale
 from .pooling import PooledHistogram
 
@@ -142,7 +143,7 @@ def percentile_name(low: float, high: float) -> str:
 
 def _exact_decimal(value: float) -> str:
     """Shortest positional decimal that round-trips to ``value`` (``-0.0`` as ``0``)."""
-    return np.format_float_positional(float(value) + 0.0, unique=True, trim="-")
+    return np.format_float_positional(canonical_zero(value), unique=True, trim="-")
 
 
 def z_score(pooled: PooledHistogram) -> NormalizationParameters:

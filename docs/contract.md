@@ -1069,12 +1069,13 @@ histograms). Each summary holds the channels of its image by ID (`ImageSummary.c
 types (`IncompatibleSummariesError`, a `ValueError`). An `ImageSummary` whose per-channel tuples
 have different lengths is refused when made, and `intensity_checks` refuses summaries with
 different numbers of channels or different percentile definitions, with the same error.
-`ImageSummary.to_row()` gives the columns below as a dictionary, in this order (numbers as
-floats, `-0.0` as `0.0` (N71), a blank as `None`, `Histogram_Exact_<ID>` as a bool; a
-channel the image does not have is not in the row and is blank in a table), and
-`summary_columns(channel_ids)` the names
-for the experiment's channel IDs, so the calling brick can show the rows as a table or write them; the
-library writes no file (N50). The columns are the shared columns `source_relative_path`,
+`ImageSummary.to_row()` gives the columns below as a dictionary, in this order (each number
+as the summary holds it: floats from `image_summaries`, and a value a caller gave keeps its
+type; only a float zero of either sign is replaced by `0.0`, N71; a blank as `None`,
+`Histogram_Exact_<ID>` as a bool; a channel the image does not have is not in the row and is
+blank in a table), and `summary_columns(channel_ids)` the names for the experiment's channel
+IDs, so the calling brick can show the rows as a table or write them; the library writes no
+file (N50). The columns are the shared columns `source_relative_path`,
 `condition`, `biological_repeat`, `technical_repeat`, `image_file`, and for each channel ID
 (§6.1):
 

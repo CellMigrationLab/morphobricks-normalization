@@ -4,7 +4,13 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
-## Unreleased
+## v0.7.1 (2026-11-17)
+
+Patch release (#104, #108): the per-bin work of integer planes is 1.3–1.5× faster with every
+output bitwise that of v0.7.0, and three existing optical-density helpers are documented as stable
+API (contract §3.6). No API, file-format or message change; the package still imports with NumPy
+only. Consumers on v0.7.0 can re-pin without code changes; only the recorded `library_version`
+(settings, range-check and intensity-check provenance) reads `0.7.1`.
 
 Speed only (MorphoBricks preprocessing speed plan, step D6; measured in preprocessing draft PR
 #318, `experiments/histogram_numba_study/`): every output is bitwise that of v0.7.0. No new

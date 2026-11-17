@@ -44,7 +44,8 @@ Pre-alpha; the latest release is v0.7.1. The library offers:
   (contract §3.5);
 - since v0.7.1, the optical-density helpers `optical_density.optical_density`,
   `optical_density.check_white` and `scalar_inputs.rgb_yxc` are stable API (contract §3.6), and
-  the per-bin work of integer planes runs in NumPy int64 (same outputs, 1.3–1.5× faster).
+  the per-bin work of integer planes runs in NumPy int64 (same outputs, 1.3–1.5× faster);
+  every written float writes `-0.0` as `0.0` (#105).
 
 Release notes and migration notes are in [CHANGELOG.md](CHANGELOG.md).
 

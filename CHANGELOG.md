@@ -6,6 +6,13 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
 
 ## Unreleased
 
+- **Brightness of a time series** (plan N72, contract §3.7): new module `time_series` with
+  `frame_means`, `brightness_trend`, `equalise_brightness`, `match_histograms` and
+  `TimeSeriesError`, moved from the OpticalFlow3D Profiler (`brightness.py`) at the owner's
+  request. Time is the first axis; corrections are against a reference time point the caller
+  chooses and return new float64 arrays. Additive: no existing output, API, message, column or
+  `schema_version` changes; the package still imports with NumPy only.
+
 - Tests: the vendored Spec test material (`tests/spec_fixtures`) is re-pinned from `cc9820f` to
   MorphoBricks-Spec main `1167108`, regenerated with the Spec's `tools/vendor.py`. New fixtures
   i136–i141, t14–t15, v39–v40; i111 is now the valid fixture v38 (`parent_labels`, owner

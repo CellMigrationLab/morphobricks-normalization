@@ -613,6 +613,13 @@ binary masks", accepted; decisions BM3, BM7, BM8 and BM10, step 1 of its impleme
     platform and `+0.0` on another writes the same bytes. The computed values keep their sign;
     only what is written changes, and it reads back as an equal float. Not a format change:
     `0.0 == -0.0`, so no `schema_version` changes (contract §6.1, §8.2).
+66. **N72** (23 November 2026, owner's request) The brightness of a time series moves here from
+    the OpticalFlow3D Profiler (its `brightness.py`): `time_series.frame_means`,
+    `brightness_trend`, `equalise_brightness` and `match_histograms`, time first, against a
+    reference time point the caller chooses (contract §3.7). They are opt-in corrections for
+    methods that assume constant brightness across time; nothing else in the library calls
+    them, and no file format, column or existing output changes. The formulas are the
+    profiler's, unchanged, so its results stay bit-identical.
 
 Implementation choices of S3.2 where the Spec leaves the detail open (open questions 1-7 of
 pull request #90), each taken on the side the Spec states or the safer one, and listed in that

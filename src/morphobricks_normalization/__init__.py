@@ -67,6 +67,13 @@ from .summaries import (
     iter_image_summaries,
     summary_columns,
 )
+from .time_series import (
+    TimeSeriesError,
+    brightness_trend,
+    equalise_brightness,
+    frame_means,
+    match_histograms,
+)
 
 __all__ = [
     "OUTPUT_FILENAME",
@@ -93,10 +100,12 @@ __all__ = [
     "PooledHistogram",
     "PooledStatistics",
     "RangeCheck",
+    "TimeSeriesError",
     "UnsupportedDtypeError",
     "WeightedHistogram",
     "__version__",
     "apply_rgb",
+    "brightness_trend",
     "check_channel_id",
     "check_channel_ids",
     "check_measurements",
@@ -104,7 +113,9 @@ __all__ = [
     "compute_block_histogram",
     "compute_plane_histogram",
     "default_bin_count",
+    "equalise_brightness",
     "fit",
+    "frame_means",
     "group_key",
     "group_name",
     "group_records",
@@ -113,6 +124,7 @@ __all__ = [
     "iter_image_summaries",
     "intensity_checks",
     "make_plane_id",
+    "match_histograms",
     "min_max",
     "percentile_range",
     "pooled_statistics",

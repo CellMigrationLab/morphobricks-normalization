@@ -21,6 +21,9 @@ out of scope for now.
 | Fluorescence | min-max, percentile range (default 1–99.8), z-score, robust z-score, each channel separately |
 | RGB | StarDist's percentile normalization (1–99.8), the three colour channels together |
 
+Time series (opt-in): the brightness trend of a time series, and its correction by mean
+equalisation or histogram matching against a reference time point (contract §3.7).
+
 | Scope | Parameters from |
 |---|---|
 | Biological repeat | One biological repeat across all conditions, technical repeats merged |

@@ -25,6 +25,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 1.5 and 6. Channels by canonical channel ID (`plane_histograms.csv` schema version 5); per-channel columns of 7.1 and 8.1 by ID | Stage 3 S3.2 ([ADR 0003](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0003-plane-histograms-v5.md); v0.5.0) |
 | 3.5 Regions (`check_region`, `RegionEstimate`) and the resolver-version refusal | [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md) step 1 (plan N70; v0.7.0) |
 | 3.6 Stable optical-density helpers (`check_white`, `optical_density`, `rgb_yxc`) | Documented as stable API for preprocessing's H&E tissue mask (P2; no code change; v0.7.1) |
+| 3.7 Brightness of a time series (`time_series`) | Moved from the OpticalFlow3D Profiler (plan N72; unreleased) |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered
@@ -872,6 +873,33 @@ float]`** returns a **pair** `(od, floored_fraction)`, never the array alone; ca
 - Refusals: **none of its own.** It does not check its arguments; its preconditions are the
   outputs of `rgb_yxc` and `check_white`, and a consumer always passes its inputs through them
   first (as `stain.py` does). Other inputs are outside this contract.
+
+### 3.7 Brightness of a time series (`time_series.py`, plan N72)
+
+Functions for methods that assume constant brightness across time (optical flow, for
+example), moved from the OpticalFlow3D Profiler. Time is the **first axis** of
+every array; the other axes (`ZYX`, `YX`) are pooled. Integer and floating-point pixels are
+accepted; a non-finite pixel, an array without a time axis or pixels, or a non-numeric type is
+refused with `TimeSeriesError` (a `ValueError`) naming the problem. The input is never
+modified.
+
+```python
+means = frame_means(stack)  # float64, one mean per time point
+trend = brightness_trend(means, reference)  # relative change per time point
+scaled, factors = equalise_brightness(stack, reference)
+matched = match_histograms(stack, reference)
+```
+
+| Function | Rule |
+|---|---|
+| `frame_means` | `mean(stack[t])` over every axis but time, in float64. |
+| `brightness_trend` | `slope / means[reference]`, the least-squares slope of the means against the time index `0..T-1` (`numpy.polyfit`, degree 1), divided by the reference mean. NaN when the reference mean is not above 0 or `T = 1`. A check: it changes nothing. |
+| `equalise_brightness` | `stack[t] * factor[t]` in float64 with `factor[t] = means[reference] / means[t]` (the reference's factor is exactly 1): Fiji Bleach Correction's "Simple Ratio" without a background. Returns the scaled series and the factors. Refuses a time point whose mean is not above 0, naming it. A constant camera offset is scaled too. |
+| `match_histograms` | For every `t` but the reference, `p' = interp(F_t(p), F_ref, v_ref)`: `F_t` the empirical cumulative distribution of time point `t` at each of its distinct values, `v_ref` the reference's distinct values and `F_ref` their cumulative distribution, with NumPy's linear interpolation: Fiji Bleach Correction's "Histogram Matching". Float64; the reference time point is returned unchanged. Monotonic, non-linear. |
+| `reference` | A whole-number index `0 <= reference < T` (a boolean or a float is refused, never converted). The caller chooses it; the profiler uses the central frame of each optical-flow window. |
+
+These are opt-in corrections: no function here is called by `fit`, `apply` or any other
+method, and no file format or column changes.
 
 ## 4. Scopes, groups and weights
 

@@ -6,11 +6,17 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
 
 ## v0.8.0 (2026-11-23)
 
-Minor release (#111, #113, #114): a new module `time_series` for the brightness of a time
+Minor release (#111, #113, #114, #115): a new module `time_series` for the brightness of a time
 series (contract §3.7), moved from the OpticalFlow3D Profiler. Additive: every existing output,
 API, message, column and `schema_version` is unchanged, and the package still imports with NumPy
 only. Consumers on v0.7.1 can re-pin without code changes; the recorded `library_version`
 (settings, range-check and intensity-check provenance) reads `0.8.0`.
+
+- `time_series.equalise_brightness` refuses a positive mean ratio that rounds to 0 in float64
+  (`[[1e-200], [1e200]]` with reference 0 returned a black second time point), and checks
+  finiteness one time point at a time instead of over the whole result (the boolean array of a
+  7 × 11 × 1840 × 1840 window was about 261 MB). Finite results are unchanged, bit for bit
+  (OpticalFlow3D Profiler re-validation R5).
 
 - `time_series.equalise_brightness` refuses a factor or scaled value that overflows float64
   (for example a time point whose mean is many orders of magnitude below the reference's)

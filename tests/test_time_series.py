@@ -49,6 +49,12 @@ def test_equalise_brightness_matches_every_mean_to_the_reference():
         equalise_brightness(np.zeros((3, 4, 4)), 1)
     with pytest.raises(TimeSeriesError, match="float64 cannot hold"):
         equalise_brightness(np.array([[5e-324], [1.0]]), 1)  # factor overflows to infinity
+    with pytest.raises(TimeSeriesError, match="float64 cannot hold"):
+        # 1e-200 / 1e200 rounds to 0: the second time point would be erased (re-validation R5).
+        equalise_brightness(np.array([[1e-200], [1e200]]), 0)
+    floats = rng.uniform(1, 1e4, (4, 3, 5))  # float input: the same products as broadcasting
+    scaled, factors = equalise_brightness(floats, 2)
+    assert np.array_equal(scaled, floats * factors[:, None, None])
 
 
 def test_match_histograms_gives_every_time_point_the_reference_distribution():

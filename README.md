@@ -32,7 +32,7 @@ equalisation or histogram matching against a reference time point (contract §3.
 
 ## Status
 
-Pre-alpha; the latest release is v0.7.1. The library offers:
+Pre-alpha; the latest release is v0.8.0. The library offers:
 
 - supported pixel types, bin counts and per-plane histograms (`dtypes`, `histogram`), with a robust range and a range check;
 - plane records, `plane_histograms.csv` reading and writing and pooling of group statistics (`records`, `csv_io`, `pooling`): schema version 5 since v0.5.0, with channels named by canonical channel ID (ADR 0003; version 4 tables are refused, see the CHANGELOG migration notes);
@@ -48,7 +48,10 @@ Pre-alpha; the latest release is v0.7.1. The library offers:
 - since v0.7.1, the optical-density helpers `optical_density.optical_density`,
   `optical_density.check_white` and `scalar_inputs.rgb_yxc` are stable API (contract §3.6), and
   the per-bin work of integer planes runs in NumPy int64 (same outputs, 1.3–1.5× faster);
-  every written float writes `-0.0` as `0.0` (#105).
+  every written float writes `-0.0` as `0.0` (#105);
+- since v0.8.0, the brightness of a time series (`time_series`: `frame_means`,
+  `brightness_trend` and the opt-in corrections `equalise_brightness` and `match_histograms`;
+  contract §3.7).
 
 Release notes and migration notes are in [CHANGELOG.md](CHANGELOG.md).
 
@@ -70,7 +73,7 @@ for key, rows in groups.items():
 ## Installation
 
 ```bash
-pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.7.1"
+pip install "git+https://github.com/CellMigrationLab/morphobricks-normalization.git@v0.8.0"
 ```
 
 For development, from a clone:

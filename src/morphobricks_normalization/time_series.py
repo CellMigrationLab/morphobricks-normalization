@@ -130,11 +130,14 @@ def equalise_brightness(stack: np.ndarray, reference: int) -> tuple[np.ndarray, 
     ------
     TimeSeriesError
         For an invalid series or reference, a time point whose mean is not above 0 (it
-        cannot be scaled to a positive mean), or a factor or scaled value that is not finite
-        (float64 overflow): never returned as infinite pixels.
+        cannot be scaled to a positive mean), a factor float64 cannot hold (an infinite
+        factor, or a positive ratio rounded to 0, which would erase the time point), or a
+        scaled value that is not finite (float64 overflow): never returned as infinite or
+        erased pixels. Finiteness is checked one time point at a time, so no array larger
+        than one time point is allocated besides the result.
     """
     means = frame_means(stack)
-    _checked(np.asarray(stack), reference)
+    stack = _checked(np.asarray(stack), reference)
     low = np.flatnonzero(~(means > 0))
     if low.size:
         raise TimeSeriesError(
@@ -142,19 +145,22 @@ def equalise_brightness(stack: np.ndarray, reference: int) -> tuple[np.ndarray, 
             "so they cannot be scaled to the reference's mean; use histogram matching or no "
             "correction."
         )
-    with np.errstate(over="ignore"):
+    with np.errstate(over="ignore", under="ignore"):
         factors = means[reference] / means
-        factors[reference] = 1.0
-        shape = (len(factors),) + (1,) * (np.ndim(stack) - 1)
-        scaled = np.asarray(stack, dtype=np.float64) * factors.reshape(shape)
-    bad = np.flatnonzero(
-        ~np.isfinite(factors) | ~np.isfinite(scaled).reshape(len(factors), -1).all(axis=1)
-    )
+    factors[reference] = 1.0
+    bad = np.flatnonzero(~np.isfinite(factors) | ~(factors > 0))
+    scaled = np.empty(stack.shape, dtype=np.float64)
+    if not bad.size:
+        with np.errstate(over="ignore"):
+            for t, factor in enumerate(factors):
+                np.multiply(stack[t], factor, out=scaled[t], dtype=np.float64)
+                if not np.isfinite(scaled[t]).all():
+                    bad = np.append(bad, t)
     if bad.size:
         raise TimeSeriesError(
-            f"Scaling time point(s) {', '.join(map(str, bad))} to the reference's mean gives "
-            "values float64 cannot hold (a mean far below the reference's); use histogram "
-            "matching or no correction."
+            f"Scaling time point(s) {', '.join(map(str, bad))} to the reference's mean needs a "
+            "factor or gives values float64 cannot hold (a mean many orders of magnitude from "
+            "the reference's); use histogram matching or no correction."
         )
     return scaled, factors
 

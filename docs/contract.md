@@ -884,8 +884,8 @@ refused with `TimeSeriesError` (a `ValueError`) naming the problem. The input is
 modified.
 
 ```python
-means = frame_means(stack)                           # float64, one mean per time point
-trend = brightness_trend(means, reference)           # relative change per time point
+means = frame_means(stack)  # float64, one mean per time point
+trend = brightness_trend(means, reference)  # relative change per time point
 scaled, factors = equalise_brightness(stack, reference)
 matched = match_histograms(stack, reference)
 ```

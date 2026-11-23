@@ -6,6 +6,11 @@ The decisions are in [docs/plan.md](docs/plan.md) §12.
 
 ## Unreleased
 
+- `time_series.equalise_brightness` refuses a factor or scaled value that overflows float64
+  (for example a time point whose mean is many orders of magnitude below the reference's)
+  instead of returning infinite pixels (`TimeSeriesError`, contract §3.7). Values that were
+  finite are unchanged.
+
 - **Brightness of a time series** (plan N72, contract §3.7): new module `time_series` with
   `frame_means`, `brightness_trend`, `equalise_brightness`, `match_histograms` and
   `TimeSeriesError`, moved from the OpticalFlow3D Profiler (`brightness.py`) at the owner's

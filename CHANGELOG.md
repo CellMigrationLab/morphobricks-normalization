@@ -4,7 +4,13 @@ Release notes and migration notes of `morphobricks-normalization`. Numbers are p
 issues of [CellMigrationLab/morphobricks-normalization](https://github.com/CellMigrationLab/morphobricks-normalization).
 The decisions are in [docs/plan.md](docs/plan.md) §12.
 
-## Unreleased
+## v0.8.0 (2026-11-23)
+
+Minor release (#111, #113, #114): a new module `time_series` for the brightness of a time
+series (contract §3.7), moved from the OpticalFlow3D Profiler. Additive: every existing output,
+API, message, column and `schema_version` is unchanged, and the package still imports with NumPy
+only. Consumers on v0.7.1 can re-pin without code changes; the recorded `library_version`
+(settings, range-check and intensity-check provenance) reads `0.8.0`.
 
 - `time_series.equalise_brightness` refuses a factor or scaled value that overflows float64
   (for example a time point whose mean is many orders of magnitude below the reference's)

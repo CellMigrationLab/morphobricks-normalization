@@ -25,7 +25,7 @@ with modality profiles, purpose rules, colour statistics and references is withd
 | 1.5 and 6. Channels by canonical channel ID (`plane_histograms.csv` schema version 5); per-channel columns of 7.1 and 8.1 by ID | Stage 3 S3.2 ([ADR 0003](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0003-plane-histograms-v5.md); v0.5.0) |
 | 3.5 Regions (`check_region`, `RegionEstimate`) and the resolver-version refusal | [ADR 0005](https://github.com/CellMigrationLab/MorphoBricks-Spec/blob/main/docs/adr/0005-binary-masks.md) step 1 (plan N70; v0.7.0) |
 | 3.6 Stable optical-density helpers (`check_white`, `optical_density`, `rgb_yxc`) | Documented as stable API for preprocessing's H&E tissue mask (P2; no code change; v0.7.1) |
-| 3.7 Brightness of a time series (`time_series`) | Moved from the OpticalFlow3D Profiler (plan N72; unreleased) |
+| 3.7 Brightness of a time series (`time_series`) | Moved from the OpticalFlow3D Profiler (plan N72; v0.8.0) |
 | 9. Validation | With the milestone of each check |
 
 Notation: `x` is a pixel value in source units; `n` a pixel count; channels are numbered

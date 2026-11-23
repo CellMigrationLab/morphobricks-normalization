@@ -1,0 +1,247 @@
+[
+ {
+  "dataset": "study",
+  "variant": "exact",
+  "format": "csv_dense",
+  "write_peak": 30672187,
+  "read_peak": 53330572
+ },
+ {
+  "dataset": "study",
+  "variant": "exact",
+  "format": "csv_sparse",
+  "write_peak": 624868,
+  "read_peak": 41084729
+ },
+ {
+  "dataset": "study",
+  "variant": "exact",
+  "format": "parquet_long",
+  "write_peak": 4658496,
+  "read_peak": 40866040
+ },
+ {
+  "dataset": "study",
+  "variant": "exact",
+  "format": "npz_trimmed",
+  "write_peak": 2394925,
+  "read_peak": 40829197
+ },
+ {
+  "dataset": "study",
+  "variant": "exact",
+  "format": "zarr_trimmed",
+  "write_peak": 1585618,
+  "read_peak": 40841147
+ },
+ {
+  "dataset": "study",
+  "variant": "d4096",
+  "format": "csv_dense",
+  "write_peak": 2059120,
+  "read_peak": 3710351
+ },
+ {
+  "dataset": "study",
+  "variant": "d4096",
+  "format": "csv_sparse",
+  "write_peak": 624768,
+  "read_peak": 3729003
+ },
+ {
+  "dataset": "study",
+  "variant": "d4096",
+  "format": "parquet_long",
+  "write_peak": 4658496,
+  "read_peak": 3432466
+ },
+ {
+  "dataset": "study",
+  "variant": "d4096",
+  "format": "npz_trimmed",
+  "write_peak": 2394891,
+  "read_peak": 3440799
+ },
+ {
+  "dataset": "study",
+  "variant": "d4096",
+  "format": "zarr_trimmed",
+  "write_peak": 1582602,
+  "read_peak": 3452550
+ },
+ {
+  "dataset": "cmu1",
+  "variant": "exact",
+  "format": "csv_dense",
+  "write_peak": 258865,
+  "read_peak": 281239
+ },
+ {
+  "dataset": "cmu1",
+  "variant": "exact",
+  "format": "csv_sparse",
+  "write_peak": 185086,
+  "read_peak": 208432
+ },
+ {
+  "dataset": "cmu1",
+  "variant": "exact",
+  "format": "parquet_long",
+  "write_peak": 450500,
+  "read_peak": 188131
+ },
+ {
+  "dataset": "cmu1",
+  "variant": "exact",
+  "format": "npz_trimmed",
+  "write_peak": 436626,
+  "read_peak": 251784
+ },
+ {
+  "dataset": "cmu1",
+  "variant": "exact",
+  "format": "zarr_trimmed",
+  "write_peak": 242238,
+  "read_peak": 184830
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "exact",
+  "format": "csv_dense",
+  "write_peak": 61004454,
+  "read_peak": 42197674
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "exact",
+  "format": "csv_sparse",
+  "write_peak": 1124493,
+  "read_peak": 4873452
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "exact",
+  "format": "parquet_long",
+  "write_peak": 1113168,
+  "read_peak": 4462312
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "exact",
+  "format": "npz_trimmed",
+  "write_peak": 2057652,
+  "read_peak": 5149332
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "exact",
+  "format": "zarr_trimmed",
+  "write_peak": 1752953,
+  "read_peak": 5154026
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "d4096",
+  "format": "csv_dense",
+  "write_peak": 3970228,
+  "read_peak": 2798779
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "d4096",
+  "format": "csv_sparse",
+  "write_peak": 574792,
+  "read_peak": 717811
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "d4096",
+  "format": "parquet_long",
+  "write_peak": 632381,
+  "read_peak": 411750
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "d4096",
+  "format": "npz_trimmed",
+  "write_peak": 703080,
+  "read_peak": 654183
+ },
+ {
+  "dataset": "hpmec",
+  "variant": "d4096",
+  "format": "zarr_trimmed",
+  "write_peak": 418894,
+  "read_peak": 523868
+ },
+ {
+  "dataset": "jump",
+  "variant": "exact",
+  "format": "csv_dense",
+  "write_peak": 76407223,
+  "read_peak": 84913088
+ },
+ {
+  "dataset": "jump",
+  "variant": "exact",
+  "format": "csv_sparse",
+  "write_peak": 8525685,
+  "read_peak": 67617045
+ },
+ {
+  "dataset": "jump",
+  "variant": "exact",
+  "format": "parquet_long",
+  "write_peak": 94183248,
+  "read_peak": 63111389
+ },
+ {
+  "dataset": "jump",
+  "variant": "exact",
+  "format": "npz_trimmed",
+  "write_peak": 80848112,
+  "read_peak": 87729571
+ },
+ {
+  "dataset": "jump",
+  "variant": "exact",
+  "format": "zarr_trimmed",
+  "write_peak": 90903543,
+  "read_peak": 87751644
+ },
+ {
+  "dataset": "jump",
+  "variant": "d4096",
+  "format": "csv_dense",
+  "write_peak": 4918289,
+  "read_peak": 5964212
+ },
+ {
+  "dataset": "jump",
+  "variant": "d4096",
+  "format": "csv_sparse",
+  "write_peak": 1080720,
+  "read_peak": 5412591
+ },
+ {
+  "dataset": "jump",
+  "variant": "d4096",
+  "format": "parquet_long",
+  "write_peak": 11907424,
+  "read_peak": 5105170
+ },
+ {
+  "dataset": "jump",
+  "variant": "d4096",
+  "format": "npz_trimmed",
+  "write_peak": 6897372,
+  "read_peak": 6087877
+ },
+ {
+  "dataset": "jump",
+  "variant": "d4096",
+  "format": "zarr_trimmed",
+  "write_peak": 5945602,
+  "read_peak": 6308626
+ }
+]

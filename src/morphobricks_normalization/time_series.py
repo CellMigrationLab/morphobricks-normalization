@@ -129,8 +129,9 @@ def equalise_brightness(stack: np.ndarray, reference: int) -> tuple[np.ndarray, 
     Raises
     ------
     TimeSeriesError
-        For an invalid series or reference, or a time point whose mean is not above 0 (it
-        cannot be scaled to a positive mean).
+        For an invalid series or reference, a time point whose mean is not above 0 (it
+        cannot be scaled to a positive mean), or a factor or scaled value that is not finite
+        (float64 overflow): never returned as infinite pixels.
     """
     means = frame_means(stack)
     _checked(np.asarray(stack), reference)
@@ -141,10 +142,21 @@ def equalise_brightness(stack: np.ndarray, reference: int) -> tuple[np.ndarray, 
             "so they cannot be scaled to the reference's mean; use histogram matching or no "
             "correction."
         )
-    factors = means[reference] / means
-    factors[reference] = 1.0
-    shape = (len(factors),) + (1,) * (np.ndim(stack) - 1)
-    return np.asarray(stack, dtype=np.float64) * factors.reshape(shape), factors
+    with np.errstate(over="ignore"):
+        factors = means[reference] / means
+        factors[reference] = 1.0
+        shape = (len(factors),) + (1,) * (np.ndim(stack) - 1)
+        scaled = np.asarray(stack, dtype=np.float64) * factors.reshape(shape)
+    bad = np.flatnonzero(
+        ~np.isfinite(factors) | ~np.isfinite(scaled).reshape(len(factors), -1).all(axis=1)
+    )
+    if bad.size:
+        raise TimeSeriesError(
+            f"Scaling time point(s) {', '.join(map(str, bad))} to the reference's mean gives "
+            "values float64 cannot hold (a mean far below the reference's); use histogram "
+            "matching or no correction."
+        )
+    return scaled, factors
 
 
 def match_histograms(stack: np.ndarray, reference: int) -> np.ndarray:

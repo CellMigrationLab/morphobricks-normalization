@@ -47,6 +47,8 @@ def test_equalise_brightness_matches_every_mean_to_the_reference():
     assert np.array_equal(scaled[3], STACK[3].astype(np.float64))  # the reference unchanged
     with pytest.raises(TimeSeriesError, match="not above 0"):
         equalise_brightness(np.zeros((3, 4, 4)), 1)
+    with pytest.raises(TimeSeriesError, match="float64 cannot hold"):
+        equalise_brightness(np.array([[5e-324], [1.0]]), 1)  # factor overflows to infinity
 
 
 def test_match_histograms_gives_every_time_point_the_reference_distribution():

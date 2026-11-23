@@ -74,6 +74,9 @@ src/morphobricks_normalization/
                     cross-product completion, collinearity and conditioning checks), unmixing,
                     region_white and region_vectors (RegionEstimate, N70)
                     (NumPy only; the `custom_od` presets)
+  time_series.py    brightness of a time series (time first): frame_means, brightness_trend,
+                    equalise_brightness, match_histograms against a reference time point
+                    (contract §3.7, N72; moved from the OpticalFlow3D Profiler)
   scalar_inputs.py  input checks of the presets: RGB with declared axes, single YX planes
   fitting.py        fit, by channel ID
   parameters.py     Parameters (apply, select, to_columns, from_columns with
